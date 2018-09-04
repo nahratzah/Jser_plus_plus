@@ -67,6 +67,33 @@ using parameter_type_for = param_convert_<G>;
 template<typename G>
 using parameter_type_for_t = typename param_type_for<G>::type;
 
+
+/**
+ * \brief Figure out the return type of a generics type.
+ * \details
+ * Consider a `class MyClass<T>`, with a method `T myMethod()`.
+ * If this class is evaluated via a pointer `MyClass<? extends CharSequence>`,
+ * the method can return anything that derives from `CharSequence`.
+ *
+ * Normally, types with \ref java::G::extends_t "extends" in the name,
+ * would not be assignable to its own type, since there is no way of knowing
+ * wether the captures would equal.
+ *
+ * In order to assist with this, the type is converted, such that all
+ * \ref java::G::extends_t "extends" generics are converted to
+ * \ref java::G::is_t "is" generics.
+ * This conversion allows assignment to function properly.
+ *
+ * \tparam G a java generics type.
+ */
+template<typename G>
+using return_type_for = return_type_convert_<G>;
+
+///\copydoc return_type_for
+template<typename G>
+using return_type_for_t = typename return_type_for<G>::type;
+
+
 /**
  * \brief Test if type X is assignable from type Y.
  * \details

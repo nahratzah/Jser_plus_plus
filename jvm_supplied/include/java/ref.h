@@ -173,10 +173,40 @@ class basic_ref final
       noexcept(std::is_nothrow_copy_constructible_v<ptr_type>) = default;
   basic_ref(basic_ref&&)
       noexcept(std::is_nothrow_move_constructible_v<ptr_type>) = default;
-  basic_ref& operator=(const basic_ref&) = default;
-      noexcept(std::is_nothrow_copy_assignable_v<ptr_type>) = default;
-  basic_ref& operator=(basic_ref&&)
-      noexcept(std::is_nothrow_move_assignable_v<ptr_type>) = default;
+
+  ///\brief Copy assignment.
+  ///\details
+  ///Copy assignment is only provided if this type is self-assignable.
+  ///Types of the form \ref java::G::extends "extends"
+  ///or \ref java::G::super "super"
+  ///are not self assignable.
+  ///
+  ///\note Even if the type is not self-assignable, it will still be
+  ///copy/move constructible.
+  template<bool Enable = java::type_traits::is_assignable_v<Type, Type>>
+  auto operator=(const basic_ref& other) = default;
+      noexcept(std::is_nothrow_copy_assignable_v<ptr_type>)
+  -> std::enable_if_t<Enable, basic_ref&> {
+    p_ = other.p_;
+    return *this;
+  }
+
+  ///\brief Move assignment.
+  ///\details
+  ///Copy assignment is only provided if this type is self-assignable.
+  ///Types of the form \ref java::G::extends "extends"
+  ///or \ref java::G::super "super"
+  ///are not self assignable.
+  ///
+  ///\note Even if the type is not self-assignable, it will still be
+  ///copy/move constructible.
+  template<bool Enable = java::type_traits::is_assignable_v<Type, Type>>
+  auto operator=(basic_ref&& other)
+      noexcept(std::is_nothrow_move_assignable_v<ptr_type>)
+  -> std::enable_if_t<Enable, basic_ref&> {
+    p_ = std::move(other.p_);
+    return *this;
+  }
 
   /**
    * \brief Make this reference a null-reference.
@@ -311,11 +341,71 @@ auto operator!=(std::nullptr_t np, const basic_ref<Base, P>& b) noexcept
 }
 
 
-template<typename... Types>
-using var_ref = basic_ref<cycle_ptr::cycle_gptr, Types...>;
+///\brief Variable reference.
+template<typename Type>
+using var_ref = basic_ref<cycle_ptr::cycle_gptr, Type>;
 
-template<typename... Types>
-using field_ref = basic_ref<cycle_ptr::cycle_member_ptr, Types...>;
+///\brief Type declaration.
+///\details Types are exposed as references, since that is the most similar way
+///for anyone, to reason about the types.
+///By similar, we mean that it resembles the Java language most closely.
+template<typename Tag, typename... Args>
+using type = var_ref<java::G::is<Tag, Args...>>;
+
+
+namespace {
+
+template<template<typename> class PtrType, typename P>
+struct change_ptr_type_;
+
+template<template<typename> class PtrType, template<typename> class OldPtrType, typename Type>
+struct change_ptr_type_<PtrType, basic_ref<OldPtrType, Type>> {
+  using type = basic_ref<PtrType, Type>;
+};
+
+template<typename BasicRef>
+struct type_of_;
+
+template<template<typename> class PtrType, typename Type>
+struct type_of_<basic_ref<PtrType, Type>> {
+  using type = Type;
+};
+
+} /* namespace java::<unnamed> */
+
+
+///\brief Extract the underlying type from a basic_ref.
+template<typename BasicRef>
+using type_of = type_of_<BasicRef>;
+
+///\brief Extract the underlying type from a basic_ref.
+template<typename BasicRef>
+using type_of_t = typename type_of<BasicRef>::type;
+
+
+///\brief Convert basic_ref to a variable reference.
+template<typename BasicRef>
+using var_t = typename change_ptr_type_<cycle_ptr::cycle_member_ptr, BasicRef>::type;
+
+///\brief Convert basic_ref to a field reference.
+template<typename BasicRef>
+using field_t = typename change_ptr_type_<cycle_ptr::cycle_gptr, BasicRef>::type;
+
+///\brief Convert basic_ref to a parameter reference.
+///\details Implements type erase, such that `? super X` will be `X`.
+///\sa java::type_traits::parameter_type_for
+template<typename BasicRef>
+using param_t = basic_ref<
+    cycle_ptr::cycle_gptr,
+    java::type_traits::parameter_type_for_t<type_of_t<BasicRef>>>;
+
+///\brief Convert basic_ref to a return type reference.
+///\details Implements type erase, such that `? extends X` will be `X`.
+///\sa java::type_traits::return_type_for
+template<typename BasicRef>
+using return_t = basic_ref<
+    cycle_ptr::cycle_gptr,
+    java::type_traits::return_type_for_t<type_of_t<BasicRef>>>;
 
 
 } /* namespace java */
