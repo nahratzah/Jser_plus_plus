@@ -139,6 +139,17 @@ struct is_t {
 };
 
 
+namespace detail {
+
+///\brief Helper type that computes an argument pack by repeatedly adding elements from Tail.
+///\tparam T An argument pack. The pack should be compact.
+///\tparam Tail Multiple elements to be added. Each should be a generic or `void`. (`void` elements are dropped.)
+template<typename R, typename... Tail>
+struct combine;
+
+} /* namespace java::G::detail */
+
+
 template<typename Tag, typename... Arguments>
 struct extends_t<is_t<typename Tag, typename... Arguments>>
 : public extends_t<Tag, Arguments...>
@@ -202,6 +213,14 @@ struct pack {
   using type = pack_t<typename G::type...>;
 };
 
+// Specialization that unpacks single-element.
+template<typename G>
+struct pack {
+  static_assert(std::conjunction_v<is_generic<G>...>);
+
+  using type = G;
+};
+
 template<typename... G>
 struct extends_t<pack_t<G...>>
 : using pack_t<extends_t<G>...>
@@ -228,7 +247,7 @@ template<typename... T>
 using is = typename is_t<T...>::type;
 
 template<typename... T>
-using pack = typename pack_t<T...>::type;
+using pack = typename detail::combine<pack_t<>, T...>::type::type; // Double type is needed here: first one selects result of combine operation, which is a pack. Second allows pack_t to perform minimizing operation.
 
 
 } /* namespace java::G */
@@ -419,5 +438,115 @@ struct is_satisfied_by_<java::G::super_t<XTag, X...>, java::G::extends_t<YTag, Y
 
 } /* namespace java::type_traits::<unnamed> */
 } /* namespace java::type_traits */
+
+namespace java::G::detail {
+
+///\brief Attempt to merge two generics together based on their tag.
+template<typename X, typename ToAdd>
+struct merge_by_tag_ {
+  static_assert(java::type_traits::is_compact_generic_v<X>
+      && java::type_traits::is_compact_generic<Y>);
+
+  ///\brief Indicates if merge is possible.
+  using success = std::false_type;
+  ///\brief Holds the first type for failed merges, or the merge result for successful merges.
+  using merged_type = X;
+};
+
+template<typename Tag, typename... LeftArgs, typename... RightArgs>
+struct merge_by_tag_<is_t<Tag, LeftArgs...>, is_t<Tag, RightArgs...>> {
+  using success = std::true_type;
+  using merged_type = is_t<Tag, pack<LeftArgs, RightArgs>...>;
+};
+
+template<typename Tag, typename... LeftArgs, typename... RightArgs>
+struct merge_by_tag_<extends_t<Tag, LeftArgs...>, extends_t<Tag, RightArgs...>> {
+  using success = std::true_type;
+  using merged_type = extends_t<Tag, pack<LeftArgs, RightArgs>...>;
+};
+
+template<typename Tag, typename... LeftArgs, typename... RightArgs>
+struct merge_by_tag_<super_t<Tag, LeftArgs...>, super_t<Tag, RightArgs...>> {
+  using success = std::true_type;
+  using merged_type = super_t<Tag, pack<LeftArgs, RightArgs>...>;
+};
+
+
+// Add a single type to the pack.
+// Performs all the complicated stuff, like merging, deduplication.
+template<typename Pack, typename T>
+struct add;
+
+// Skip addition of void.
+template<typename... X, typename void>
+struct add<pack_t<X...>, void> {
+  using type = pack_t<X...>;
+};
+
+// When adding a pack, unpack it first.
+template<typename... X, typename... Y>
+struct add<pack_t<X...>, pack_t<Y...>>
+: combine<pack_t<X...>, Y...>
+{};
+
+// Simple addition, append Y to pack_t X.
+template<typename X, typename Y>
+struct add0_;
+
+template<typename... X, typename Y>
+struct add0_<pack_t<X...>, Y> {
+  using type = pack_t<X..., Y>;
+};
+
+// Add a type Y to pack_ X.
+// If Y is already satisfied by X, do nothing.
+// Otherwise: merge any X with Y for which tags match.
+// Otherwise: eliminate any X satisfied by Y, then perform simple addition.
+template<typename... X, typename Y>
+struct add<pack_t<X...>, Y> {
+  // std::true_type if Y is satisfied.
+  using already_satisfied = std::disjunction<java::type_traits::is_satisfied_by<Y, X>...>;
+
+  // Use combine to compute lesser pack.
+  using elim_satisfied = combine<
+      pack_t<>,
+      std::conditional_t<
+          java::type_traits::is_satisfied_by<X, Y>,
+          void,
+          X>>;
+
+  // Result of addition.
+  // The result is a pack_t.
+  using type =
+      std::conditional_t<
+          // If Y is already satisfied by constraints in X...
+          already_satisfied::value,
+          // Then don't add Y.
+          pack_t<X...>,
+          // else:
+          std::conditional_t<
+              // If we can merge...
+              std::disjunction_v<typename merge_by_tag_<X, Y>::success>,
+              // Merge same-tag X and Y into single entry.
+              pack_t<typename merge_by_tag_<X, Y>::merged_type...>,
+              // Else: liminate any X satisfied by Y, then append Y.
+              typename add0_<typename elim_satisfied::type, Y>::type>>;
+};
+
+
+// Base case where there is nothing more to be added.
+template<typename... R>
+struct combine<pack_t<R...>> {
+  using type = typename pack_t<R...>;
+};
+
+// Default addition case: use `add` to add a single element,
+// and use recursion for the remaining elements.
+template<typename... R, typename In, typename... Tail>
+struct combine<pack_t<R...>, In, Tail...>
+: combine<typename add<pack_t<R...>, In>::type, Tail...>
+{};
+
+} /* namespace java::G::detail */
 
 #endif /* JAVA_GENERICS_H */
