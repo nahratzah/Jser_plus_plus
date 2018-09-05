@@ -41,12 +41,15 @@ class _accessor_base {
   _accessor_base& operator=(_accessor_base&&) = default;
   ~_accessor_base() = default;
 
-  ///\brief Acquire reference to the given type.
-  ///\details Performs implicit cast if possible.
-  ///Uses dynamic cast if implicit cast is not possible.
-  ///\tparam ErasedType requested type.
-  ///\returns reference to the requested type.
-  ///\throws ::java::null_error if this is null.
+  /**
+   * \brief Acquire reference to the given type.
+   * \details
+   * Performs implicit cast if possible.
+   * Uses dynamic cast if implicit cast is not possible.
+   * \tparam ErasedType requested type.
+   * \returns reference to the requested type.
+   * \throws ::java::null_error if this is null.
+   */
   template<typename ErasedType>
   auto ref_() const -> ErasedType& {
     if constexpr(std::is_convertible_v<typename std::pointer_traits<ErasedPtr>::element_type*, ErasedType*>) {
