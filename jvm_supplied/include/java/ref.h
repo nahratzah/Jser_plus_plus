@@ -70,7 +70,7 @@ using _accessor_for_type = typename _accessor_for_type_<Base, T>::type;
 namespace {
 
 template<typename Base, typename Tag, typename... Args>
-struct _accessor_for_type_<java::G::is_t<Tag, Args...>> {
+struct _accessor_for_type_<Base, java::G::is_t<Tag, Args...>> {
   using erased_type = typename Tag::erased_type;
   using type = _accessor<Base, Tag, Args...>>;
 };
@@ -87,7 +87,7 @@ struct _accessor_for_type_<Base, java::G::super_t<Tag, Args...>>
 
 template<typename Base, typename T0, typename... T>
 struct _accessor_for_type_<Base, java::G::pack_t<T0, T...>> {
-  using erased_type = typename _accessor_for_type_<T0>::erased_type;
+  using erased_type = typename _accessor_for_type_<Base, T0>::erased_type;
 
   struct type
   : public virtual typename _accessor_for_type_<Base, T0>::type,
@@ -389,27 +389,24 @@ using type_of_t = typename type_of<BasicRef>::type;
 
 ///\brief Convert basic_ref to a variable reference.
 template<typename BasicRef>
-using var_t = typename change_ptr_type_<cycle_ptr::cycle_member_ptr, BasicRef>::type;
+using var_t = typename change_ptr_type_<cycle_ptr::cycle_gptr, BasicRef>::type;
 
 ///\brief Convert basic_ref to a field reference.
+///\bug This should be a raw pointer with a method that yields the field, using the raw pointer as reference.
 template<typename BasicRef>
-using field_t = typename change_ptr_type_<cycle_ptr::cycle_gptr, BasicRef>::type;
+using field_t = typename change_ptr_type_<cycle_ptr::cycle_member_ptr, BasicRef>::type;
 
 ///\brief Convert basic_ref to a parameter reference.
 ///\details Implements type erase, such that `? super X` will be `X`.
 ///\sa java::type_traits::parameter_type_for
 template<typename BasicRef>
-using param_t = basic_ref<
-    cycle_ptr::cycle_gptr,
-    java::type_traits::parameter_type_for_t<type_of_t<BasicRef>>>;
+using param_t = var_t<java::type_traits::parameter_type_for_t<type_of_t<BasicRef>>>;
 
 ///\brief Convert basic_ref to a return type reference.
 ///\details Implements type erase, such that `? extends X` will be `X`.
 ///\sa java::type_traits::return_type_for
 template<typename BasicRef>
-using return_t = basic_ref<
-    cycle_ptr::cycle_gptr,
-    java::type_traits::return_type_for_t<type_of_t<BasicRef>>>;
+using return_t = var_t<java::type_traits::return_type_for_t<type_of_t<BasicRef>>>;
 
 
 } /* namespace java */
