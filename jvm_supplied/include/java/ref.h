@@ -9,6 +9,7 @@
 #include <java/_accessor.h>
 #include <java/type_traits.h>
 #include <java/null_error.h>
+#include <java/inline.h>
 
 namespace java {
 namespace {
@@ -27,19 +28,19 @@ class Object;
 template<typename ErasedPtr>
 class _accessor_base {
  protected:
-  constexpr _accessor_base() = default;
+  constexpr JSER_INLINE _accessor_base() = default;
 
   template<typename Init>
-  explicit _accessor_base(Init&& init)
+  explicit JSER_INLINE _accessor_base(Init&& init)
       noexcept(std::is_nothrow_constructible_v<ErasedPtr, std::add_rvalue_reference_t<Init>>)
   : p_(std::forward<Init>(init))
   {}
 
-  _accessor_base(const _accessor_base&) = default;
-  _accessor_base(_accessor_base&&) = default;
-  _accessor_base& operator=(const _accessor_base&) = default;
-  _accessor_base& operator=(_accessor_base&&) = default;
-  ~_accessor_base() = default;
+  JSER_INLINE _accessor_base(const _accessor_base&) = default;
+  JSER_INLINE _accessor_base(_accessor_base&&) = default;
+  JSER_INLINE _accessor_base& operator=(const _accessor_base&) = default;
+  JSER_INLINE _accessor_base& operator=(_accessor_base&&) = default;
+  JSER_INLINE ~_accessor_base() = default;
 
   /**
    * \brief Acquire reference to the given type.
@@ -51,7 +52,7 @@ class _accessor_base {
    * \throws ::java::null_error if this is null.
    */
   template<typename ErasedType>
-  auto ref_() const -> ErasedType& {
+  JSER_INLINE auto ref_() const -> ErasedType& {
     if constexpr(std::is_convertible_v<typename std::pointer_traits<ErasedPtr>::element_type*, ErasedType*>) {
       return ref__();
     } else {
@@ -93,12 +94,12 @@ struct _accessor_for_type_<Base, java::G::pack_t<T0, T...>> {
     public virtual typename _accessor_for_type_<Base, T>::type...
   {
    protected:
-    type() = default;
-    type(const type&) = default;
-    type(type&&) = default;
-    type& operator=(const type&) = default;
-    type& operator=(type&&) = default;
-    ~type() = default;
+    JSER_INLINE type() = default;
+    JSER_INLINE type(const type&) = default;
+    JSER_INLINE type(type&&) = default;
+    JSER_INLINE type& operator=(const type&) = default;
+    JSER_INLINE type& operator=(type&&) = default;
+    JSER_INLINE ~type() = default;
   };
 };
 
@@ -169,12 +170,12 @@ class basic_ref final
   static_assert(std::is_base_of_v<java::object_intf, erased_type>);
 
  public:
-  constexpr basic_ref() noexcept = default;
-  explicit constexpr basic_ref(std::nullptr_t) noexcept : basic_ref() {}
+  JSER_INLINE constexpr basic_ref() noexcept = default;
+  explicit JSER_INLINE constexpr basic_ref(std::nullptr_t) noexcept : basic_ref() {}
 
-  basic_ref(const basic_ref&)
+  JSER_INLINE basic_ref(const basic_ref&)
       noexcept(std::is_nothrow_copy_constructible_v<ptr_type>) = default;
-  basic_ref(basic_ref&&)
+  JSER_INLINE basic_ref(basic_ref&&)
       noexcept(std::is_nothrow_move_constructible_v<ptr_type>) = default;
 
   ///\brief Copy assignment.
@@ -187,7 +188,7 @@ class basic_ref final
   ///\note Even if the type is not self-assignable, it will still be
   ///copy/move constructible.
   template<bool Enable = java::type_traits::is_assignable_v<Type, Type>>
-  auto operator=(const basic_ref& other) = default;
+  JSER_INLINE auto operator=(const basic_ref& other) = default;
       noexcept(std::is_nothrow_copy_assignable_v<ptr_type>)
   -> std::enable_if_t<Enable, basic_ref&> {
     p_ = other.p_;
@@ -204,7 +205,7 @@ class basic_ref final
   ///\note Even if the type is not self-assignable, it will still be
   ///copy/move constructible.
   template<bool Enable = java::type_traits::is_assignable_v<Type, Type>>
-  auto operator=(basic_ref&& other)
+  JSER_INLINE auto operator=(basic_ref&& other)
       noexcept(std::is_nothrow_move_assignable_v<ptr_type>)
   -> std::enable_if_t<Enable, basic_ref&> {
     p_ = std::move(other.p_);
@@ -217,7 +218,7 @@ class basic_ref final
    * \returns *this
    * \post `*this == nullptr`
    */
-  auto operator=(std::nullptr_t np) noexcept -> basic_ref& {
+  JSER_INLINE auto operator=(std::nullptr_t np) noexcept -> basic_ref& {
     p_ = nullptr;
     return *this;
   }
@@ -229,7 +230,7 @@ class basic_ref final
    * \post `*this == other`
    */
   template<typename<class> class OPtrImpl, typename OType>
-  auto operator=(const basic_ref<OPtrImpl, OType>& other) noexcept
+  JSER_INLINE auto operator=(const basic_ref<OPtrImpl, OType>& other) noexcept
   -> std::enable_if_t<
       java::type_traits::is_assignable_v<Type, OType>,
       basic_ref&> {
@@ -250,7 +251,7 @@ class basic_ref final
    * \post `*this == original-value-of-other && other == nullptr`
    */
   template<typename<class> class OPtrImpl, typename OType>
-  auto operator=(const basic_ref<OPtrImpl, OType>& other) noexcept
+  JSER_INLINE auto operator=(const basic_ref<OPtrImpl, OType>& other) noexcept
   -> std::enable_if_t<
       java::type_traits::is_assignable_v<Type, OType>,
       basic_ref&> {
@@ -271,7 +272,7 @@ class basic_ref final
    * \note swap can only be found using ADL.
    */
   template<typename<class> class OPtrImpl, typename OType>
-  friend auto swap(const basic_ref& x, const basic_ref<OPtrImpl, OType>& y) noexcept
+  friend JSER_INLINE auto swap(const basic_ref& x, const basic_ref<OPtrImpl, OType>& y) noexcept
   -> std::enable_if_t<
       java::type_traits::is_assignable_v<Type, OType>
       && java::type_traits::is_assignable_v<OType, Type>> {
@@ -290,7 +291,7 @@ class basic_ref final
    * \details Tests if this is not a null-reference.
    * \returns True if the reference is valid, false if this is a null-reference.
    */
-  explicit operator bool() const noexcept {
+  explicit JSER_INLINE operator bool() const noexcept {
     return bool(p_);
   }
 
@@ -298,7 +299,7 @@ class basic_ref final
    * \brief Test if this is a null-reference.
    * \returns True if this is a null-reference, false otherwise.
    */
-  auto operator!() const noexcept -> bool {
+  JSER_INLINE auto operator!() const noexcept -> bool {
     return !p_;
   }
 
@@ -307,7 +308,7 @@ class basic_ref final
    * \param np nullptr
    * \returns True if this is a null-reference, false otherwise.
    */
-  auto operator==(std::nullptr_t np) const noexcept -> bool {
+  JSER_INLINE auto operator==(std::nullptr_t np) const noexcept -> bool {
     return p_ == nullptr;
   }
 
@@ -316,13 +317,13 @@ class basic_ref final
    * \param np nullptr
    * \returns False if this is a null-reference, true otherwise.
    */
-  auto operator!=(std::nullptr_t np) const noexcept -> bool {
+  JSER_INLINE auto operator!=(std::nullptr_t np) const noexcept -> bool {
     return p_ != nullptr;
   }
 
  private:
   // Provide implementation of method in base_type.
-  auto ref__() const -> erased_type& override {
+  JSER_INLINE auto ref__() const -> erased_type& override {
     if (p_ == nullptr) throw ::java::null_error();
     return *p_;
   }
@@ -332,13 +333,13 @@ class basic_ref final
 };
 
 template<template<typename> class Base, typename P>
-auto operator==(std::nullptr_t np, const basic_ref<Base, P>& b) noexcept
+JSER_INLINE auto operator==(std::nullptr_t np, const basic_ref<Base, P>& b) noexcept
 -> bool {
   return b == nullptr;
 }
 
 template<template<typename> class Base, typename P>
-auto operator!=(std::nullptr_t np, const basic_ref<Base, P>& b) noexcept
+JSER_INLINE auto operator!=(std::nullptr_t np, const basic_ref<Base, P>& b) noexcept
 -> bool {
   return b != nullptr;
 }
