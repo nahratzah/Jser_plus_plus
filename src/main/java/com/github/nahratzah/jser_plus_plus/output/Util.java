@@ -12,7 +12,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
  * @author ariane
  */
 public class Util {
+    private static final Logger LOG = Logger.getLogger(Util.class.getName());
+
     private Util() {
     }
 
@@ -91,14 +94,18 @@ public class Util {
      */
     public static void setFileContents(Path fileName, String contents, Charset charset) throws IOException {
         try {
-            final String oldContents = String.join("\n", Files.readAllLines(fileName, charset));
-            if (Objects.equals(oldContents, contents)) return;
+            final String oldContents = new String(Files.readAllBytes(fileName), charset);
+            if (Objects.equals(oldContents, contents)) {
+                LOG.log(Level.FINER, "Skipping update for {0}: contents already the same", fileName);
+                return;
+            }
         } catch (IOException ex) {
             // SKIP, just replace the contents anyway
         }
 
+        LOG.log(Level.FINE, "Updating {0}", fileName);
         Files.createDirectories(fileName.getParent());
-        Files.write(fileName, Arrays.asList(contents.split(Pattern.quote("\n"))), charset);
+        Files.write(fileName, contents.getBytes(charset));
     }
 
     /**
