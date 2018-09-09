@@ -7,6 +7,9 @@ import static com.github.nahratzah.jser_plus_plus.input.Scanner.Options.ADD_BOOT
 import com.github.nahratzah.jser_plus_plus.output.CmakeModule;
 import java.io.File;
 import static java.util.Collections.EMPTY_SET;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,6 +19,8 @@ import java.util.stream.Stream;
  */
 public class Main {
     public static void main(String[] args) throws Exception {
+        enableDebugLog(Level.FINE);
+
         Config cfg = new Config();
 
         try (final Scanner s = new Scanner(ADD_BOOT_CLASSPATH)) {
@@ -36,5 +41,12 @@ public class Main {
                 p.emit(cmake);
             }
         }
+    }
+
+    private static void enableDebugLog(Level level) {
+        final Logger rootLogger = Logger.getLogger("");
+        rootLogger.setLevel(level);
+        for (Handler handler : rootLogger.getHandlers())
+            handler.setLevel(level);
     }
 }

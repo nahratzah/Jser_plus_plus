@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableSet;
 import java.util.Comparator;
@@ -385,104 +384,4 @@ public class CodeGenerator {
      * This is a sequence of the package name.
      */
     private final List<String> namespace;
-
-    public static void main(String[] args) throws Exception {
-        final JavaClass javaLangMap = new JavaClass() {
-            @Override
-            public List<String> getNamespace() {
-                return Arrays.asList("java", "lang");
-            }
-
-            @Override
-            public String getClassName() {
-                return "Map";
-            }
-
-            @Override
-            public List<String> getTemplateArguments() {
-                return Arrays.asList("K", "V");
-            }
-
-            @Override
-            public Collection<JavaClass> getDependentTypes(boolean publicOnly) {
-                return EMPTY_LIST;
-            }
-
-            @Override
-            public Collection<String> getIncludes(boolean publicOnly) {
-                return Arrays.asList("cstddef");
-            }
-        };
-
-        final JavaClass cc = new JavaClass() {
-            @Override
-            public List<String> getNamespace() {
-                return Arrays.asList("foo", "bar");
-            }
-
-            @Override
-            public String getClassName() {
-                return "FooBarium";
-            }
-
-            @Override
-            public List<String> getTemplateArguments() {
-                return Arrays.asList("K", "V", "T");
-            }
-
-            @Override
-            public Collection<JavaClass> getDependentTypes(boolean publicOnly) {
-                return Arrays.asList(javaLangMap);
-            }
-
-            @Override
-            public Collection<String> getIncludes(boolean publicOnly) {
-                return Arrays.asList("cstdint", "cstddef");
-            }
-        };
-
-        final JavaClass ecc = new JavaClass() {
-            @Override
-            public List<String> getNamespace() {
-                return Arrays.asList("foo", "bar");
-            }
-
-            @Override
-            public String getClassName() {
-                return "FooBarium$Empty";
-            }
-
-            @Override
-            public List<String> getTemplateArguments() {
-                return EMPTY_LIST;
-            }
-
-            @Override
-            public Collection<JavaClass> getDependentTypes(boolean publicOnly) {
-                return Arrays.asList(cc, javaLangMap);
-            }
-
-            @Override
-            public Collection<String> getIncludes(boolean publicOnly) {
-                return Arrays.asList("cstdint", "java/primitives.h");
-            }
-        };
-
-        final CodeGenerator cg = new CodeGenerator(computeBaseType(cc));
-        cg.add(cc);
-        cg.add(ecc);
-        System.out.println("**** " + cg.fwdHeaderName() + " ****");
-        cg.writeFwdHeaderFile(System.out);
-        System.out.println("****");
-        System.out.println();
-
-        System.out.println("**** " + cg.headerName() + " ****");
-        cg.writeHeaderFile(System.out);
-        System.out.println("****");
-        System.out.println();
-
-        System.out.println("**** " + cg.sourceName() + " ****");
-        cg.writeSourceFile(System.out);
-        System.out.println("****");
-    }
 }

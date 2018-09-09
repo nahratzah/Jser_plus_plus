@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.jar.JarFile;
-import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -32,22 +31,6 @@ public class Scanner implements Closeable {
 
     public static enum Options {
         ADD_BOOT_CLASSPATH;
-    }
-
-    private static void enableDebugLog(Level level) {
-        final Logger rootLogger = Logger.getLogger("");
-        rootLogger.setLevel(level);
-        for (Handler handler : rootLogger.getHandlers())
-            handler.setLevel(level);
-    }
-
-    public static void main(String[] args) throws Exception {
-        enableDebugLog(Level.FINE);
-
-        try (Scanner scanner = new Scanner(Options.ADD_BOOT_CLASSPATH)) {
-            scanner.getClassesNothrow()
-                    .forEach(System.out::println);
-        }
     }
 
     public static File[] getBootClassPath() {
