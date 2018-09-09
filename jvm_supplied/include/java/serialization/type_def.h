@@ -13,10 +13,9 @@
 #include <vector>
 #include <cycle_ptr/cycle_ptr.h>
 #include <java/serialization/encdec.h>
-
-namespace java::io {
-class Serializable;
-} /* namespace java::io */
+#include <java/fwd/java/io/Serializable.h>
+#include <java/ref.h>
+#include <java/inline.h>
 
 namespace java::serialization {
 
@@ -74,9 +73,14 @@ class cycle_handler {
   template<typename Defn, typename T>
   using encode_result_t = cycle_ptr::cycle_gptr<std::add_const_t<encode_element_t<Defn, T>>>;
 
-  auto serializable_do_encode_0_(const java::io::Serializable& s)
+  auto serializable_do_encode_0_(const java::_tags::java::io::Serializable::erased_type& s)
   -> cycle_ptr::cycle_gptr<const stream::stream_element>;
-  auto serializable_do_encode_1_(const java::io::Serializable& s)
+  auto serializable_do_encode_1_(const java::_tags::java::io::Serializable::erased_type& s)
+  -> cycle_ptr::cycle_gptr<const stream::stream_element>;
+
+  JSER_INLINE auto serializable_do_encode_0_(java::io::Serializable s)
+  -> cycle_ptr::cycle_gptr<const stream::stream_element>;
+  JSER_INLINE auto serializable_do_encode_1_(java::io::Serializable s)
   -> cycle_ptr::cycle_gptr<const stream::stream_element>;
 
  public:
@@ -160,7 +164,7 @@ auto cycle_handler::encode_field_unshared(const T& v)
   using defn = select_defn_t<Defn, T>;
 
   if constexpr(std::is_void_v<defn>) {
-    return serializable_do_encode_0_(dynamic_cast<const java::io::Serializable&>(v));
+    return serializable_do_encode_0_(::java::cast<java::io::Serializable>(v));
   } else {
     return defn::encode(v);
   }
@@ -189,7 +193,7 @@ auto cycle_handler::encode_field(const T& v)
   }
 
   if constexpr(std::is_void_v<defn>) {
-    return serializable_do_encode_1_(dynamic_cast<const java::io::Serializable&>(*v));
+    return serializable_do_encode_1_(::java::cast<java::io::Serializable>(*v));
   } else {
     // Allocate result into separate pointer, to keep it mutable.
     auto result = cycle_ptr::make_cycle<element_t>();
@@ -202,6 +206,16 @@ auto cycle_handler::encode_field(const T& v)
 
     return result;
   }
+}
+
+JSER_INLINE auto cycle_handler::serializable_do_encode_0_(java::io::Serializable s)
+-> cycle_ptr::cycle_gptr<const stream::stream_element> {
+  return serializable_do_encode_0_(*::java::raw_ptr<::java::_tags::java::io::Serializable>(s));
+}
+
+JSER_INLINE auto cycle_handler::serializable_do_encode_1_(java::io::Serializable s)
+-> cycle_ptr::cycle_gptr<const stream::stream_element> {
+  return serializable_do_encode_1_(*::java::raw_ptr<::java::_tags::java::io::Serializable>(s));
 }
 
 

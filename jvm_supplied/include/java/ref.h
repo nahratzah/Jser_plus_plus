@@ -21,11 +21,42 @@ using var_ref = basic_ref<cycle_ptr::cycle_gptr, Type>;
 template<typename Tag, typename... Args>
 using type = var_ref<java::G::is<Tag, Args...>>;
 
+
+namespace {
+
+template<template<typename> class PtrType, typename P>
+struct change_ptr_type_;
+
+template<template<typename> class PtrType, template<typename> class OldPtrType, typename Type>
+struct change_ptr_type_<PtrType, basic_ref<OldPtrType, Type>> {
+  using type = basic_ref<PtrType, Type>;
+};
+
+template<typename BasicRef>
+struct type_of_;
+
+template<template<typename> class PtrType, typename Type>
+struct type_of_<basic_ref<PtrType, Type>> {
+  using type = Type;
+};
+
+} /* namespace java::<unnamed> */
+
+
+///\brief Extract the underlying type from a basic_ref.
+template<typename BasicRef>
+using type_of = type_of_<BasicRef>;
+
+///\brief Extract the underlying type from a basic_ref.
+template<typename BasicRef>
+using type_of_t = typename type_of<BasicRef>::type;
+
 } /* namespace java */
 
 #include <type_traits>
 #include <utility>
 #include <memory>
+#include <typeinfo>
 #include <java/_accessor.h>
 #include <java/type_traits.h>
 #include <java/object_intf.h>
@@ -161,6 +192,47 @@ struct _basic_ref_inheritance {
 
 
 /**
+ * \brief Provide raw pointer access.
+ * \tparam Tag The tag of the erased type that you wish to access.
+ * \param r Reference on which to access the raw pointer.
+ * \returns Raw cycle_gptr of the erased type corresponding to the Tag.
+ */
+template<typename Tag, template<class> class PtrImpl, typename Type>
+JSER_INLINE auto raw_ptr(const basic_ref<PtrImpl, Type>& r)
+-> std::enable_if_t<
+    ::java::type_traits::implements_tag_v<Tag, basic_ref<PtrImpl, Type>>,
+    cycle_ptr::cycle_gptr<typename Tag::erased_type>> {
+  if constexpr(std::is_convertible_v<decltype(r.p_), cycle_ptr::cycle_gptr<typename Tag::erased_type>>) {
+    return r.p_;
+  } else {
+    auto result = std::dynamic_pointer_cast<typename Tag::erased_type>(r.p_);
+    if (result == nullptr) throw std::bad_cast();
+    return result;
+  }
+}
+
+
+///\brief Internally used tag type, to support casting.
+struct _cast {};
+
+/**
+ * \brief Perform a type cast.
+ * \tparam The type to cast to.
+ * \param r Reference that is to be casted.
+ * \returns Casted pointer.
+ */
+template<typename RefType, template<class> class PtrImpl, typename Type>
+JSER_INLINE auto cast(const basic_ref<PtrImpl, Type>& r)
+-> var_ref<type_of_t<RefType>> {
+  if constexpr(std::is_convertible_v<basic_ref<PtrImpl, Type>, var_ref<type_of_t<RefType>>>) {
+    return r;
+  } else {
+    return var_ref<type_of_t<RefType>>(_cast(), r);
+  }
+}
+
+
+/**
  * \brief Basic java reference.
  * \details
  * A java reference is a PIMPL implementation to a type-erased java Object.
@@ -176,6 +248,18 @@ class basic_ref final
 {
   // Be friends with all our specializations.
   template<template<class> class, typename> friend class java::basic_ref;
+
+  // Be friend the raw_ptr function.
+  template<typename FnTag, template<class> class FnPtrImpl, typename FnType>
+  friend auto raw_ptr(const basic_ref<FnPtrImpl, FnType>&)
+  -> std::enable_if_t<
+      ::java::type_traits::implements_tag_v<FnTag, basic_ref<FnPtrImpl, FnType>>,
+      cycle_ptr::cycle_gptr<typename FnTag::erased_type>>;
+
+  // Be friend the cast function.
+  template<typename FnRefType, template<class> class FnPtrImpl, typename FnType>
+  friend auto cast(const basic_ref<FnPtrImpl, FnType>&)
+  -> var_ref<type_of_t<FnRefType>>;
 
  protected:
   using erased_type = typename _basic_ref_inheritance<PtrImpl, Type>::erased_type;
@@ -193,6 +277,59 @@ class basic_ref final
   JSER_INLINE basic_ref(basic_ref&&)
       noexcept(std::is_nothrow_move_constructible_v<ptr_type>) = default;
 
+ private:
+  template<typename ErasedType, typename X, typename Y>
+  static auto is_instance_of_(X* x, Y* y) noexcept
+  -> bool {
+    if constexpr(std::is_convertible_v<X*, ErasedType*>
+        || std::is_convertible_v<Y*, ErasedType*>) {
+      return true;
+    } else {
+      if (x != nullptr && dynamic_cast<ErasedType*>(x) == nullptr)
+        return false;
+      if (y != nullptr && dynamic_cast<ErasedType*>(y) == nullptr)
+        return false;
+      return true;
+    }
+  }
+
+  template<template<class> class XImpl, typename XType>
+  JSER_INLINE basic_ref([[maybe_unused]] _cast c, const basic_ref<XImpl, XType>& x, java::G::pack_t<> my_type)
+  : p_(std::dynamic_pointer_cast<erased_type>(x.p_))
+  {
+    // Error out if the cast failed.
+    if (p_ == nullptr && x.p_ != nullptr)
+      throw std::bad_cast();
+  }
+
+  template<template<class> class XImpl, typename XType, typename MyType0, typename... MyTypes>
+  JSER_INLINE basic_ref([[maybe_unused]] _cast c, const basic_ref<XImpl, XType>& x, [[maybe_unused]] MyType0 my_type0, [[maybe_unused]] MyTypes... my_types)
+  : p_(std::dynamic_pointer_cast<erased_type>(x.p_))
+  {
+    // Error out if the cast failed.
+    if (p_ == nullptr && x.p_ != nullptr)
+      throw std::bad_cast();
+
+    // Validate that all the casts are correct.
+    for (bool b : /* initializer list */ {
+        basic_ref::is_instance_of_<typename MyType0::tag::erased_type>(p_.get(), x.p_.get()),
+        basic_ref::is_instance_of_<typename MyTypes::tag::erased_type>(p_.get(), x.p_.get())...
+        }) {
+      if (!b) throw std::bad_cast();
+    }
+  }
+
+  template<template<class> class XImpl, typename XType, typename... MyTypes>
+  JSER_INLINE basic_ref(_cast c, const basic_ref<XImpl, XType>& x, [[maybe_unused]] java::G::pack_t<MyTypes...> my_type)
+  : basic_ref(c, x, MyTypes()...)
+  {}
+
+  template<template<class> class XImpl, typename XType>
+  JSER_INLINE basic_ref(_cast c, const basic_ref<XImpl, XType>& x)
+  : basic_ref(c, x, Type())
+  {}
+
+ public:
   ///\brief Copy assignment.
   ///\details
   ///Copy assignment is only provided if this type is self-assignable.
@@ -358,36 +495,6 @@ JSER_INLINE auto operator!=(std::nullptr_t np, const basic_ref<Base, P>& b) noex
 -> bool {
   return b != nullptr;
 }
-
-
-namespace {
-
-template<template<typename> class PtrType, typename P>
-struct change_ptr_type_;
-
-template<template<typename> class PtrType, template<typename> class OldPtrType, typename Type>
-struct change_ptr_type_<PtrType, basic_ref<OldPtrType, Type>> {
-  using type = basic_ref<PtrType, Type>;
-};
-
-template<typename BasicRef>
-struct type_of_;
-
-template<template<typename> class PtrType, typename Type>
-struct type_of_<basic_ref<PtrType, Type>> {
-  using type = Type;
-};
-
-} /* namespace java::<unnamed> */
-
-
-///\brief Extract the underlying type from a basic_ref.
-template<typename BasicRef>
-using type_of = type_of_<BasicRef>;
-
-///\brief Extract the underlying type from a basic_ref.
-template<typename BasicRef>
-using type_of_t = typename type_of<BasicRef>::type;
 
 
 ///\brief Convert basic_ref to a variable reference.
