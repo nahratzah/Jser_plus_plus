@@ -15,3 +15,16 @@ class _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ",
   // XXX field and method forwarders.
 };
 >>
+
+class(cdef) ::= <<
+class $cdef.className$
+// XXX super types
+: public virtual ::java::object_intf
+{
+  // XXX constructors
+  // XXX destructor
+  // XXX methods
+  // XXX field accessors
+  // XXX fields
+};
+>>

@@ -42,7 +42,7 @@ public class CodeGenerator {
             JAVA_REF_INCLUDE
     )));
     private static final Comparator<String> INCLUDE_SORTER = CodeGenerator::pathComparison;
-    private static final STGroup ACCESSOR_TEMPLATE;
+    private static final STGroup CODE_GENERATOR_TEMPLATE;
 
     public CodeGenerator(List<String> baseType) {
         requireNonNull(baseType);
@@ -71,11 +71,15 @@ public class CodeGenerator {
         return this.types.addAll(c);
     }
 
+    private String erasedTypeNs() {
+        return Stream.concat(ERASED_TYPE_NS.stream(), namespace.stream())
+                .collect(Collectors.joining("::"));
+    }
+
     public <A extends Appendable> A writeFwdHeaderFile(A w) throws IOException {
         final String tagNs = Stream.concat(TAG_NS.stream(), namespace.stream())
                 .collect(Collectors.joining("::"));
-        final String erasedTypeNs = Stream.concat(ERASED_TYPE_NS.stream(), namespace.stream())
-                .collect(Collectors.joining("::"));
+        final String erasedTypeNs = erasedTypeNs();
         final String inclusionGuard = "JAVA_FWD_" + String.join("_", baseType).toUpperCase(Locale.ROOT) + "_H";
 
         // Render inclusion guard and doxygen header documentation.
@@ -194,7 +198,7 @@ public class CodeGenerator {
         {
             for (final JavaClass type : types) {
                 w
-                        .append(ACCESSOR_TEMPLATE.getInstanceOf("accessor")
+                        .append(CODE_GENERATOR_TEMPLATE.getInstanceOf("accessor")
                                 .add("cdef", type)
                                 .render())
                         .append('\n');
@@ -209,6 +213,7 @@ public class CodeGenerator {
     }
 
     public <A extends Appendable> A writeHeaderFile(A w) throws IOException {
+        final String erasedTypeNs = erasedTypeNs();
         final String inclusionGuard = String.join("_", baseType).toUpperCase(Locale.ROOT) + "_H";
 
         // Render inclusion guard and doxygen header documentation.
@@ -223,13 +228,15 @@ public class CodeGenerator {
 
         // Render includes
         {
-            final Iterator<String> includeIter = types.stream()
-                    .unordered()
-                    .flatMap(type -> {
-                        return Stream.concat(
-                                type.getIncludes(false).stream().unordered(),
-                                type.getDependentTypes(false).stream().map(CodeGenerator::headerName).unordered());
-                    })
+            final Iterator<String> includeIter = Stream.concat(
+                    Stream.of("java/inline.h", "java/object_intf.h"),
+                    types.stream()
+                            .unordered()
+                            .flatMap(type -> {
+                                return Stream.concat(
+                                        type.getIncludes(false).stream().unordered(),
+                                        type.getDependentTypes(false).stream().map(CodeGenerator::headerName).unordered());
+                            }))
                     .distinct()
                     .sorted(INCLUDE_SORTER)
                     .filter(include -> !PRE_INCLUDES.contains(include))
@@ -242,8 +249,21 @@ public class CodeGenerator {
         }
 
         w.append('\n');
+
+        // render erased type
+        w.append("namespace ").append(erasedTypeNs).append(" {\n\n");
         {
-            // XXX render erased type
+            for (final JavaClass type : types) {
+                w
+                        .append(CODE_GENERATOR_TEMPLATE.getInstanceOf("class")
+                                .add("cdef", type)
+                                .render())
+                        .append('\n');
+            }
+        }
+        w.append("} /* namespace ").append(erasedTypeNs).append(" */\n");
+
+        {
             // XXX implement accessor members
         }
 
@@ -395,13 +415,13 @@ public class CodeGenerator {
     }
 
     static {
-        try (Reader accessorFile = new InputStreamReader(CodeGenerator.class.getResourceAsStream("accessor.stg"), UTF_8)) {
+        try (Reader accessorFile = new InputStreamReader(CodeGenerator.class.getResourceAsStream("codeGenerator.stg"), UTF_8)) {
             final char[] cbuf = new char[1024];
             StringBuilder sb = new StringBuilder();
             for (int rlen = accessorFile.read(cbuf); rlen != -1;
                  rlen = accessorFile.read(cbuf))
                 sb.append(cbuf, 0, rlen);
-            ACCESSOR_TEMPLATE = new STGroupString("accessor.stg", sb.toString(), '$', '$');
+            CODE_GENERATOR_TEMPLATE = new STGroupString("codeGenerator.stg", sb.toString(), '$', '$');
         } catch (IOException ex) {
             throw new IllegalStateException("unable to load accessor template", ex);
         }
