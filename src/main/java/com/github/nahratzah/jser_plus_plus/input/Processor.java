@@ -36,6 +36,9 @@ public class Processor implements Context {
 
     @Override
     public JavaType resolveClass(Class<?> c) {
+        if (c.isArray())
+            throw new IllegalArgumentException("Arrays are not a resolvable type.");
+
         synchronized (classes) {
             JavaType v = classes.get(c);
             if (v != null) return v;

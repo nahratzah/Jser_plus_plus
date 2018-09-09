@@ -3,6 +3,7 @@ package com.github.nahratzah.jser_plus_plus.model;
 import com.github.nahratzah.jser_plus_plus.config.Config;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.java.ReflectUtil;
+import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.TypeVariable;
@@ -20,7 +21,10 @@ import java.util.Map;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Models a normal class.
@@ -28,12 +32,17 @@ import java.util.stream.Collectors;
  * @author ariane
  */
 public class ClassType implements JavaType {
+    private static final Logger LOG = Logger.getLogger(ClassType.class.getName());
+
     public ClassType(Class<?> c) {
         this.c = requireNonNull(c);
     }
 
     public void init(Context ctx, Config cfg) {
-        final List<? extends TypeVariable<? extends Class<?>>> cTypeParameters = Arrays.asList(this.c.getTypeParameters());
+        LOG.log(Level.INFO, "Initializing {0}", c);
+
+        final List<? extends TypeVariable<? extends Class<?>>> cTypeParameters = getAllTypeParameters(this.c);
+        LOG.log(Level.FINE, "Type parameters: {0}", cTypeParameters);
         final Map<String, String> argRename = unmodifiableMap(buildRenameMap(cTypeParameters));
 
         this.templateArguments = cTypeParameters.stream()
@@ -52,6 +61,11 @@ public class ClassType implements JavaType {
         this.interfaceTypes = Arrays.stream(this.c.getGenericInterfaces())
                 .map(t -> ReflectUtil.visitType(t, new ParentTypeVisitor(ctx, argRename)))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public int getNumTemplateArguments() {
+        return getAllTypeParameters(this.c).size();
     }
 
     @Override
@@ -129,9 +143,12 @@ public class ClassType implements JavaType {
 
         @Override
         public BoundTemplate apply(Class<?> var) {
+            if (var.isArray())
+                return new BoundTemplate.ArrayBinding(apply(var.getComponentType()), 1);
+
             final JavaType cVar = ctx.resolveClass(var);
-            final List<BoundTemplate> cArgs = cVar.getTemplateArguments().stream()
-                    .map(ignored -> new BoundTemplate.Any())
+            final List<BoundTemplate> cArgs = Stream.generate(BoundTemplate.Any::new)
+                    .limit(cVar.getNumTemplateArguments())
                     .collect(Collectors.toList());
             return new BoundTemplate.ClassBinding(cVar, cArgs);
         }
@@ -160,6 +177,9 @@ public class ClassType implements JavaType {
             return ReflectUtil.visitType(var.getRawType(), new ReflectUtil.Visitor<BoundTemplate>() {
                 @Override
                 public BoundTemplate apply(Class<?> var) {
+                    if (var.isArray())
+                        return new BoundTemplate.ArrayBinding(apply(var.getComponentType()), 1);
+
                     return new BoundTemplate.ClassBinding(ctx.resolveClass(var), cArgs);
                 }
 
@@ -211,6 +231,9 @@ public class ClassType implements JavaType {
 
         @Override
         public BoundTemplate apply(Class<?> var) {
+            if (var.isArray())
+                throw new IllegalStateException("Parent type can not be an array.");
+
             return new BoundTemplate.ClassBinding(ctx.resolveClass(var), EMPTY_LIST);
         }
 
@@ -240,6 +263,9 @@ public class ClassType implements JavaType {
             return ReflectUtil.visitType(var.getRawType(), new ReflectUtil.Visitor<BoundTemplate>() {
                 @Override
                 public BoundTemplate apply(Class<?> var) {
+                    if (var.isArray())
+                        return new BoundTemplate.ArrayBinding(apply(var.getComponentType()), 1);
+
                     return new BoundTemplate.ClassBinding(ctx.resolveClass(var), cArgs);
                 }
 

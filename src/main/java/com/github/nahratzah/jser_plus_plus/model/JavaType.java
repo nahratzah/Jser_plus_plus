@@ -2,6 +2,9 @@ package com.github.nahratzah.jser_plus_plus.model;
 
 import com.github.nahratzah.jser_plus_plus.config.Config;
 import com.github.nahratzah.jser_plus_plus.input.Context;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -26,6 +29,15 @@ public interface JavaType {
      * @return List of template arguments for this type.
      */
     public List<ClassTemplateArgument> getTemplateArguments();
+
+    /**
+     * The number of generics arguments for this type.
+     *
+     * This member can be called before initialization completes.
+     *
+     * @return Number of generics arguments for this type.
+     */
+    public int getNumTemplateArguments();
 
     /**
      * Retrieve the name space (java package) of the type.
@@ -74,5 +86,24 @@ public interface JavaType {
      * @param cfg Configuration.
      */
     public default void init(Context ctx, Config cfg) {
+    }
+
+    /**
+     * Helper that figures out all type parameters for a type.
+     *
+     * @param c Class for which to figure out all type parameters.
+     * @return List of generics arguments. If the class is a non-static member
+     * class, the generics arguments of the enclosing class will be in the front
+     * of the list.
+     */
+    public static List<TypeVariable<? extends Class<?>>> getAllTypeParameters(Class<?> c) {
+        final List<TypeVariable<? extends Class<?>>> result;
+        if (c.isMemberClass() && !Modifier.isStatic(c.getModifiers()))
+            result = getAllTypeParameters(c.getEnclosingClass());
+        else
+            result = new ArrayList<>();
+
+        result.addAll(Arrays.asList(c.getTypeParameters()));
+        return result;
     }
 }

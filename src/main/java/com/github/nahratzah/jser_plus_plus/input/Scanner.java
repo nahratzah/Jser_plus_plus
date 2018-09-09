@@ -84,6 +84,10 @@ public class Scanner implements Closeable {
         this(filesToUrls(classPath), options);
     }
 
+    public ClassLoader getClassLoader() {
+        return loader;
+    }
+
     public Stream<String> getClassNames() throws IOException {
         return getClassNames(loader)
                 .distinct();
