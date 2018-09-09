@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -125,30 +126,32 @@ public class Processor implements Context {
             @Override
             public Collection<CodeGenerator.JavaClass> getDependentTypes(boolean publicOnly) {
                 return Stream.concat(Stream.of(jc.getSuperClass()).filter(Objects::nonNull), jc.getInterfaces().stream())
-                        .map(c -> {
-                            return c.visit(new BoundTemplate.Visitor<JavaType>() {
+                        .flatMap(c -> {
+                            return c.visit(new BoundTemplate.Visitor<Stream<JavaType>>() {
                                 @Override
-                                public JavaType apply(BoundTemplate.VarBinding b) {
-                                    return null;
+                                public Stream<JavaType> apply(BoundTemplate.VarBinding b) {
+                                    return Stream.empty();
                                 }
 
                                 @Override
-                                public JavaType apply(BoundTemplate.ClassBinding b) {
-                                    return b.getType();
+                                public Stream<JavaType> apply(BoundTemplate.ClassBinding b) {
+                                    return Stream.concat(
+                                            Stream.of(b.getType()),
+                                            b.getBindings().stream().flatMap(x -> x.visit(this)));
                                 }
 
                                 @Override
-                                public JavaType apply(BoundTemplate.ArrayBinding b) {
+                                public Stream<JavaType> apply(BoundTemplate.ArrayBinding b) {
                                     return b.getType().visit(this);
                                 }
 
                                 @Override
-                                public JavaType apply(BoundTemplate.Any b) {
-                                    return null;
+                                public Stream<JavaType> apply(BoundTemplate.Any b) {
+                                    return Stream.empty();
                                 }
                             });
                         })
-                        .filter(Objects::nonNull)
+                        .distinct()
                         .map(Processor::jcToCg)
                         .collect(Collectors.toList());
             }
@@ -165,7 +168,7 @@ public class Processor implements Context {
 
                                 @Override
                                 public Stream<String> apply(BoundTemplate.ClassBinding b) {
-                                    return Stream.empty();
+                                    return b.getType().getIncludes(publicOnly).stream();
                                 }
 
                                 @Override
@@ -183,7 +186,8 @@ public class Processor implements Context {
                         });
                 final Stream<String> includes = jc.getIncludes(publicOnly).stream();
 
-                return Stream.concat(parentTypes, includes)
+                return Stream.of(parentTypes, includes)
+                        .flatMap(Function.identity())
                         .collect(Collectors.toList());
             }
         };
