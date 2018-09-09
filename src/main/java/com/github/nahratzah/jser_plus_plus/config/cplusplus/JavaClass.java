@@ -9,10 +9,14 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import static java.util.Collections.unmodifiableCollection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -89,14 +93,41 @@ public class JavaClass {
                     .collect(Collectors.toList()));
             this.templateArguments.add(arg);
         }
+
+//        if (c.getSuperclass() == null)
+//            this.superClass = null;
+//        else
+//            this.superClass = ctx.resolveClass(c.getGenericSuperclass());
     }
 
     public String getName() {
         return name;
     }
 
+    public List<String> getNamespace() {
+        final List<String> parts = getNameParts();
+        return parts.subList(0, parts.size() - 1);
+    }
+
+    public String getSimpleName() {
+        final List<String> parts = getNameParts();
+        return parts.get(parts.size() - 1);
+    }
+
+    private List<String> getNameParts() {
+        return Arrays.asList(getName().split(Pattern.quote(".")));
+    }
+
     public List<TemplateArgument> getTemplateArguments() {
         return templateArguments;
+    }
+
+    public BoundTemplate getSuperClass() {
+        return superClass;
+    }
+
+    public Collection<BoundTemplate> getInterfaces() {
+        return unmodifiableCollection(interfaces);
     }
 
     /**
@@ -134,4 +165,14 @@ public class JavaClass {
      * Name of the java class.
      */
     private String name;
+
+    /**
+     * Super class. May be null.
+     */
+    public BoundTemplate superClass;
+
+    /**
+     * Implemented interfaces. May be empty.
+     */
+    public Collection<BoundTemplate> interfaces = new HashSet<>();
 }
