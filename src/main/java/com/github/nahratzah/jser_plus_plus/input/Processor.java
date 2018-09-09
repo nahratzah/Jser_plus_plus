@@ -5,6 +5,7 @@ import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
 import com.github.nahratzah.jser_plus_plus.model.ClassTemplateArgument;
 import com.github.nahratzah.jser_plus_plus.model.ClassType;
 import com.github.nahratzah.jser_plus_plus.model.JavaType;
+import com.github.nahratzah.jser_plus_plus.model.PrimitiveType;
 import com.github.nahratzah.jser_plus_plus.output.CmakeModule;
 import com.github.nahratzah.jser_plus_plus.output.CodeGenerator;
 import static com.github.nahratzah.jser_plus_plus.output.Util.setFileContents;
@@ -15,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,6 +27,8 @@ import java.util.stream.Stream;
  * @author ariane
  */
 public class Processor implements Context {
+    private static final Logger LOG = Logger.getLogger(Processor.class.getName());
+
     public Processor(ClassLoader classLoader, Config cfg) {
         this.classLoader = requireNonNull(classLoader);
         this.cfg = requireNonNull(cfg);
@@ -36,8 +41,13 @@ public class Processor implements Context {
 
     @Override
     public JavaType resolveClass(Class<?> c) {
+        LOG.log(Level.FINE, "resolving {0}", c);
+
         if (c.isArray())
             throw new IllegalArgumentException("Arrays are not a resolvable type.");
+
+        if (c.isPrimitive())
+            return PrimitiveType.fromClass(c).get();
 
         synchronized (classes) {
             JavaType v = classes.get(c);
@@ -146,7 +156,7 @@ public class Processor implements Context {
 
             @Override
             public Collection<String> getIncludes(boolean publicOnly) {
-                return Stream.concat(Stream.of(jc.getSuperClass()).filter(Objects::nonNull), jc.getInterfaces().stream())
+                final Stream<String> parentTypes = Stream.concat(Stream.of(jc.getSuperClass()).filter(Objects::nonNull), jc.getInterfaces().stream())
                         .flatMap(c -> {
                             return c.visit(new BoundTemplate.Visitor<Stream<String>>() {
                                 @Override
@@ -171,7 +181,10 @@ public class Processor implements Context {
                                     return Stream.empty();
                                 }
                             });
-                        })
+                        });
+                final Stream<String> includes = jc.getIncludes(publicOnly).stream();
+
+                return Stream.concat(parentTypes, includes)
                         .collect(Collectors.toList());
             }
         };

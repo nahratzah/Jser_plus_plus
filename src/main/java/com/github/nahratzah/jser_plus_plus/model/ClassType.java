@@ -89,6 +89,11 @@ public class ClassType implements JavaType {
         return unmodifiableCollection(this.interfaceTypes);
     }
 
+    @Override
+    public Collection<String> getIncludes(boolean publicOnly) {
+        return EMPTY_LIST;
+    }
+
     /**
      * Build a simple identity map for the given type variables.
      *

@@ -77,6 +77,15 @@ public interface JavaType {
     public Collection<BoundTemplate> getInterfaces();
 
     /**
+     * Retrieve additional includes required to implement this type.
+     *
+     * @param publicOnly If set, only return includes required to satisfy
+     * declarations, not implementations.
+     * @return Collection of includes.
+     */
+    public Collection<String> getIncludes(boolean publicOnly);
+
+    /**
      * Initialization of this type.
      *
      * We use late initialization, so that initializers can recurse type
