@@ -244,7 +244,7 @@ class basic_ref final
    * \returns *this
    * \post `*this == other`
    */
-  template<typename<class> class OPtrImpl, typename OType>
+  template<template<class> class OPtrImpl, typename OType>
   JSER_INLINE auto operator=(const basic_ref<OPtrImpl, OType>& other) noexcept
   -> std::enable_if_t<
       java::type_traits::is_assignable_v<Type, OType>,
@@ -265,8 +265,8 @@ class basic_ref final
    * \returns *this
    * \post `*this == original-value-of-other && other == nullptr`
    */
-  template<typename<class> class OPtrImpl, typename OType>
-  JSER_INLINE auto operator=(const basic_ref<OPtrImpl, OType>& other) noexcept
+  template<template<class> class OPtrImpl, typename OType>
+  JSER_INLINE auto operator=(basic_ref<OPtrImpl, OType>&& other) noexcept
   -> std::enable_if_t<
       java::type_traits::is_assignable_v<Type, OType>,
       basic_ref&> {
@@ -286,7 +286,7 @@ class basic_ref final
    * \details This method only exists for reference pairs which are assignable to each other.
    * \note swap can only be found using ADL.
    */
-  template<typename<class> class OPtrImpl, typename OType>
+  template<template<class> class OPtrImpl, typename OType>
   friend JSER_INLINE auto swap(const basic_ref& x, const basic_ref<OPtrImpl, OType>& y) noexcept
   -> std::enable_if_t<
       java::type_traits::is_assignable_v<Type, OType>
@@ -295,9 +295,9 @@ class basic_ref final
       using std::swap;
       swap(x.p_, y.p_);
     } else {
-      cycle_ptr::cycle_gptr<erased_type> tmp = std::move(p_);
-      p_ = std::move(other.p_);
-      other.p_ = std::move(tmp);
+      cycle_ptr::cycle_gptr<erased_type> tmp = std::move(x.p_);
+      x.p_ = std::move(y.p_);
+      y.p_ = std::move(tmp);
     }
   }
 
