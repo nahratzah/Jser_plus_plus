@@ -41,6 +41,8 @@ public class CmakeModule implements Closeable {
         Files.createDirectories(this.outputDir.toPath());
         Files.createDirectories(new File(outputDir, GEN_SUBDIR + '/' + HEADER_SUBDIR).toPath());
         Files.createDirectories(new File(outputDir, GEN_SUBDIR + '/' + SOURCE_SUBDIR).toPath());
+        Files.createDirectories(new File(outputDir, SUPPLIED_SUBDIR + '/' + HEADER_SUBDIR).toPath());
+        Files.createDirectories(new File(outputDir, SUPPLIED_SUBDIR + '/' + SOURCE_SUBDIR).toPath());
     }
 
     private static File fileForGeneratedCodeFile(String subdir, String codeFile) {
