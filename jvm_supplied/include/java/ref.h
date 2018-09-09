@@ -171,7 +171,7 @@ struct _basic_ref_inheritance {
 
  public:
   ///\brief Type-erased type held by basic_ref.
-  using erased_type = typename _accessor_for_type<obj_base, Type>::erased_type;
+  using erased_type = typename _accessor_for_type_<obj_base, Type>::erased_type;
   ///\brief Pointer-type held by basic_ref.
   using ptr_type = PtrType<erased_type>;
   ///\brief Base type that all accessors (ultimately) inherit from.
