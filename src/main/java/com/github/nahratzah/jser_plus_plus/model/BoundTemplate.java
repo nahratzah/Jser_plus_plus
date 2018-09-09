@@ -1,6 +1,7 @@
-package com.github.nahratzah.jser_plus_plus.config.cplusplus;
+package com.github.nahratzah.jser_plus_plus.model;
 
 import java.util.Collection;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +40,8 @@ public interface BoundTemplate {
         public T apply(ClassBinding b);
 
         public T apply(ArrayBinding b);
+
+        public T apply(Any b);
     }
 
     /**
@@ -88,16 +91,16 @@ public interface BoundTemplate {
         public ClassBinding() {
         }
 
-        public ClassBinding(JavaClass type, List<BoundTemplate> bindings) {
+        public ClassBinding(JavaType type, List<BoundTemplate> bindings) {
             this.type = type;
             this.bindings = bindings;
         }
 
-        public JavaClass getType() {
+        public JavaType getType() {
             return type;
         }
 
-        public void setType(JavaClass type) {
+        public void setType(JavaType type) {
             this.type = type;
         }
 
@@ -130,7 +133,7 @@ public interface BoundTemplate {
             return v.apply(this);
         }
 
-        private JavaClass type;
+        private JavaType type;
         private List<BoundTemplate> bindings;
     }
 
@@ -142,8 +145,13 @@ public interface BoundTemplate {
         }
 
         public ArrayBinding(BoundTemplate type, int extents) {
-            this.type = type;
-            this.extents = extents;
+            if (type instanceof ArrayBinding) {
+                this.type = ((ArrayBinding) type).getType();
+                this.extents = ((ArrayBinding) type).getExtents() + extents;
+            } else {
+                this.type = type;
+                this.extents = extents;
+            }
         }
 
         public BoundTemplate getType() {
@@ -182,5 +190,28 @@ public interface BoundTemplate {
 
         private BoundTemplate type;
         private int extents;
+    }
+
+    /**
+     * Wildcard binding.
+     */
+    public static class Any implements BoundTemplate {
+        @Override
+        public Set<String> getUnresolvedTemplateNames() {
+            return emptySet();
+        }
+
+        /**
+         * Visit specialization.
+         *
+         * @param <T> Return type of the visitor.
+         * @param v Visitor to apply.
+         * @return Result of
+         * {@link Visitor#apply(com.github.nahratzah.jser_plus_plus.config.cplusplus.BoundTemplate.Any) visitor.apply(this)}.
+         */
+        @Override
+        public <T> T visit(Visitor<T> v) {
+            return v.apply(this);
+        }
     }
 }

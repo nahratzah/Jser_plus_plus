@@ -1,4 +1,4 @@
-package com.github.nahratzah.jser_plus_plus.config.cplusplus;
+package com.github.nahratzah.jser_plus_plus.model;
 
 import java.util.List;
 import java.util.Optional;

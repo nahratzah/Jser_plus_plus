@@ -1,6 +1,6 @@
 package com.github.nahratzah.jser_plus_plus.input;
 
-import com.github.nahratzah.jser_plus_plus.config.cplusplus.JavaClass;
+import com.github.nahratzah.jser_plus_plus.model.JavaType;
 
 /**
  * Context in which classes are defined.
@@ -10,9 +10,9 @@ import com.github.nahratzah.jser_plus_plus.config.cplusplus.JavaClass;
 public interface Context {
     public ClassLoader getClassLoader();
 
-    public JavaClass resolveClass(Class<?> c);
+    public JavaType resolveClass(Class<?> c);
 
-    public default JavaClass resolveClass(String c) {
+    public default JavaType resolveClass(String c) {
         try {
             return resolveClass(getClassLoader().loadClass(c));
         } catch (ClassNotFoundException ex) {

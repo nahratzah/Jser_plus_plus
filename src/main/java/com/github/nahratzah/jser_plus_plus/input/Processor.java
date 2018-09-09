@@ -1,21 +1,20 @@
 package com.github.nahratzah.jser_plus_plus.input;
 
 import com.github.nahratzah.jser_plus_plus.config.Config;
-import com.github.nahratzah.jser_plus_plus.config.cplusplus.BoundTemplate;
-import com.github.nahratzah.jser_plus_plus.config.cplusplus.JavaClass;
-import com.github.nahratzah.jser_plus_plus.config.cplusplus.TemplateArgument;
+import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
+import com.github.nahratzah.jser_plus_plus.model.ClassTemplateArgument;
+import com.github.nahratzah.jser_plus_plus.model.ClassType;
+import com.github.nahratzah.jser_plus_plus.model.JavaType;
 import com.github.nahratzah.jser_plus_plus.output.CmakeModule;
 import com.github.nahratzah.jser_plus_plus.output.CodeGenerator;
 import static com.github.nahratzah.jser_plus_plus.output.Util.setFileContents;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,8 +35,16 @@ public class Processor implements Context {
     }
 
     @Override
-    public JavaClass resolveClass(Class<?> c) {
-        return classes.computeIfAbsent(c, this::resolveClass_);
+    public JavaType resolveClass(Class<?> c) {
+        synchronized (classes) {
+            JavaType v = classes.get(c);
+            if (v != null) return v;
+
+            v = new ClassType(c);
+            classes.put(c, v);
+            v.init(this, cfg);
+            return v;
+        }
     }
 
     public void addClass(Class<?> c) {
@@ -54,16 +61,6 @@ public class Processor implements Context {
 
     public void addClassNames(Collection<String> c) {
         c.forEach(this::resolveClass);
-    }
-
-    private JavaClass resolveClass_(Class c) {
-        final List<String> templateArgNames = Arrays.stream(c.getTypeParameters())
-                .map(tv -> tv.getName())
-                .collect(Collectors.toList());
-
-        final JavaClass jc = new JavaClass();
-        jc.init(this, c, templateArgNames);
-        return jc;
     }
 
     /**
@@ -94,7 +91,7 @@ public class Processor implements Context {
         }
     }
 
-    private static CodeGenerator.JavaClass jcToCg(JavaClass jc) {
+    private static CodeGenerator.JavaClass jcToCg(JavaType jc) {
         return new CodeGenerator.JavaClass() {
             @Override
             public List<String> getNamespace() {
@@ -109,7 +106,7 @@ public class Processor implements Context {
             @Override
             public List<String> getTemplateArguments() {
                 return jc.getTemplateArguments().stream()
-                        .map(TemplateArgument::getName)
+                        .map(ClassTemplateArgument::getName)
                         .collect(Collectors.toList());
             }
 
@@ -117,20 +114,25 @@ public class Processor implements Context {
             public Collection<CodeGenerator.JavaClass> getDependentTypes(boolean publicOnly) {
                 return Stream.concat(Stream.of(jc.getSuperClass()).filter(Objects::nonNull), jc.getInterfaces().stream())
                         .map(c -> {
-                            return c.visit(new BoundTemplate.Visitor<JavaClass>() {
+                            return c.visit(new BoundTemplate.Visitor<JavaType>() {
                                 @Override
-                                public JavaClass apply(BoundTemplate.VarBinding b) {
+                                public JavaType apply(BoundTemplate.VarBinding b) {
                                     return null;
                                 }
 
                                 @Override
-                                public JavaClass apply(BoundTemplate.ClassBinding b) {
+                                public JavaType apply(BoundTemplate.ClassBinding b) {
                                     return b.getType();
                                 }
 
                                 @Override
-                                public JavaClass apply(BoundTemplate.ArrayBinding b) {
+                                public JavaType apply(BoundTemplate.ArrayBinding b) {
                                     return b.getType().visit(this);
+                                }
+
+                                @Override
+                                public JavaType apply(BoundTemplate.Any b) {
+                                    return null;
                                 }
                             });
                         })
@@ -160,6 +162,11 @@ public class Processor implements Context {
                                             Stream.of("java/array.h"),
                                             b.getType().visit(this));
                                 }
+
+                                @Override
+                                public Stream<String> apply(BoundTemplate.Any b) {
+                                    return Stream.empty();
+                                }
                             });
                         })
                         .collect(Collectors.toList());
@@ -168,6 +175,6 @@ public class Processor implements Context {
     }
 
     private final ClassLoader classLoader;
-    private final Map<Class, JavaClass> classes = new ConcurrentHashMap<>();
+    private final Map<Class, JavaType> classes = new HashMap<>();
     private final Config cfg;
 }
