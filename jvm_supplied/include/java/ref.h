@@ -1,13 +1,34 @@
 #ifndef JAVA_PTR_H
 #define JAVA_PTR_H
 
+#include <cycle_ptr/cycle_ptr.h>
+#include <java/generics.h>
+
+namespace java {
+
+template<template<class> class PtrImpl, typename Type>
+class basic_ref;
+
+
+///\brief Variable reference.
+template<typename Type>
+using var_ref = basic_ref<cycle_ptr::cycle_gptr, Type>;
+
+///\brief Type declaration.
+///\details Types are exposed as references, since that is the most similar way
+///for anyone, to reason about the types.
+///By similar, we mean that it resembles the Java language most closely.
+template<typename Tag, typename... Args>
+using type = var_ref<java::G::is<Tag, Args...>>;
+
+} /* namespace java */
+
 #include <type_traits>
 #include <utility>
 #include <memory>
-#include <cycle_ptr/cycle_ptr.h>
-#include <java/generics.h>
 #include <java/_accessor.h>
 #include <java/type_traits.h>
+#include <java/object_intf.h>
 #include <java/null_error.h>
 #include <java/inline.h>
 
@@ -16,7 +37,7 @@ namespace {
 template<typename, typename> struct _accessor_for_type_;
 } /* namespace java::<unnamed> */
 
-namespace java::_erased::java::lang {
+namespace _erased::java::lang {
 class Object;
 } /* namespace java::_erased::java::lang */
 
@@ -29,12 +50,6 @@ template<typename ErasedPtr>
 class _accessor_base {
  protected:
   constexpr JSER_INLINE _accessor_base() = default;
-
-  template<typename Init>
-  explicit JSER_INLINE _accessor_base(Init&& init)
-      noexcept(std::is_nothrow_constructible_v<ErasedPtr, std::add_rvalue_reference_t<Init>>)
-  : p_(std::forward<Init>(init))
-  {}
 
   JSER_INLINE _accessor_base(const _accessor_base&) = default;
   JSER_INLINE _accessor_base(_accessor_base&&) = default;
@@ -61,7 +76,7 @@ class _accessor_base {
   }
 
  private:
-  virtual auto ref__() const -> ErasedType& = 0;
+  virtual auto ref__() const -> typename std::pointer_traits<ErasedPtr>::element_type& = 0;
 };
 
 template<typename Base, typename T>
@@ -72,7 +87,7 @@ namespace {
 template<typename Base, typename Tag, typename... Args>
 struct _accessor_for_type_<Base, java::G::is_t<Tag, Args...>> {
   using erased_type = typename Tag::erased_type;
-  using type = _accessor<Base, Tag, Args...>>;
+  using type = _accessor<Base, Tag, Args...>;
 };
 
 template<typename Base, typename Tag, typename... Args>
@@ -90,8 +105,8 @@ struct _accessor_for_type_<Base, java::G::pack_t<T0, T...>> {
   using erased_type = typename _accessor_for_type_<Base, T0>::erased_type;
 
   struct type
-  : public virtual typename _accessor_for_type_<Base, T0>::type,
-    public virtual typename _accessor_for_type_<Base, T>::type...
+  : public virtual _accessor_for_type_<Base, T0>::type,
+    public virtual _accessor_for_type_<Base, T>::type...
   {
    protected:
     JSER_INLINE type() = default;
@@ -115,7 +130,7 @@ struct _accessor_for_type_<Base, java::G::pack_t<>>
 template<template<typename> class PtrType, typename Type>
 struct _basic_ref_inheritance {
   static_assert(
-      java::type_traits::is_generic<Type>,
+      java::type_traits::is_generic_v<Type>,
       "Must use generics as template arguments.");
 
  private:
@@ -157,10 +172,10 @@ struct _basic_ref_inheritance {
  */
 template<template<class> class PtrImpl, typename Type>
 class basic_ref final
-: public typename _basic_ref_inheritance<PtrImpl, Type>::accessor_type
+: public _basic_ref_inheritance<PtrImpl, Type>::accessor_type
 {
   // Be friends with all our specializations.
-  template<typename<class> class, typename> friend class java::basic_ref;
+  template<template<class> class, typename> friend class java::basic_ref;
 
  protected:
   using erased_type = typename _basic_ref_inheritance<PtrImpl, Type>::erased_type;
@@ -188,7 +203,7 @@ class basic_ref final
   ///\note Even if the type is not self-assignable, it will still be
   ///copy/move constructible.
   template<bool Enable = java::type_traits::is_assignable_v<Type, Type>>
-  JSER_INLINE auto operator=(const basic_ref& other) = default;
+  JSER_INLINE auto operator=(const basic_ref& other)
       noexcept(std::is_nothrow_copy_assignable_v<ptr_type>)
   -> std::enable_if_t<Enable, basic_ref&> {
     p_ = other.p_;
@@ -343,18 +358,6 @@ JSER_INLINE auto operator!=(std::nullptr_t np, const basic_ref<Base, P>& b) noex
 -> bool {
   return b != nullptr;
 }
-
-
-///\brief Variable reference.
-template<typename Type>
-using var_ref = basic_ref<cycle_ptr::cycle_gptr, Type>;
-
-///\brief Type declaration.
-///\details Types are exposed as references, since that is the most similar way
-///for anyone, to reason about the types.
-///By similar, we mean that it resembles the Java language most closely.
-template<typename Tag, typename... Args>
-using type = var_ref<java::G::is<Tag, Args...>>;
 
 
 namespace {

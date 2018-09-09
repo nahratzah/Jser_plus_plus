@@ -4,6 +4,11 @@
 ///\file
 ///\brief Types to describe java generics.
 
+namespace java::_tags::java::lang {
+struct Object;
+};
+
+#include <cstddef>
 #include <type_traits>
 
 namespace java::type_traits {
@@ -61,6 +66,19 @@ constexpr bool is_satisfied_by_v = is_satisfied_by<X, Y>::value;
 
 ///\brief Namespace for generics.
 namespace java::G {
+namespace detail {
+
+template<typename Tag>
+struct generics_arity_
+: std::integral_constant<std::size_t, Tag::generics_arity>
+{};
+
+template<>
+struct generics_arity_<java::_tags::java::lang::Object>
+: std::integral_constant<std::size_t, 0u>
+{};
+
+} /* namespace java::G::detail */
 
 
 ///\brief Template that holds multiple type-arguments to a type.
@@ -88,7 +106,7 @@ struct generics_arguments {
 template<typename Tag, typename... Arguments>
 struct extends_t {
   static_assert(!java::type_traits::is_generic_v<Tag>);
-  static_assert(sizeof...(Arguments) == Tag::generics_arity,
+  static_assert(sizeof...(Arguments) == detail::generics_arity_<Tag>::value,
       "Incorrect number of generics arguments for type.");
 
   using type = extends_t;
@@ -109,7 +127,7 @@ struct extends_t {
 template<typename Tag, typename... Arguments>
 struct super_t {
   static_assert(!java::type_traits::is_generic_v<Tag>);
-  static_assert(sizeof...(Arguments) == Tag::generics_arity,
+  static_assert(sizeof...(Arguments) == detail::generics_arity_<Tag>::value,
       "Incorrect number of generics arguments for type.");
 
   using type = super_t;
@@ -130,7 +148,7 @@ struct super_t {
 template<typename Tag, typename... Arguments>
 struct is_t {
   static_assert(!java::type_traits::is_generic_v<Tag>);
-  static_assert(sizeof...(Arguments) == Tag::generics_arity,
+  static_assert(sizeof...(Arguments) == detail::generics_arity_<Tag>::value,
       "Incorrect number of generics arguments for type.");
 
   using type = is_t;
@@ -254,7 +272,6 @@ using pack = typename detail::combine<pack_t<>, T...>::type::type; // Double typ
 
 
 // Includes to satisfy implementations of type traits.
-#include <java/lang/Object.h>
 #include <java/_accessor.h>
 
 
@@ -262,22 +279,22 @@ namespace java::type_traits {
 namespace {
 
 template<typename Tag, typename... Args>
-struct is_generic_<java::G::is_t<Tag, Args...> {
+struct is_generic_<java::G::is_t<Tag, Args...>> {
   using type = std::true_type;
 };
 
 template<typename Tag, typename... Args>
-struct is_generic_<java::G::extends_t<Tag, Args...> {
+struct is_generic_<java::G::extends_t<Tag, Args...>> {
   using type = std::true_type;
 };
 
 template<typename Tag, typename... Args>
-struct is_generic_<java::G::super_t<Tag, Args...> {
+struct is_generic_<java::G::super_t<Tag, Args...>> {
   using type = std::true_type;
 };
 
 template<typename... G>
-struct is_generic_<java::G::pack_t<G...> {
+struct is_generic_<java::G::pack_t<G...>> {
   using type = std::true_type;
 };
 
@@ -293,7 +310,7 @@ struct is_satisfied_by_<java::G::pack_t<X...>, Y> {
 // Comparison with argument pack on the right.
 template<typename... X, typename... Y>
 struct is_satisfied_by_<java::G::is_t<X...>, java::G::pack_t<Y...>> {
-  using type = std::disjunction<is_satisfied_by<is<X...>, Y>...>;
+  using type = std::disjunction<is_satisfied_by<G::is<X...>, Y>...>;
 };
 
 // Comparison with argument pack on the right.
@@ -445,7 +462,7 @@ namespace java::G::detail {
 template<typename X, typename ToAdd>
 struct merge_by_tag_ {
   static_assert(java::type_traits::is_compact_generic_v<X>
-      && java::type_traits::is_compact_generic<Y>);
+      && java::type_traits::is_compact_generic_v<ToAdd>);
 
   ///\brief Indicates if merge is possible.
   using success = std::false_type;
@@ -478,7 +495,7 @@ template<typename Pack, typename T>
 struct add;
 
 // Skip addition of void.
-template<typename... X, typename void>
+template<typename... X>
 struct add<pack_t<X...>, void> {
   using type = pack_t<X...>;
 };
@@ -511,9 +528,9 @@ struct add<pack_t<X...>, Y> {
   using elim_satisfied = combine<
       pack_t<>,
       std::conditional_t<
-          java::type_traits::is_satisfied_by<X, Y>,
+          java::type_traits::is_satisfied_by_v<X, Y>,
           void,
-          X>>;
+          X>...>;
 
   // Result of addition.
   // The result is a pack_t.
@@ -526,7 +543,7 @@ struct add<pack_t<X...>, Y> {
           // else:
           std::conditional_t<
               // If we can merge...
-              std::disjunction_v<typename merge_by_tag_<X, Y>::success>,
+              std::disjunction_v<typename merge_by_tag_<X, Y>::success...>,
               // Merge same-tag X and Y into single entry.
               pack_t<typename merge_by_tag_<X, Y>::merged_type...>,
               // Else: liminate any X satisfied by Y, then append Y.
@@ -537,7 +554,7 @@ struct add<pack_t<X...>, Y> {
 // Base case where there is nothing more to be added.
 template<typename... R>
 struct combine<pack_t<R...>> {
-  using type = typename pack_t<R...>;
+  using type = pack_t<R...>;
 };
 
 // Default addition case: use `add` to add a single element,

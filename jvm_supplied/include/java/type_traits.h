@@ -65,7 +65,7 @@ using parameter_type_for = param_convert_<G>;
 
 ///\copydoc parameter_type_for
 template<typename G>
-using parameter_type_for_t = typename param_type_for<G>::type;
+using parameter_type_for_t = typename parameter_type_for<G>::type;
 
 
 /**
@@ -122,7 +122,7 @@ struct param_convert_<java::G::pack_t<X...>> {
 };
 
 
-template<typename X...>
+template<typename... X>
 struct return_type_convert_<java::G::extends_t<X...>> {
   using type = java::G::is<X...>;
 };
