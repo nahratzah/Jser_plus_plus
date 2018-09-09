@@ -8,7 +8,6 @@ import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
-import java.util.Optional;
 
 /**
  *
@@ -30,15 +29,31 @@ public enum PrimitiveType implements JavaType {
         this.c = requireNonNull(c);
     }
 
-    public static Optional<PrimitiveType> fromClass(Class<?> c) {
+    /**
+     * Find the primitive type for the given class.
+     *
+     * @param c The class for which to find the corresponding primitive type.
+     * @return An instance of PrimitiveType, corresponding to the argument
+     * class.
+     * @throws IllegalStateException if the class is a primitive, but no
+     * corresponding specialization of PrimitiveType exists.
+     * @throws IllegalArgumentException if the class is not a primitive.
+     */
+    public static PrimitiveType fromClass(Class<?> c) {
         return Arrays.stream(values())
                 .filter(v -> Objects.equals(v.c.getName(), c.getName()))
-                .findAny();
+                .findAny()
+                .orElseThrow(() -> {
+                    if (c.isPrimitive())
+                        return new IllegalStateException("Missing implementation for primitive type " + c);
+                    else
+                        return new IllegalArgumentException(c + " is not a primitive type");
+                });
     }
 
     @Override
     public String getName() {
-        return String.join(".", getNamespace()) + "." + name;
+        return name;
     }
 
     @Override

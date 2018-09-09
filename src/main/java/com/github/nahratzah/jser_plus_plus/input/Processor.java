@@ -41,13 +41,12 @@ public class Processor implements Context {
 
     @Override
     public JavaType resolveClass(Class<?> c) {
+        if (c.isPrimitive()) return PrimitiveType.fromClass(c);
+
         LOG.log(Level.FINE, "resolving {0}", c);
 
         if (c.isArray())
             throw new IllegalArgumentException("Arrays are not a resolvable type.");
-
-        if (c.isPrimitive())
-            return PrimitiveType.fromClass(c).get();
 
         synchronized (classes) {
             JavaType v = classes.get(c);
