@@ -1,0 +1,17 @@
+accessor(cdef) ::= <<
+template<$["Base_", cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
+class _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>
+: public virtual Base_
+{
+ protected:
+  JSER_INLINE _accessor() = default;
+  JSER_INLINE _accessor(const _accessor&) = default;
+  JSER_INLINE _accessor(_accessor&&) = default;
+  JSER_INLINE _accessor& operator=(const _accessor&) = default;
+  JSER_INLINE _accessor& operator=(_accessor&&) = default;
+  JSER_INLINE ~_accessor() = default;
+
+ public:
+  // XXX field and method forwarders.
+};
+>>

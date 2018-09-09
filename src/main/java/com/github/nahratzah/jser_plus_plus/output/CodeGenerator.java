@@ -1,6 +1,9 @@
 package com.github.nahratzah.jser_plus_plus.output;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,9 +18,12 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.stringtemplate.v4.STGroup;
+import org.stringtemplate.v4.STGroupString;
 
 /**
  * Writes a header and source file.
@@ -36,6 +42,7 @@ public class CodeGenerator {
             JAVA_REF_INCLUDE
     )));
     private static final Comparator<String> INCLUDE_SORTER = CodeGenerator::pathComparison;
+    private static final STGroup ACCESSOR_TEMPLATE;
 
     public CodeGenerator(List<String> baseType) {
         requireNonNull(baseType);
@@ -180,10 +187,18 @@ public class CodeGenerator {
                 w.append("#include <").append(includeIter.next()).append(">\n");
         }
 
+        w.append("#include <java/inline.h>\n\n");
+
         w.append("// render accessors\n");
         w.append("namespace java {\n\n");
         {
-            // XXX render accessors
+            for (final JavaClass type : types) {
+                w
+                        .append(ACCESSOR_TEMPLATE.getInstanceOf("accessor")
+                                .add("cdef", type)
+                                .render())
+                        .append('\n');
+            }
         }
         w.append("} /* namespace java */\n");
 
@@ -280,6 +295,18 @@ public class CodeGenerator {
         public String getClassName();
 
         /**
+         * Retrieve the tag name.
+         *
+         * @return C++ notation of the full path to the tag.
+         */
+        public default String getTagName() {
+            return Stream.of(Stream.of("java", "_tags"), getNamespace().stream(), Stream.of(getClassName()))
+                    .flatMap(Function.identity())
+                    .map(s -> "::" + s)
+                    .collect(Collectors.joining());
+        }
+
+        /**
          * Retrieve list of template argument names.
          *
          * @return The template argument names for this type.
@@ -365,6 +392,19 @@ public class CodeGenerator {
         if (xPartsIter.hasNext()) return 1;
         if (yPartsIter.hasNext()) return -1;
         return xTail.compareTo(yTail);
+    }
+
+    static {
+        try (Reader accessorFile = new InputStreamReader(CodeGenerator.class.getResourceAsStream("accessor.stg"), UTF_8)) {
+            final char[] cbuf = new char[1024];
+            StringBuilder sb = new StringBuilder();
+            for (int rlen = accessorFile.read(cbuf); rlen != -1;
+                 rlen = accessorFile.read(cbuf))
+                sb.append(cbuf, 0, rlen);
+            ACCESSOR_TEMPLATE = new STGroupString("accessor.stg", sb.toString(), '$', '$');
+        } catch (IOException ex) {
+            throw new IllegalStateException("unable to load accessor template", ex);
+        }
     }
 
     /**
