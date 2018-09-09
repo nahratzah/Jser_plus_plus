@@ -96,7 +96,7 @@ public class CodeGenerator {
         for (final JavaClass type : types)
             w
                     .append("struct ").append(type.getClassName()).append(" {\n")
-                    .append("  static constexpr std::size_t generics_arity = ").append(Integer.toString(type.getTemplateArguments().size())).append(";\n")
+                    .append("  static constexpr ::std::size_t generics_arity = ").append(Integer.toString(type.getTemplateArguments().size())).append(";\n")
                     .append("  using erased_type = ::").append(erasedTypeNs).append("::").append(type.getClassName()).append(";\n")
                     .append("};\n");
         w.append("} /* namespace ").append(tagNs).append(" */\n");
