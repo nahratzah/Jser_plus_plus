@@ -55,14 +55,14 @@ namespace {
  * not derive from an accessor with the specified \p Tag.
  */
 template<typename Tag, typename Base, typename... Arguments>
-inline auto find_tag_(const _accessor<Base, Tag, Arguments...>& accessor) noexcept
--> const _accessor<Base, Tag, Arguments>& {
+inline auto find_tag_(const java::_accessor<Base, Tag, Arguments...>& accessor) noexcept
+-> const java::_accessor<Base, Tag, Arguments...>& {
   return accessor;
 }
 
 // Specialization of the find_tag_, if the \p Tag is not present.
 template<typename Tag, typename Base, typename OtherTag, typename... Arguments>
-inline auto find_tag_(const _accessor<Base, OtherTag, Arguments...>& accessor, ...) noexcept
+inline auto find_tag_(const java::_accessor<Base, OtherTag, Arguments...>& accessor, ...) noexcept
 -> void {
 }
 

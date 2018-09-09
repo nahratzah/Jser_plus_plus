@@ -54,8 +54,8 @@ constexpr bool is_compact_generic_v = is_compact_generic<T>::value;
 template<typename X, typename Y>
 using is_satisfied_by = typename is_satisfied_by_<typename X::type, typename Y::type>::type;
 
-template<typename T>
-constexpr bool is_satisfied_by_v = is_satisfied_by<T>::value;
+template<typename X, typename Y>
+constexpr bool is_satisfied_by_v = is_satisfied_by<X, Y>::value;
 
 } /* namespace java::type_traits */
 
@@ -87,7 +87,7 @@ struct generics_arguments {
  */
 template<typename Tag, typename... Arguments>
 struct extends_t {
-  static_assert(!is_generic_v<Tag>);
+  static_assert(!java::type_traits::is_generic_v<Tag>);
   static_assert(sizeof...(Arguments) == Tag::generics_arity,
       "Incorrect number of generics arguments for type.");
 
@@ -108,7 +108,7 @@ struct extends_t {
  */
 template<typename Tag, typename... Arguments>
 struct super_t {
-  static_assert(!is_generic_v<Tag>);
+  static_assert(!java::type_traits::is_generic_v<Tag>);
   static_assert(sizeof...(Arguments) == Tag::generics_arity,
       "Incorrect number of generics arguments for type.");
 
@@ -129,7 +129,7 @@ struct super_t {
  */
 template<typename Tag, typename... Arguments>
 struct is_t {
-  static_assert(!is_generic_v<Tag>);
+  static_assert(!java::type_traits::is_generic_v<Tag>);
   static_assert(sizeof...(Arguments) == Tag::generics_arity,
       "Incorrect number of generics arguments for type.");
 
@@ -151,23 +151,23 @@ struct combine;
 
 
 template<typename Tag, typename... Arguments>
-struct extends_t<is_t<typename Tag, typename... Arguments>>
+struct extends_t<is_t<Tag, Arguments...>>
 : public extends_t<Tag, Arguments...>
 {};
 
 template<typename Tag, typename... Arguments>
-struct super_t<is_t<typename Tag, typename... Arguments>>
+struct super_t<is_t<Tag, Arguments...>>
 : public super_t<Tag, Arguments...>
 {};
 
 template<typename Tag, typename... Arguments>
-struct is_t<is_t<typename Tag, typename... Arguments>>
+struct is_t<is_t<Tag, Arguments...>>
 : public is_t<Tag, Arguments...>
 {};
 
 
 template<typename Tag, typename... Arguments>
-struct extends_t<extends_t<typename Tag, typename... Arguments>>
+struct extends_t<extends_t<Tag, Arguments...>>
 : public extends_t<Tag, Arguments...>
 {};
 
@@ -178,7 +178,7 @@ struct super_t<extends_t<typename Tag, typename... Arguments>>
 #endif
 
 template<typename Tag, typename... Arguments>
-struct is_t<extends_t<typename Tag, typename... Arguments>>
+struct is_t<extends_t<Tag, Arguments...>>
 : public extends_t<Tag, Arguments...>
 {};
 
@@ -190,12 +190,12 @@ struct extends_t<super_t<typename Tag, typename... Arguments>>
 #endif
 
 template<typename Tag, typename... Arguments>
-struct super_t<super_t<typename Tag, typename... Arguments>>
+struct super_t<super_t<Tag, Arguments...>>
 : public super_t<Tag, Arguments...>
 {};
 
 template<typename Tag, typename... Arguments>
-struct is_t<super_t<typename Tag, typename... Arguments>>
+struct is_t<super_t<Tag, Arguments...>>
 : public super_t<Tag, Arguments...>
 {};
 
@@ -207,33 +207,33 @@ struct is_t<super_t<typename Tag, typename... Arguments>>
  * \note Generics are incomplete types, used for tagging purposes only.
  */
 template<typename... G>
-struct pack {
-  static_assert(std::conjunction_v<is_generic<G>...>);
+struct pack_t {
+  static_assert(std::conjunction_v<java::type_traits::is_generic<G>...>);
 
   using type = pack_t<typename G::type...>;
 };
 
 // Specialization that unpacks single-element.
 template<typename G>
-struct pack {
-  static_assert(std::conjunction_v<is_generic<G>...>);
+struct pack_t<G> {
+  static_assert(java::type_traits::is_generic_v<G>);
 
   using type = G;
 };
 
 template<typename... G>
 struct extends_t<pack_t<G...>>
-: using pack_t<extends_t<G>...>
+: public pack_t<extends_t<G>...>
 {};
 
 template<typename... G>
 struct super_t<pack_t<G...>>
-: using pack_t<super_t<G>...>
+: public pack_t<super_t<G>...>
 {};
 
 template<typename... G>
 struct is_t<pack_t<G...>>
-: using pack_t<is_t<G>...>
+: public pack_t<is_t<G>...>
 {};
 
 
