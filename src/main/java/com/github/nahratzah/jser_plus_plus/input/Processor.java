@@ -152,6 +152,7 @@ public class Processor implements Context {
                             });
                         })
                         .distinct()
+                        .filter(c -> !(c instanceof PrimitiveType))
                         .map(Processor::jcToCg)
                         .collect(Collectors.toList());
             }
