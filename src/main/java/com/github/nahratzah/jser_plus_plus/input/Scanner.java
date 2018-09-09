@@ -60,7 +60,7 @@ public class Scanner implements Closeable {
     }
 
     public Scanner(URL urls[], Options... options) {
-        this(URLClassLoader.newInstance(applyOptions(urls, options)), true);
+        this(URLClassLoader.newInstance(applyOptions(urls, options), rootClassLoader()), true);
     }
 
     public Scanner(File classPath[], Options... options) throws MalformedURLException {
@@ -68,6 +68,13 @@ public class Scanner implements Closeable {
     }
 
     public ClassLoader getClassLoader() {
+        return loader;
+    }
+
+    private static ClassLoader rootClassLoader() {
+        ClassLoader loader = ClassLoader.getSystemClassLoader();
+        while (loader.getParent() != null)
+            loader = loader.getParent();
         return loader;
     }
 
@@ -128,7 +135,9 @@ public class Scanner implements Closeable {
 
     private static URL[] applyOptions(URL urls[], Options... options) {
         if (Arrays.asList(options).contains(Options.ADD_BOOT_CLASSPATH)) {
-            urls = Stream.concat(Arrays.stream(filesToUrls(getBootClassPath())), Arrays.stream(urls))
+            final File[] bootClassPath = getBootClassPath();
+            LOG.log(Level.INFO, "Adding boot classpath: {0}", bootClassPath);
+            urls = Stream.concat(Arrays.stream(filesToUrls(bootClassPath)), Arrays.stream(urls))
                     .distinct()
                     .toArray(URL[]::new);
         }
