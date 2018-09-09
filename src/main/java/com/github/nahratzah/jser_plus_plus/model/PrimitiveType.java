@@ -10,6 +10,7 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 
 /**
+ * A java primitive type.
  *
  * @author ariane
  */
