@@ -98,7 +98,25 @@ class _accessor_base {
    * \throws ::java::null_error if this is null.
    */
   template<typename ErasedType>
-  JSER_INLINE auto ref_() const -> ErasedType& {
+  JSER_INLINE auto ref_() const -> const ErasedType& {
+    if constexpr(std::is_convertible_v<typename std::pointer_traits<ErasedPtr>::element_type*, ErasedType*>) {
+      return ref__();
+    } else {
+      return dynamic_cast<ErasedType&>(ref__());
+    }
+  }
+
+  /**
+   * \brief Acquire reference to the given type.
+   * \details
+   * Performs implicit cast if possible.
+   * Uses dynamic cast if implicit cast is not possible.
+   * \tparam ErasedType requested type.
+   * \returns reference to the requested type.
+   * \throws ::java::null_error if this is null.
+   */
+  template<typename ErasedType>
+  JSER_INLINE auto ref_() -> ErasedType& {
     if constexpr(std::is_convertible_v<typename std::pointer_traits<ErasedPtr>::element_type*, ErasedType*>) {
       return ref__();
     } else {
@@ -107,7 +125,8 @@ class _accessor_base {
   }
 
  private:
-  virtual auto ref__() const -> typename std::pointer_traits<ErasedPtr>::element_type& = 0;
+  virtual auto ref__() const -> const typename std::pointer_traits<ErasedPtr>::element_type& = 0;
+  virtual auto ref__() -> typename std::pointer_traits<ErasedPtr>::element_type& = 0;
 };
 
 template<typename Base, typename T>
@@ -475,7 +494,13 @@ class basic_ref final
 
  private:
   // Provide implementation of method in base_type.
-  JSER_INLINE auto ref__() const -> erased_type& override {
+  JSER_INLINE auto ref__() const -> const erased_type& override {
+    if (p_ == nullptr) throw ::java::null_error();
+    return *p_;
+  }
+
+  // Provide implementation of method in base_type.
+  JSER_INLINE auto ref__() -> erased_type& override {
     if (p_ == nullptr) throw ::java::null_error();
     return *p_;
   }
