@@ -158,6 +158,35 @@ public class Processor implements Context {
             }
 
             @Override
+            public Collection<JavaType> getParentModels() {
+                return Stream.concat(Stream.of(jc.getSuperClass()).filter(Objects::nonNull), jc.getInterfaces().stream())
+                        .flatMap(c -> {
+                            return c.visit(new BoundTemplate.Visitor<Stream<JavaType>>() {
+                                @Override
+                                public Stream<JavaType> apply(BoundTemplate.VarBinding b) {
+                                    return Stream.empty();
+                                }
+
+                                @Override
+                                public Stream<JavaType> apply(BoundTemplate.ClassBinding b) {
+                                    return Stream.of(b.getType());
+                                }
+
+                                @Override
+                                public Stream<JavaType> apply(BoundTemplate.ArrayBinding b) {
+                                    return b.getType().visit(this);
+                                }
+
+                                @Override
+                                public Stream<JavaType> apply(BoundTemplate.Any b) {
+                                    return Stream.empty();
+                                }
+                            });
+                        })
+                        .collect(Collectors.toSet());
+            }
+
+            @Override
             public Collection<String> getIncludes(boolean publicOnly) {
                 final Stream<String> parentTypes = Stream.concat(Stream.of(jc.getSuperClass()).filter(Objects::nonNull), jc.getInterfaces().stream())
                         .flatMap(c -> {

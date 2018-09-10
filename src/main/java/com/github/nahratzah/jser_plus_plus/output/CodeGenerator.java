@@ -12,6 +12,7 @@ import static java.util.Collections.unmodifiableSet;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -253,7 +254,7 @@ public class CodeGenerator {
         // render erased type
         w.append("namespace ").append(erasedTypeNs).append(" {\n\n");
         {
-            for (final JavaClass type : types) {
+            for (final JavaClass type : reorderTypesForInheritance()) {
                 w
                         .append(CODE_GENERATOR_TEMPLATE.getInstanceOf("class")
                                 .add("cdef", type)
@@ -346,6 +347,13 @@ public class CodeGenerator {
         public Collection<JavaClass> getDependentTypes(boolean publicOnly);
 
         /**
+         * Retrieve list of all types that this type inherits from.
+         *
+         * @return Model of super class and models of interfaces.
+         */
+        public Collection<?> getParentModels();
+
+        /**
          * Retrieve list of includes required to make the type declarations
          * functional.
          *
@@ -419,6 +427,29 @@ public class CodeGenerator {
         if (xPartsIter.hasNext()) return 1;
         if (yPartsIter.hasNext()) return -1;
         return xTail.compareTo(yTail);
+    }
+
+    /**
+     * Get reordered types, for rendering erased type implementations.
+     *
+     * In order to have inheritance function, each parent of the to-be-rendered
+     * type must be defined. This function reorders the types, such that this is
+     * the case for types used locally.
+     *
+     * @return
+     */
+    private Collection<JavaClass> reorderTypesForInheritance() {
+        final Collection<JavaClass> result = new LinkedHashSet<>();
+
+        for (JavaClass type : types) {
+            final Collection<?> parentModels = type.getParentModels();
+            types.stream()
+                    .filter(t -> parentModels.contains(t.getModel()))
+                    .forEach(result::add);
+            result.add(type);
+        }
+
+        return result;
     }
 
     static {
