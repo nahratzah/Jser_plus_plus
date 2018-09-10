@@ -129,4 +129,13 @@ public interface JavaType {
      * @return True if this type is an abstract class.
      */
     public boolean isAbstract();
+
+    /**
+     * Test if this is an enum class.
+     *
+     * @return True if this type is an enum.
+     */
+    public default boolean isEnum() {
+        return false;
+    }
 }

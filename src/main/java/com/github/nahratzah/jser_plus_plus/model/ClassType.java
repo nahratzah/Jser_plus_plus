@@ -39,6 +39,7 @@ public class ClassType implements JavaType {
         this.c = requireNonNull(c);
     }
 
+    @Override
     public void init(Context ctx, Config cfg) {
         LOG.log(Level.INFO, "Initializing {0}", c);
 
@@ -314,7 +315,7 @@ public class ClassType implements JavaType {
     /**
      * Underlying java class.
      */
-    private final Class<?> c;
+    protected final Class<?> c;
     /**
      * Template arguments for this class.
      */

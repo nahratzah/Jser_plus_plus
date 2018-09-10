@@ -20,8 +20,13 @@ class(cdef) ::= <<
 class $cdef.className$
 $classInheritance(cdef.model)$
 {
- public:
+$if (cdef.model.enum)$
+ private:
   $cdef.className$();
+$endif$
+
+ public:
+  $if (!cdef.model.enum)$$cdef.className$();$endif$
   $cdef.className$(const $cdef.className$&);
   $cdef.className$($cdef.className$&&);
   JSER_INLINE $cdef.className$& operator=(const $cdef.className$&) = default;
