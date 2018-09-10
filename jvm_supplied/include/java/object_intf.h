@@ -16,9 +16,11 @@ class object_intf {
  public:
   virtual ~object_intf() noexcept = 0;
 
+#if 0 // Disable until we have proper config handling logic.
  private:
   virtual auto __get_class__() const
   -> cycle_ptr::cycle_gptr<const java::serialization::stream::new_class_desc__class_desc> = 0;
+#endif
 };
 
 
