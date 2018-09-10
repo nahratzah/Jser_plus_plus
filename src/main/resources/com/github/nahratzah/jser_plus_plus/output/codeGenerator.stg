@@ -21,8 +21,7 @@ class $cdef.className$
 $classInheritance(cdef.model)$
 {
 $if (cdef.model.enum)$
- private:
-  $cdef.className$();
+  $cdef.className$() = delete; // Enum types are not default constructible.
 $endif$
 
  public:
@@ -42,7 +41,9 @@ $endif$
 >>
 
 classImpl(cdef) ::= <<
+$if (!cdef.model.enum)$
 $cdef.className$::$cdef.className$() = default;
+$endif$
 $cdef.className$::$cdef.className$(const $cdef.className$&) = default;
 $cdef.className$::$cdef.className$($cdef.className$&&) = default;
 $cdef.className$::~$cdef.className$() noexcept = default;
