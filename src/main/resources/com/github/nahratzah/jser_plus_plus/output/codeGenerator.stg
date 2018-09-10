@@ -36,8 +36,10 @@ $if (cdef.model.enum)$
     $cdef.model.enumValues:{kv|$kv.remappedName$}; anchor, separator = ",\n"$
   };
 
+  $cdef.model.enumValues:{kv| $classEnumConstantMethodDeclaration(cdef, kv)$}; anchor, separator = "\n"$
+
  private:
-  $cdef.className$(enum_t enum_value);
+  JSER_INLINE $cdef.className$(enum_t enum_value) : value(enum_value) {}
 $endif$
 
  public:
@@ -55,6 +57,11 @@ $endif$
   // XXX methods
   // XXX field accessors
   // XXX fields
+$if (cdef.model.enum)$
+
+ public:
+  const enum_t value;
+$endif$
 };
 $if (cdef.model.enum)$
 
@@ -85,6 +92,8 @@ case $cdef.className$::enum_t::$v.remappedName$:
   }
 }
 $endif$
+
+$cdef.model.enumValues:{ kv | $classEnumConstantMethod(cdef, kv)$}; separator = "\n"$
 >>
 
 classInheritance(model) ::= <%
@@ -109,6 +118,21 @@ $! Interfaces need to have ::java::object_intf as a base, so if they don't
 : public virtual ::java::object_intf
 $endif$
 %>
+
+classEnumConstantMethodDeclaration(cdef, kv) ::= <<
+///\brief Enum constant $kv.name$.
+static auto $kv.remappedName$()
+-> cycle_ptr::cycle_gptr<$cdef.className$>;
+>>
+
+classEnumConstantMethod(cdef, kv) ::= <<
+auto $cdef.className$::$kv.remappedName$()
+-> cycle_ptr::cycle_gptr<$cdef.className$> {
+  static const cycle_ptr::cycle_gptr<$cdef.className$> impl =
+      cycle_ptr::make_cycle<$cdef.className$>($cdef.className$::enum_t::$kv.remappedName$);
+  return impl;
+}
+>>
 
 classInheritTemplateClassRenderer(model) ::= <%
 $if (model.interface)$public virtual$else$public$endif$ ::$["java", "_erased", model.namespace, model.simpleName]; separator = "::"$
