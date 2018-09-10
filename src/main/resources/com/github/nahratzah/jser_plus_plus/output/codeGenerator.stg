@@ -79,7 +79,7 @@ auto to_string($cdef.className$::enum_t enum_value) noexcept
   $cdef.model.enumValues
   : { v |
 case $cdef.className$::enum_t::$v.remappedName$:
-  return "$v.name$"sv;$\\$
+  return $u8StringView(v.name)$;$\\$
     }
   ; anchor, separator = "\n"$
   }

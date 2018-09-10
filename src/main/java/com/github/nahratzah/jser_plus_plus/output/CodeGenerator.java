@@ -1,5 +1,6 @@
 package com.github.nahratzah.jser_plus_plus.output;
 
+import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -498,6 +499,8 @@ public class CodeGenerator {
         } catch (IOException ex) {
             throw new IllegalStateException("unable to load accessor template", ex);
         }
+
+        CODE_GENERATOR_TEMPLATE.importTemplates(StCtx.BUILTINS);
     }
 
     /**

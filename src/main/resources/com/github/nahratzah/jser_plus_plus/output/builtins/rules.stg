@@ -1,0 +1,9 @@
+cxxString(s) ::= <%$cxxString_.(s)$%>
+u8String(s) ::= <%u8$cxxString(s)$s%>
+u16String(s) ::= <%u16$cxxString(s)$%>
+u32String(s) ::= <%u32$cxxString(s)$%>
+wString(s) ::= <%L$cxxString(s)$%>
+u8StringView(s) ::= <%u8$cxxString(s)$sv%>
+u16StringView(s) ::= <%u16$cxxString(s)$sv%>
+u32StringView(s) ::= <%u32$cxxString(s)$sv%>
+wStringView(s) ::= <%L$cxxString(s)$sv%>
