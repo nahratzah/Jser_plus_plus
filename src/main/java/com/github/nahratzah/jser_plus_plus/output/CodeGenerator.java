@@ -19,6 +19,7 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -436,19 +437,42 @@ public class CodeGenerator {
      * type must be defined. This function reorders the types, such that this is
      * the case for types used locally.
      *
-     * @return
+     * @return Types ordered such that any base types of a Type are before that
+     * Type.
      */
     private Collection<JavaClass> reorderTypesForInheritance() {
         final Collection<JavaClass> result = new LinkedHashSet<>();
 
-        for (JavaClass type : types) {
-            final Collection<?> parentModels = type.getParentModels();
-            types.stream()
-                    .filter(t -> parentModels.contains(t.getModel()))
-                    .forEach(result::add);
-            result.add(type);
+        /**
+         * Helper class that cascades recursion, ensuring that if a type is
+         * added with priority, its types are also added with priority.
+         */
+        class ResultAddFn implements Consumer<JavaClass> {
+            /**
+             * Set of types which are to be added, but haven't yet been added,
+             * because we are scanning their dependencies.
+             */
+            final Set<JavaClass> inProgress = new HashSet<>();
+
+            @Override
+            public void accept(JavaClass type) {
+                if (result.contains(type)) return;
+
+                if (!inProgress.add(type))
+                    throw new IllegalStateException("Recursion in dependencies.");
+                try {
+                    final Collection<?> parentModels = type.getParentModels();
+                    types.stream()
+                            .filter(t -> parentModels.contains(t.getModel()))
+                            .forEach(this); // Recursion
+                    result.add(type);
+                } finally {
+                    inProgress.remove(type);
+                }
+            }
         }
 
+        types.forEach(new ResultAddFn());
         return result;
     }
 
