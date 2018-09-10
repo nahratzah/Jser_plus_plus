@@ -30,7 +30,7 @@ $if (cdef.model.enum)$
  public:
   /**
    * \brief Raw enum constants for $[cdef.namespace, cdef.className]; separator = "."$
-   * \note Enums are in lower case, to avoid name clashes with defines.
+   * \note Enums start with upper case, followed by lower case, to avoid name clashes with defines.
    */
   enum class enum_t {
     $cdef.model.enumValues:{kv|$kv.remappedName$}; anchor, separator = ",\n"$

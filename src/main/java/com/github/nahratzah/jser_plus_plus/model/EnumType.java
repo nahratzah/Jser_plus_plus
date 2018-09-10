@@ -71,7 +71,7 @@ public class EnumType extends ClassType {
      * @return Mangled name of the enum constant.
      */
     private static String remapEnumConstant(String name) {
-        return name.toLowerCase(Locale.ROOT);
+        return name.substring(0, 1).toUpperCase(Locale.ROOT) + name.substring(1).toLowerCase(Locale.ROOT);
     }
 
     /**
