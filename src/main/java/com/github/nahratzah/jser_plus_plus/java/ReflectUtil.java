@@ -34,8 +34,23 @@ public enum ReflectUtil {
             return visitor.apply((TypeVariable) t);
         if (t instanceof WildcardType)
             return visitor.apply((WildcardType) t);
-        if (t instanceof Class)
-            return visitor.apply((Class) t);
+        if (t instanceof Class) {
+            if (((Class) t).isArray()) {
+                return visitor.apply(new GenericArrayType() {
+                    @Override
+                    public Type getGenericComponentType() {
+                        return ((Class) t).getComponentType();
+                    }
+
+                    @Override
+                    public String toString() {
+                        return ((Class) t).toGenericString();
+                    }
+                });
+            } else {
+                return visitor.apply((Class) t);
+            }
+        }
         throw new IllegalStateException("Missing visitor for type " + t.getClass());
     }
 

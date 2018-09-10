@@ -4,9 +4,12 @@ import com.github.nahratzah.jser_plus_plus.config.Config;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.java.ReflectUtil;
 import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
+import java.io.ObjectStreamClass;
+import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Arrays;
@@ -19,6 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.function.Function;
@@ -47,6 +51,15 @@ public class ClassType implements JavaType {
         LOG.log(Level.FINE, "Type parameters: {0}", cTypeParameters);
         final Map<String, String> argRename = unmodifiableMap(buildRenameMap(cTypeParameters));
 
+        final ObjectStreamClass streamClass = ObjectStreamClass.lookupAny(this.c);
+
+        this.serialVersionUID = streamClass.getSerialVersionUID();
+        initTemplateArguments(ctx, cfg, cTypeParameters, argRename);
+        initSuperTypes(ctx, cfg, argRename);
+        initFields(ctx, cfg, argRename, streamClass);
+    }
+
+    private void initTemplateArguments(Context ctx, Config cfg, List<? extends TypeVariable<? extends Class<?>>> cTypeParameters, Map<String, String> argRename) {
         this.templateArguments = cTypeParameters.stream()
                 .map(cTypeParameter -> {
                     final String argName = cTypeParameter.getName();
@@ -56,12 +69,61 @@ public class ClassType implements JavaType {
                     return new ClassTemplateArgument(argName, argBounds);
                 })
                 .collect(Collectors.toList());
+    }
 
+    private void initSuperTypes(Context ctx, Config cfg, Map<String, String> argRename) {
         this.superType = Optional.ofNullable(this.c.getGenericSuperclass())
                 .map(t -> ReflectUtil.visitType(t, new ParentTypeVisitor(ctx, argRename)))
                 .orElse(null);
         this.interfaceTypes = Arrays.stream(this.c.getGenericInterfaces())
                 .map(t -> ReflectUtil.visitType(t, new ParentTypeVisitor(ctx, argRename)))
+                .collect(Collectors.toList());
+    }
+
+    private void initFields(Context ctx, Config cfg, Map<String, String> argRename, ObjectStreamClass streamClass) {
+        class IntermediateFieldDescr {
+            public IntermediateFieldDescr(String name, Class<?> classType, Type reflectType) {
+                this.name = name;
+                this.classType = classType;
+                this.reflectType = reflectType;
+            }
+
+            /**
+             * Name of the field.
+             */
+            public final String name;
+            /**
+             * Serialization type of the field.
+             */
+            public final Class<?> classType;
+            /**
+             * Type of the field, found via reflection. May be null.
+             */
+            public final Type reflectType;
+        }
+
+        this.fields = Arrays.stream(streamClass.getFields())
+                .map(f -> {
+                    final String name = f.getName();
+                    final Class<?> type = f.getType();
+
+                    // Fill in the reflect type only if the class implementation
+                    // and the serialization code agree on the type.
+                    Type reflectType = null;
+                    try {
+                        final Field reflectField = this.c.getField(name);
+                        if (Objects.equals(reflectField.getType().getName(), type.getName()))
+                            reflectType = reflectField.getGenericType();
+                    } catch (NoSuchFieldException ex) {
+                        reflectType = null;
+                    }
+                    return new IntermediateFieldDescr(name, type, reflectType);
+                })
+                .map(iField -> {
+                    final Type visitType = iField.reflectType != null ? iField.reflectType : iField.classType;
+                    final BoundTemplate type = ReflectUtil.visitType(visitType, new BoundsMapping(ctx, argRename));
+                    return new FieldType(iField.name, type);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -94,6 +156,15 @@ public class ClassType implements JavaType {
     @Override
     public Collection<String> getIncludes(boolean publicOnly) {
         return EMPTY_LIST;
+    }
+
+    public long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    @Override
+    public List<FieldType> getFields() {
+        return fields;
     }
 
     @Override
@@ -334,4 +405,12 @@ public class ClassType implements JavaType {
      * List of interfaces used by this class.
      */
     private List<BoundTemplate> interfaceTypes;
+    /**
+     * The serial version UID of the class.
+     */
+    private long serialVersionUID = 0;
+    /**
+     * List of fields.
+     */
+    private List<FieldType> fields;
 }

@@ -7,6 +7,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -84,6 +85,15 @@ public interface JavaType {
      * @return Collection of includes.
      */
     public Collection<String> getIncludes(boolean publicOnly);
+
+    /**
+     * Retrieve the fields of this type.
+     *
+     * @return The fields of this type.
+     */
+    public default Collection<FieldType> getFields() {
+        return EMPTY_LIST;
+    }
 
     /**
      * Initialization of this type.

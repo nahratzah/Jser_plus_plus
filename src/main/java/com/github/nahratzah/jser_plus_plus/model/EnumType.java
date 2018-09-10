@@ -28,7 +28,7 @@ public class EnumType extends ClassType {
 
     @Override
     public void init(Context ctx, Config cfg) {
-        super.init(ctx, cfg); //To change body of generated methods, choose Tools | Templates.
+        super.init(ctx, cfg);
     }
 
     @Override
