@@ -24,8 +24,8 @@ $classInheritance(cdef.model)$
   $cdef.className$();
   $cdef.className$(const $cdef.className$&);
   $cdef.className$($cdef.className$&&);
-  $cdef.className$& operator=(const $cdef.className$&);
-  $cdef.className$& operator=($cdef.className$&&);
+  JSER_INLINE $cdef.className$& operator=(const $cdef.className$&) = default;
+  JSER_INLINE $cdef.className$& operator=($cdef.className$&&) = default;
   ~$cdef.className$() noexcept override$if (cdef.model.interface || cdef.model.abstract)$ = 0$endif$;
 
   // XXX constructors that take arguments.
@@ -40,8 +40,6 @@ classImpl(cdef) ::= <<
 $cdef.className$::$cdef.className$() = default;
 $cdef.className$::$cdef.className$(const $cdef.className$&) = default;
 $cdef.className$::$cdef.className$($cdef.className$&&) = default;
-$cdef.className$& $cdef.className$::operator=(const $cdef.className$&) = default;
-$cdef.className$& $cdef.className$::operator=($cdef.className$&&) = default;
 $cdef.className$::~$cdef.className$() noexcept = default;
 >>
 
