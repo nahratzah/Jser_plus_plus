@@ -38,6 +38,14 @@ public class EnumType extends ClassType {
     }
 
     @Override
+    public boolean isAbstract() {
+        // Enums are never abstract, but the way enums are compiled,
+        // they'll appear to be from a java.lang.Class perspective.
+        // Override explicitly to remedy this trait.
+        return false;
+    }
+
+    @Override
     public boolean isEnum() {
         return true;
     }
