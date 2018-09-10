@@ -266,9 +266,19 @@ public class CodeGenerator {
         }
         w.append("} /* namespace ").append(erasedTypeNs).append(" */\n");
 
+        // implement accessor members
+        w.append("// render accessors\n");
+        w.append("namespace java {\n\n");
         {
-            // XXX implement accessor members
+            for (final JavaClass type : types) {
+                w
+                        .append(CODE_GENERATOR_TEMPLATE.getInstanceOf("accessorImpl")
+                                .add("cdef", type)
+                                .render())
+                        .append('\n');
+            }
         }
+        w.append("} /* namespace java */\n");
 
         w.append("#endif /* ").append(inclusionGuard).append(" */\n");
 

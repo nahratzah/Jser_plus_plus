@@ -13,6 +13,11 @@ class _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ",
 
  public:
   // XXX field and method forwarders.
+
+$if (cdef.model.enum)$
+  // Enum constants.
+  $cdef.model.enumValues:{kv | $accessorEnumConstantMethodDeclaration(cdef, kv)$}; anchor, separator = "\n"$
+$endif$
 };
 >>
 
@@ -61,12 +66,19 @@ $endif$
 $if (cdef.model.enum)$
 
  public:
+  ///\brief Value for the enumerator type.
   const enum_t value;
 $endif$
 };
 $if (cdef.model.enum)$
 
 auto to_string($cdef.className$::enum_t enum_value) noexcept -> std::string_view;
+$endif$
+>>
+
+accessorImpl(cdef) ::= <<
+$if (cdef.model.enum)$
+$cdef.model.enumValues:{kv | $accessorEnumConstantMethod(cdef, kv)$}; anchor, separator = "\n"$
 $endif$
 >>
 
@@ -119,6 +131,22 @@ $! Interfaces need to have ::java::object_intf as a base, so if they don't
 : public virtual ::java::object_intf
 $endif$
 %>
+
+accessorEnumConstantMethodDeclaration(cdef, kv) ::= <<
+///\brief Enum constant $kv.name$.
+static auto $kv.remappedName$()
+-> ::$[cdef.namespace, cdef.className]; separator = "::"$;
+>>
+
+accessorEnumConstantMethod(cdef, kv) ::= <<
+template<$["Base_", cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
+JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>::$kv.remappedName$()
+-> ::$[cdef.namespace, cdef.className]; separator = "::"$ {
+  return ::$[cdef.namespace, cdef.className]; separator = "::"$(
+      ::java::_direct(),
+      $["java", "_erased", cdef.namespace, cdef.className, kv.remappedName]; separator = "::"$());
+}
+>>
 
 classEnumConstantMethodDeclaration(cdef, kv) ::= <<
 ///\brief Enum constant $kv.name$.

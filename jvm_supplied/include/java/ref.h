@@ -233,6 +233,8 @@ JSER_INLINE auto raw_ptr(const basic_ref<PtrImpl, Type>& r)
 
 ///\brief Internally used tag type, to support casting.
 struct _cast {};
+///\brief Internally used tag type, to support direct assignment.
+struct _direct {};
 
 /**
  * \brief Perform a type cast.
@@ -312,6 +314,55 @@ class basic_ref final
     }
   }
 
+  template<typename X>
+  JSER_INLINE basic_ref([[maybe_unused]] _direct d, const cycle_ptr::cycle_gptr<X>& p, java::G::pack_t<> my_type) {
+    if constexpr(std::is_convertible_v<cycle_ptr::cycle_gptr<X>, ptr_type>) {
+      p_ = p; // Implicit cast.
+    } else {
+      p_ = std::dynamic_pointer_cast<erased_type>(p); // Explicit cast.
+
+      // Error out if the cast failed.
+      if (p_ == nullptr && p != nullptr)
+        throw std::bad_cast();
+    }
+  }
+
+  template<typename X, typename MyType0, typename... MyTypes>
+  JSER_INLINE basic_ref([[maybe_unused]] _direct d, const cycle_ptr::cycle_gptr<X>& p, [[maybe_unused]] MyType0 my_type0, [[maybe_unused]] MyTypes... my_types) {
+    if constexpr(std::is_convertible_v<cycle_ptr::cycle_gptr<X>, ptr_type>) {
+      p_ = p; // Implicit cast.
+    } else {
+      p_ = std::dynamic_pointer_cast<erased_type>(p); // Explicit cast.
+
+      // Error out if the cast failed.
+      if (p_ == nullptr && p != nullptr)
+        throw std::bad_cast();
+    }
+
+    // Validate that all the casts are correct.
+    for (bool b : /* initializer list */ {
+        basic_ref::is_instance_of_<typename MyType0::tag::erased_type>(p_.get(), p.get()),
+        basic_ref::is_instance_of_<typename MyTypes::tag::erased_type>(p_.get(), p.get())...
+        }) {
+      if (!b) throw std::bad_cast();
+    }
+  }
+
+  template<typename X, typename... MyTypes>
+  JSER_INLINE basic_ref(_direct d, const cycle_ptr::cycle_gptr<X>& p, [[maybe_unused]] java::G::pack_t<MyTypes...> my_type)
+  : basic_ref(d, p, MyTypes()...)
+  {}
+
+ public:
+  ///\brief Direct assignment.
+  ///\details Assigns the pointer directly, bypassing any generics checks.
+  ///\throws std::bad_cast if the pointer element does not implement all erased types held by this basic_ref.
+  template<typename X>
+  JSER_INLINE basic_ref(_direct d, const cycle_ptr::cycle_gptr<X>& p)
+  : basic_ref(d, p, Type())
+  {}
+
+ private:
   template<template<class> class XImpl, typename XType>
   JSER_INLINE basic_ref([[maybe_unused]] _cast c, const basic_ref<XImpl, XType>& x, java::G::pack_t<> my_type)
   : p_(std::dynamic_pointer_cast<erased_type>(x.p_))
