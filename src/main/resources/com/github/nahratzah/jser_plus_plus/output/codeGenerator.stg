@@ -22,14 +22,32 @@ $classInheritance(cdef.model)$
 {
 $if (cdef.model.enum)$
   $cdef.className$() = delete; // Enum types are not default constructible.
+  $cdef.className$(const $cdef.className$&) = delete;
+  $cdef.className$($cdef.className$&&) = delete;
+  $cdef.className$& operator=(const $cdef.className$&) = delete;
+  $cdef.className$& operator=($cdef.className$&&) = delete;
+
+ public:
+  /**
+   * \brief Raw enum constants for $[cdef.namespace, cdef.className]; separator = "."$
+   * \note Enums start with upper case, followed by lower case, to avoid name clashes with defines.
+   */
+  enum class enum_t {
+    $cdef.model.enumValues:{kv|$kv.remappedName$}; anchor, separator = ",\n"$
+  };
+
+ private:
+  $cdef.className$(enum_t enum_value);
 $endif$
 
  public:
-  $if (!cdef.model.enum)$$cdef.className$();$endif$
+  $if (!cdef.model.enum)$
+  $cdef.className$();
   $cdef.className$(const $cdef.className$&);
   $cdef.className$($cdef.className$&&);
   JSER_INLINE $cdef.className$& operator=(const $cdef.className$&) = default;
   JSER_INLINE $cdef.className$& operator=($cdef.className$&&) = default;
+  $endif$
   ~$cdef.className$() noexcept override$if (cdef.model.interface || cdef.model.abstract)$ = 0$endif$;
 
   // XXX constructors that take arguments.
@@ -38,15 +56,35 @@ $endif$
   // XXX field accessors
   // XXX fields
 };
+$if (cdef.model.enum)$
+
+auto to_string($cdef.className$::enum_t enum_value) noexcept -> std::string_view;
+$endif$
 >>
 
 classImpl(cdef) ::= <<
 $if (!cdef.model.enum)$
 $cdef.className$::$cdef.className$() = default;
-$endif$
 $cdef.className$::$cdef.className$(const $cdef.className$&) = default;
 $cdef.className$::$cdef.className$($cdef.className$&&) = default;
+$endif$
 $cdef.className$::~$cdef.className$() noexcept = default;
+
+$if (cdef.model.enum)$
+auto to_string($cdef.className$::enum_t enum_value) noexcept
+-> std::string_view {
+  using namespace std::string_view_literals;
+
+  switch (enum_value) {
+  $cdef.model.enumValues
+  : { v |
+case $cdef.className$::enum_t::$v.remappedName$:
+  return "$v.name$"sv;$\\$
+    }
+  ; anchor, separator = "\n"$
+  }
+}
+$endif$
 >>
 
 classInheritance(model) ::= <%
