@@ -102,6 +102,11 @@ public enum PrimitiveType implements JavaType {
         return false;
     }
 
+    @Override
+    public boolean isFinal() {
+        return false;
+    }
+
     private final String name;
     private final Class<?> c;
 }

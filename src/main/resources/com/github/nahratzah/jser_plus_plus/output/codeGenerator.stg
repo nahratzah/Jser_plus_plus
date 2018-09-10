@@ -17,7 +17,7 @@ class _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ",
 >>
 
 class(cdef) ::= <<
-class $cdef.className$
+class $cdef.className$$if (cdef.model.final)$ final$endif$
 $classInheritance(cdef.model)$
 {
 $if (cdef.model.enum)$
@@ -38,7 +38,8 @@ $if (cdef.model.enum)$
 
   $cdef.model.enumValues:{kv| $classEnumConstantMethodDeclaration(cdef, kv)$}; anchor, separator = "\n"$
 
- private:
+  // We don't want this to be public, but without it, we're having a hard time
+  // instantiating the enum class.
   JSER_INLINE $cdef.className$(enum_t enum_value) : value(enum_value) {}
 $endif$
 

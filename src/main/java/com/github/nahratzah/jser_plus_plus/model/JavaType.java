@@ -131,6 +131,13 @@ public interface JavaType {
     public boolean isAbstract();
 
     /**
+     * Test if this class is final.
+     *
+     * @return True if this type is final.
+     */
+    public boolean isFinal();
+
+    /**
      * Test if this is an enum class.
      *
      * @return True if this type is an enum.

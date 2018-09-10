@@ -106,6 +106,11 @@ public class ClassType implements JavaType {
         return Modifier.isAbstract(this.c.getModifiers());
     }
 
+    @Override
+    public boolean isFinal() {
+        return Modifier.isFinal(this.c.getModifiers());
+    }
+
     /**
      * Build a simple identity map for the given type variables.
      *
