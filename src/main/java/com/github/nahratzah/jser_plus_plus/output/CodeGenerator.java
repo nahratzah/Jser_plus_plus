@@ -356,6 +356,13 @@ public class CodeGenerator {
          * @return List of includes.
          */
         public Collection<String> getIncludes(boolean publicOnly);
+
+        /**
+         * Access the underlying model.
+         *
+         * @return Object representing the underlying model.
+         */
+        public Object getModel();
     }
 
     public String fwdHeaderName() {

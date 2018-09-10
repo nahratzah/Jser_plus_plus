@@ -92,6 +92,16 @@ public enum PrimitiveType implements JavaType {
         return singleton("java/primitives.h");
     }
 
+    @Override
+    public boolean isInterface() {
+        return false;
+    }
+
+    @Override
+    public boolean isAbstract() {
+        return false;
+    }
+
     private final String name;
     private final Class<?> c;
 }

@@ -18,8 +18,10 @@ import java.util.stream.Stream;
  * @author ariane
  */
 public class Main {
+    private static boolean ENABLE_DEBUG_LOGS = false;
+
     public static void main(String[] args) throws Exception {
-        enableDebugLog(Level.FINE);
+        if (ENABLE_DEBUG_LOGS) enableDebugLog(Level.FINE);
 
         Config cfg = new Config();
 

@@ -30,6 +30,36 @@ public interface BoundTemplate {
     public <T> T visit(Visitor<T> v);
 
     /**
+     * Retrieve a name of the bound template style.
+     *
+     * @return One of "templateVar", "templateClass", "templateArray", or
+     * "templateAny".
+     */
+    public default String getTemplateStyle() {
+        return visit(new Visitor<String>() {
+            @Override
+            public String apply(VarBinding b) {
+                return "templateVar";
+            }
+
+            @Override
+            public String apply(ClassBinding b) {
+                return "templateClass";
+            }
+
+            @Override
+            public String apply(ArrayBinding b) {
+                return "templateArray";
+            }
+
+            @Override
+            public String apply(Any b) {
+                return "templateAny";
+            }
+        });
+    }
+
+    /**
      * Visitor to apply the visitor pattern.
      *
      * @param <T> The return type of the visitor.

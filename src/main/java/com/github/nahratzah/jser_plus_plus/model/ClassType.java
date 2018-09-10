@@ -5,6 +5,7 @@ import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.java.ReflectUtil;
 import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
 import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
@@ -92,6 +93,16 @@ public class ClassType implements JavaType {
     @Override
     public Collection<String> getIncludes(boolean publicOnly) {
         return EMPTY_LIST;
+    }
+
+    @Override
+    public boolean isInterface() {
+        return Modifier.isInterface(this.c.getModifiers());
+    }
+
+    @Override
+    public boolean isAbstract() {
+        return Modifier.isAbstract(this.c.getModifiers());
     }
 
     /**

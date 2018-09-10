@@ -115,4 +115,18 @@ public interface JavaType {
         result.addAll(Arrays.asList(c.getTypeParameters()));
         return result;
     }
+
+    /**
+     * Test if this is an interface.
+     *
+     * @return True if this type is an interface.
+     */
+    public boolean isInterface();
+
+    /**
+     * Test if this is an abstract class, but not an interface.
+     *
+     * @return True if this type is an abstract class.
+     */
+    public boolean isAbstract();
 }

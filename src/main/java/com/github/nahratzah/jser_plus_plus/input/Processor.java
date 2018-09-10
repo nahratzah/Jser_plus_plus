@@ -191,6 +191,11 @@ public class Processor implements Context {
                         .flatMap(Function.identity())
                         .collect(Collectors.toList());
             }
+
+            @Override
+            public JavaType getModel() {
+                return jc;
+            }
         };
     }
 
