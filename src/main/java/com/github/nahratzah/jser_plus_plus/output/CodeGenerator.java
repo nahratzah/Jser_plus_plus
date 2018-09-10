@@ -275,11 +275,22 @@ public class CodeGenerator {
     }
 
     public <A extends Appendable> A writeSourceFile(A w) throws IOException {
+        final String erasedTypeNs = erasedTypeNs();
+
         w.append("#include <").append(headerName()).append(">\n\n");
 
+        // implement erased type members
+        w.append("namespace ").append(erasedTypeNs).append(" {\n\n");
         {
-            // XXX implement erased type members
+            for (final JavaClass type : types) {
+                w
+                        .append(CODE_GENERATOR_TEMPLATE.getInstanceOf("classImpl")
+                                .add("cdef", type)
+                                .render()).append('\n')
+                        .append('\n');
+            }
         }
+        w.append("} /* namespace ").append(erasedTypeNs).append(" */\n");
 
         return w;
     }

@@ -20,12 +20,29 @@ class(cdef) ::= <<
 class $cdef.className$
 $classInheritance(cdef.model)$
 {
-  // XXX constructors
-  // XXX destructor
+ public:
+  $cdef.className$();
+  $cdef.className$(const $cdef.className$&);
+  $cdef.className$($cdef.className$&&);
+  $cdef.className$& operator=(const $cdef.className$&);
+  $cdef.className$& operator=($cdef.className$&&);
+  ~$cdef.className$() noexcept override$if (cdef.model.interface || cdef.model.abstract)$ = 0$endif$;
+
+  // XXX constructors that take arguments.
+
   // XXX methods
   // XXX field accessors
   // XXX fields
 };
+>>
+
+classImpl(cdef) ::= <<
+$cdef.className$::$cdef.className$() = default;
+$cdef.className$::$cdef.className$(const $cdef.className$&) = default;
+$cdef.className$::$cdef.className$($cdef.className$&&) = default;
+$cdef.className$::$cdef.className$& operator=(const $cdef.className$&) = default;
+$cdef.className$::$cdef.className$& operator=($cdef.className$&&) = default;
+$cdef.className$::~$cdef.className$() noexcept = default;
 >>
 
 classInheritance(model) ::= <%
