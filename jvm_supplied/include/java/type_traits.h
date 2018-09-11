@@ -33,6 +33,13 @@ struct return_type_convert_ {
 template<typename, typename>
 struct is_assignable_;
 
+
+///\brief Test if type is a java primitive type.
+template<typename>
+struct is_java_primitive_
+: std::false_type
+{}
+
 } /* namespace java::type_traits::<unnamed> */
 
 
@@ -109,6 +116,18 @@ template<typename X, typename Y>
 constexpr bool is_assignable_v = is_assignable<X, Y>::value;
 
 
+/**
+ * \brief Test if type T is a java primitive.
+ * \tparam T The type to test for.
+ */
+template<typename T>
+using is_java_primitive = typename is_java_primitive_<T>::type;
+
+///\copydoc is_java_primitive
+template<typename T>
+constexpr bool is_java_primitive_v = is_java_primitive<T>::value;
+
+
 namespace {
 
 template<typename... X>
@@ -163,6 +182,52 @@ template<typename... X, typename Y>
 struct is_assignable_<java::G::pack_t<X...>, Y> {
   using type = typename std::conjunction<is_assignable<X, Y>...>;
 };
+
+
+template<>
+struct is_java_primitive_<java::boolean_t>
+: std::true_type
+{};
+
+template<>
+struct is_java_primitive_<java::byte_t>
+: std::true_type
+{};
+
+template<>
+struct is_java_primitive_<java::short_t>
+: std::true_type
+{};
+
+template<>
+struct is_java_primitive_<java::int_t>
+: std::true_type
+{};
+
+template<>
+struct is_java_primitive_<java::long_t>
+: std::true_type
+{};
+
+template<>
+struct is_java_primitive_<java::float_t>
+: std::true_type
+{};
+
+template<>
+struct is_java_primitive_<java::double_t>
+: std::true_type
+{};
+
+template<>
+struct is_java_primitive_<java::char_t>
+: std::true_type
+{};
+
+template<>
+struct is_java_primitive_<java::void_t>
+: std::true_type
+{};
 
 } /* namespace java::type_traits::<unnamed> */
 } /* namespace java::type_traits */
