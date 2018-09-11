@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include <java/generics.h>
+#include <java/primitives.h>
 
 ///\brief Namespace for java type_traits.
 namespace java::type_traits {
