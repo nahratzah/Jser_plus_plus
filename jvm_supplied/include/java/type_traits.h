@@ -39,7 +39,7 @@ struct is_assignable_;
 template<typename>
 struct is_java_primitive_
 : std::false_type
-{}
+{};
 
 } /* namespace java::type_traits::<unnamed> */
 
