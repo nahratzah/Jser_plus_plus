@@ -63,7 +63,7 @@ $endif$
   // XXX methods
   // XXX field accessors
   // XXX fields
-  $cdef.model.fields:{f|// $f$}; anchor, separator = "\n"$
+  $cdef.model.fields:{f|// $f.name$}; anchor, separator = "\n"$
 
 $if (cdef.model.enum)$
 
