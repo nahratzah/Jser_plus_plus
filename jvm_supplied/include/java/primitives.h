@@ -2,9 +2,6 @@
 #define JAVA_PRIMITIVES_H
 
 #include <cstdint>
-#include <string_view>
-#include <cycle_ptr/cycle_ptr.h>
-#include <java/serialization/type_def.h>
 
 namespace java {
 
@@ -25,6 +22,11 @@ static_assert(sizeof(double_t) == 8, "Double size incompatible with java.");
 
 
 } /* namespace java */
+
+#if 0 // Disable for now.
+#include <string_view>
+#include <cycle_ptr/cycle_ptr.h>
+#include <java/serialization/type_def.h>
 
 namespace java::serialization {
 
@@ -172,5 +174,7 @@ struct type_def<java::void_t> {
 
 
 } /* namespace java::serialization */
+
+#endif // 0
 
 #endif /* JAVA_PRIMITIVES_H */
