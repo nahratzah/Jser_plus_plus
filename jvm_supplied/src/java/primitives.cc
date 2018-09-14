@@ -8,6 +8,8 @@
 #include <java/lang/Double.h>
 #include <java/lang/Character.h>
 
+#if 0
+
 namespace java::serialization {
 
 
@@ -98,3 +100,5 @@ auto type_def<java::void_t>::get_class()
 
 
 } /* namespace java::serialization */
+
+#endif
