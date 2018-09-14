@@ -1,16 +1,351 @@
 #ifndef JAVA_ARRAY_H
 #define JAVA_ARRAY_H
 
-#include <initializer_list>
-#include <type_traits>
+#include <cstddef>
 #include <vector>
-#include <cycle_ptr/cycle_ptr.h>
-#include <cycle_ptr/allocator.h>
 #include <java/primitives.h>
-#include <java/serialization/type_def.h>
-#include <java/serialization/encdec.h>
-#include <java/lang/Object.h>
+#include <java/object_intf.h>
+#include <java/type_traits.h>
+#include <java/_accessor.h>
+#include <java/inline.h>
+#include <java/ref.h>
+#include <cycle_ptr/allocator.h>
+#include <cycle_ptr/cycle_ptr.h>
 #include <java/io/Serializable.h>
+#include <java/lang/Object.h>
+
+namespace java::_erased::java {
+
+/**
+ * \brief Erased base type of all the arrays.
+ * \details Handles abstracting the array logic.
+ */
+class array_intf
+: public ::java::_erased::java::lang::Object,
+  public virtual ::java::_erased::java::io::Serializable
+{
+ public:
+  virtual ~array_intf() noexcept override = 0;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return size_();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return dimensions_();
+  }
+
+ private:
+  virtual auto size_() const noexcept -> std::size_t = 0;
+  virtual auto dimensions_() const noexcept -> std::size_t = 0;
+};
+
+/**
+ * \brief Type-erased array type.
+ * \details
+ * Erased array type is only defined for the primitive types (excluding void),
+ * object_intf, and array types.
+ */
+template<typename T>
+class array;
+
+template<>
+class array<::java::boolean_t> final
+: public array_intf
+{
+ private:
+  using vector_type = ::std::vector<::java::boolean_t>;
+
+ public:
+  array() = default;
+  ~array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return 1u;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  vector_type data_;
+};
+
+template<>
+class array<::java::byte_t> final
+: public array_intf
+{
+ private:
+  using vector_type = ::std::vector<::java::byte_t>;
+
+ public:
+  array() = default;
+  ~array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return 1u;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  vector_type data_;
+};
+
+template<>
+class array<::java::short_t> final
+: public array_intf
+{
+ private:
+  using vector_type = ::std::vector<::java::short_t>;
+
+ public:
+  array() = default;
+  ~array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return 1u;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  vector_type data_;
+};
+
+template<>
+class array<::java::int_t> final
+: public array_intf
+{
+ private:
+  using vector_type = ::std::vector<::java::int_t>;
+
+ public:
+  array() = default;
+  ~array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return 1u;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  vector_type data_;
+};
+
+template<>
+class array<::java::long_t> final
+: public array_intf
+{
+ private:
+  using vector_type = ::std::vector<::java::long_t>;
+
+ public:
+  array() = default;
+  ~array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return 1u;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  vector_type data_;
+};
+
+template<>
+class array<::java::float_t> final
+: public array_intf
+{
+ private:
+  using vector_type = ::std::vector<::java::float_t>;
+
+ public:
+  array() = default;
+  ~array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return 1u;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  vector_type data_;
+};
+
+template<>
+class array<::java::double_t> final
+: public array_intf
+{
+ private:
+  using vector_type = ::std::vector<::java::double_t>;
+
+ public:
+  array() = default;
+  ~array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return 1u;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  vector_type data_;
+};
+
+template<>
+class array<::java::char_t> final
+: public array_intf
+{
+ private:
+  using vector_type = ::std::vector<::java::char_t>;
+
+ public:
+  array() = default;
+  ~array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return 1u;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  vector_type data_;
+};
+
+template<>
+class array<::java::lang::Object> final
+: public array_intf
+{
+ private:
+  using vector_type = std::vector<
+      ::java::field_t<::java::lang::Object>,
+      ::cycle_ptr::cycle_allocator<::std::allocator<::java::field_t<::java::lang::Object>>>>;
+
+ public:
+  array() = default;
+  ~array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return 1u;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  vector_type data_;
+};
+
+} /* namespace java::_erased::java */
+
+namespace java::G {
+
+/**
+ * \brief Array tag.
+ * \tparam T The element type of the array. Must be a java primitive type
+ * or a generic.
+ */
+template<typename T>
+struct array_t;
+
+} /* namespace java::G */
+
+namespace java {
+
+template<template<class> class PtrImpl, typename Type, std::size_t Dimensions>
+class array_ref
+{
+ protected:
+  using ptr_type = PtrImpl<::java::_erased::java::array_intf>;
+
+ public:
+  using size_type = std::size_t;
+
+  JSER_INLINE array_ref() = default;
+  JSER_INLINE array_ref(const array_ref&) = default;
+  JSER_INLINE array_ref(array_ref&&) = default;
+  JSER_INLINE array_ref& operator=(const array_ref&) = default;
+  JSER_INLINE array_ref& operator=(array_ref&&) = default;
+  JSER_INLINE ~array_ref() noexcept = default;
+
+  JSER_INLINE explicit operator bool() const noexcept {
+    return bool(p_);
+  }
+
+  JSER_INLINE auto operator!() const noexcept -> bool {
+    return !p_;
+  }
+
+  JSER_INLINE auto operator==(::std::nullptr_t np) const noexcept -> bool {
+    return p_ == nullptr;
+  }
+
+  JSER_INLINE auto operator!=(::std::nullptr_t np) const noexcept -> bool {
+    return p_ != nullptr;
+  }
+
+  JSER_INLINE auto size() const noexcept -> size_type {
+    if (!*this) return 0;
+    return p_->size();
+  }
+
+ private:
+  ptr_type p_ = nullptr;
+};
+
+} /* namespace java */
+
+
+#if 0
 
 namespace java {
 
@@ -611,5 +946,7 @@ struct type_def<java::array<T, Dimensions>> {
 
 
 } /* namespace java::serialization */
+
+#endif
 
 #endif /* JAVA_ARRAY_H */

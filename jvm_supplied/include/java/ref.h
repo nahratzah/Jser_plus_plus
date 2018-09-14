@@ -224,6 +224,7 @@ JSER_INLINE auto raw_ptr(const basic_ref<PtrImpl, Type>& r)
   if constexpr(std::is_convertible_v<decltype(r.p_), cycle_ptr::cycle_gptr<typename Tag::erased_type>>) {
     return r.p_;
   } else {
+    if (r == nullptr) return nullptr;
     auto result = std::dynamic_pointer_cast<typename Tag::erased_type>(r.p_);
     if (result == nullptr) throw std::bad_cast();
     return result;
@@ -290,8 +291,8 @@ class basic_ref final
   static_assert(std::is_base_of_v<java::object_intf, erased_type>);
 
  public:
-  JSER_INLINE constexpr basic_ref() noexcept = default;
-  explicit JSER_INLINE constexpr basic_ref(std::nullptr_t) noexcept : basic_ref() {}
+  JSER_INLINE basic_ref() = default;
+  explicit JSER_INLINE constexpr basic_ref(std::nullptr_t) : basic_ref() {}
 
   JSER_INLINE basic_ref(const basic_ref&)
       noexcept(std::is_nothrow_copy_constructible_v<ptr_type>) = default;
