@@ -181,7 +181,7 @@ public class CodeGenerator {
                     .flatMap(type -> {
                         return Stream.concat(
                                 type.getIncludes(true).stream().unordered(),
-                                type.getDependentTypes(true).stream().map(CodeGenerator::fwdHeaderName).unordered());
+                                Stream.of(type.getDependentSuperTypes(true), type.getDependentNonSuperTypes(true)).flatMap(Collection::stream).map(CodeGenerator::fwdHeaderName).unordered());
                     })
                     .distinct()
                     .sorted(INCLUDE_SORTER)
@@ -234,11 +234,12 @@ public class CodeGenerator {
             final Iterator<String> includeIter = Stream.concat(
                     Stream.of("java/inline.h", "java/object_intf.h"),
                     types.stream()
-                            .unordered()
                             .flatMap(type -> {
-                                return Stream.concat(
-                                        type.getIncludes(false).stream().unordered(),
-                                        type.getDependentTypes(false).stream().map(CodeGenerator::headerName).unordered());
+                                return Stream.of(
+                                        type.getIncludes(false).stream(),
+                                        type.getDependentSuperTypes(false).stream().map(CodeGenerator::headerName),
+                                        type.getDependentNonSuperTypes(false).stream().map(CodeGenerator::fwdHeaderName))
+                                        .flatMap(Function.identity());
                             }))
                     .distinct()
                     .sorted(INCLUDE_SORTER)
@@ -288,9 +289,31 @@ public class CodeGenerator {
     public <A extends Appendable> A writeSourceFile(A w) throws IOException {
         final String erasedTypeNs = erasedTypeNs();
 
-        w.append("#include <").append(headerName()).append(">\n\n");
+        w.append("#include <").append(headerName()).append(">\n");
+
+        // Render includes
+        {
+            final Iterator<String> includeIter = types.stream()
+                    .flatMap(type -> {
+                        return Stream.of(
+                                type.getIncludes(false).stream(),
+                                type.getDependentSuperTypes(false).stream().map(CodeGenerator::headerName),
+                                type.getDependentNonSuperTypes(false).stream().map(CodeGenerator::headerName))
+                                .flatMap(Function.identity());
+                    })
+                    .distinct()
+                    .sorted(INCLUDE_SORTER)
+                    .filter(include -> !PRE_INCLUDES.contains(include))
+                    .filter(include -> !Objects.equals(fwdHeaderName(), include))
+                    .filter(include -> !Objects.equals(headerName(), include))
+                    .iterator();
+            if (includeIter.hasNext()) w.append('\n'); // Separator.
+            while (includeIter.hasNext())
+                w.append("#include <").append(includeIter.next()).append(">\n");
+        }
 
         // implement erased type members
+        w.append('\n'); // Separator.
         w.append("namespace ").append(erasedTypeNs).append(" {\n\n");
         {
             for (final JavaClass type : types) {
@@ -361,13 +384,23 @@ public class CodeGenerator {
          * Retrieve list of dependent types required to render the type
          * declaration.
          *
-         * The includes contain types used for super types, types used in
-         * fields, types used in methods.
+         * The includes contain types used for super types only.
          *
          * @param publicOnly If set, only publicly used types are returned.
-         * @return List of dependent types.
+         * @return List of dependent super types.
          */
-        public Collection<JavaClass> getDependentTypes(boolean publicOnly);
+        public Collection<JavaClass> getDependentSuperTypes(boolean publicOnly);
+
+        /**
+         * Retrieve list of dependent types required to render the type
+         * declaration.
+         *
+         * The includes contain types used in fields, and types used in methods.
+         *
+         * @param publicOnly If set, only publicly used types are returned.
+         * @return List of dependent non-super types.
+         */
+        public Collection<JavaClass> getDependentNonSuperTypes(boolean publicOnly);
 
         /**
          * Retrieve list of all types that this type inherits from.

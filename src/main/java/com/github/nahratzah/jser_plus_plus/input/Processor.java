@@ -132,35 +132,21 @@ public class Processor implements Context {
             }
 
             @Override
-            public Collection<CodeGenerator.JavaClass> getDependentTypes(boolean publicOnly) {
-                final BoundTemplate.Visitor<Stream<JavaType>> templateVisitor = new BoundTemplate.Visitor<Stream<JavaType>>() {
-                    @Override
-                    public Stream<JavaType> apply(BoundTemplate.VarBinding b) {
-                        return Stream.empty();
-                    }
-
-                    @Override
-                    public Stream<JavaType> apply(BoundTemplate.ClassBinding b) {
-                        return Stream.concat(
-                                Stream.of(b.getType()),
-                                b.getBindings().stream().flatMap(x -> x.visit(this)));
-                    }
-
-                    @Override
-                    public Stream<JavaType> apply(BoundTemplate.ArrayBinding b) {
-                        return b.getType().visit(this);
-                    }
-
-                    @Override
-                    public Stream<JavaType> apply(BoundTemplate.Any b) {
-                        return Stream.empty();
-                    }
-                };
-
+            public Collection<CodeGenerator.JavaClass> getDependentSuperTypes(boolean publicOnly) {
                 final Stream<BoundTemplate> superTypes = Stream.concat(
                         Stream.of(jc.getSuperClass()).filter(Objects::nonNull),
                         jc.getInterfaces().stream());
 
+                return superTypes
+                        .flatMap(c -> c.visit(DEPENDENT_TYPES_TEMPLATE_VISITOR))
+                        .distinct()
+                        .filter(c -> !(c instanceof PrimitiveType))
+                        .map(Processor::jcToCg)
+                        .collect(Collectors.toList());
+            }
+
+            @Override
+            public Collection<CodeGenerator.JavaClass> getDependentNonSuperTypes(boolean publicOnly) {
                 final Stream<BoundTemplate> fields;
                 if (publicOnly) {
                     fields = Stream.empty();
@@ -169,9 +155,8 @@ public class Processor implements Context {
                             .flatMap(field -> Stream.of(field.getType(), field.getVarType()));
                 }
 
-                return Stream.of(superTypes, fields)
-                        .flatMap(Function.identity())
-                        .flatMap(c -> c.visit(templateVisitor))
+                return fields
+                        .flatMap(c -> c.visit(DEPENDENT_TYPES_TEMPLATE_VISITOR))
                         .distinct()
                         .filter(c -> !(c instanceof PrimitiveType))
                         .map(Processor::jcToCg)
@@ -257,6 +242,30 @@ public class Processor implements Context {
             }
         };
     }
+
+    private static final BoundTemplate.Visitor<Stream<JavaType>> DEPENDENT_TYPES_TEMPLATE_VISITOR = new BoundTemplate.Visitor<Stream<JavaType>>() {
+        @Override
+        public Stream<JavaType> apply(BoundTemplate.VarBinding b) {
+            return Stream.empty();
+        }
+
+        @Override
+        public Stream<JavaType> apply(BoundTemplate.ClassBinding b) {
+            return Stream.concat(
+                    Stream.of(b.getType()),
+                    b.getBindings().stream().flatMap(x -> x.visit(this)));
+        }
+
+        @Override
+        public Stream<JavaType> apply(BoundTemplate.ArrayBinding b) {
+            return b.getType().visit(this);
+        }
+
+        @Override
+        public Stream<JavaType> apply(BoundTemplate.Any b) {
+            return Stream.empty();
+        }
+    };
 
     private final ClassLoader classLoader;
     private final Map<Class, JavaType> classes = new HashMap<>();
