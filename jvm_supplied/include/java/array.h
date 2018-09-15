@@ -301,21 +301,20 @@ struct array_t;
 
 namespace java {
 
-template<template<class> class PtrImpl, typename Type, std::size_t Dimensions>
-class array_ref
-{
+template<template<class> class PtrImpl, typename Type>
+class basic_ref<PtrImpl, Type[]> final {
  protected:
   using ptr_type = PtrImpl<::java::_erased::java::array_intf>;
 
  public:
   using size_type = std::size_t;
 
-  JSER_INLINE array_ref() = default;
-  JSER_INLINE array_ref(const array_ref&) = default;
-  JSER_INLINE array_ref(array_ref&&) = default;
-  JSER_INLINE array_ref& operator=(const array_ref&) = default;
-  JSER_INLINE array_ref& operator=(array_ref&&) = default;
-  JSER_INLINE ~array_ref() noexcept = default;
+  JSER_INLINE basic_ref() = default;
+  JSER_INLINE basic_ref(const basic_ref&) = default;
+  JSER_INLINE basic_ref(basic_ref&&) = default;
+  JSER_INLINE basic_ref& operator=(const basic_ref&) = default;
+  JSER_INLINE basic_ref& operator=(basic_ref&&) = default;
+  JSER_INLINE ~basic_ref() noexcept = default;
 
   JSER_INLINE explicit operator bool() const noexcept {
     return bool(p_);
@@ -342,20 +341,25 @@ class array_ref
   ptr_type p_ = nullptr;
 };
 
-template<typename T, std::size_t Dimensions = 1>
-using array_type = array_ref<
-    cycle_ptr::cycle_gptr,
-    typename maybe_unpack_type_<T>::type,
-    Dimensions>;
-
 namespace {
 
-template<template<typename> class PtrType, template<typename> class OldPtrType, typename Type, std::size_t Dimensions>
-struct change_ptr_type_<PtrType, array_ref<OldPtrType, Type, Dimensions>> {
-  using type = array_ref<PtrType, Type, Dimensions>;
+template<typename Type, std::size_t Dimensions>
+struct add_dimensions_ {
+  using type = typename add_dimensions_<Type, Dimensions - 1>::type[];
+};
+
+template<typename Type>
+struct add_dimensions_<Type, 0> {
+  using type = Type;
 };
 
 } /* namespace java::<unnamed> */
+
+template<typename T, std::size_t Dimensions = 1>
+using array_type = basic_ref<
+    cycle_ptr::cycle_gptr,
+    typename add_dimensions_<typename maybe_unpack_type_<T>::type, Dimensions>::type>;
+
 } /* namespace java */
 
 

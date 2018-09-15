@@ -31,6 +31,11 @@ struct is_compact_generic_<T, true> {
   using type = std::is_same<T, typename T::type>;
 };
 
+template<typename T>
+struct is_compact_generic_<T[], true>
+: is_compact_generic_<T>
+{};
+
 ///\brief Type trait that tests if X is satisfied by Y.
 ///\details Used for types.
 ///
@@ -277,6 +282,11 @@ using pack = typename detail::combine<pack_t<>, T...>::type::type; // Double typ
 
 namespace java::type_traits {
 namespace {
+
+template<typename T>
+struct is_generic_<T[]>
+: is_generic_<T>
+{};
 
 template<typename Tag, typename... Args>
 struct is_generic_<java::G::is_t<Tag, Args...>> {
