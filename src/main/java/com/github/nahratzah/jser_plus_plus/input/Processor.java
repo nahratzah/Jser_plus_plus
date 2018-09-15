@@ -149,7 +149,9 @@ public class Processor implements Context {
             public Collection<CodeGenerator.JavaClass> getDependentNonSuperTypes(boolean publicOnly) {
                 final Stream<BoundTemplate> fields;
                 if (publicOnly) {
-                    fields = Stream.empty();
+                    fields = jc.getFields().stream()
+                            .filter(field -> field.isGetterFn() || field.isSetterFn())
+                            .map(field -> field.getVarType());
                 } else {
                     fields = jc.getFields().stream()
                             .flatMap(field -> Stream.of(field.getType(), field.getVarType()));
@@ -224,7 +226,10 @@ public class Processor implements Context {
 
                 final Stream<String> fields;
                 if (publicOnly) {
-                    fields = Stream.empty();
+                    fields = jc.getFields().stream()
+                            .filter(field -> field.isGetterFn() || field.isSetterFn())
+                            .map(field -> field.getVarType())
+                            .flatMap(c -> c.visit(templateVisitor));
                 } else {
                     fields = jc.getFields().stream()
                             .flatMap(field -> Stream.of(field.getType(), field.getVarType()))

@@ -105,7 +105,7 @@ public class FieldType {
      * @return True if a setter function for this field is to be generated.
      */
     public boolean isSetterFn() {
-        return false;//setterFn == null ? visibility == Visibility.PUBLIC : setterFn;
+        return setterFn == null ? visibility == Visibility.PUBLIC : setterFn;
     }
 
     /**
