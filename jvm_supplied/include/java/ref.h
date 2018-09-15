@@ -298,7 +298,7 @@ class _accessor_proxy<const T> final
 template<typename Tag, template<class> class PtrImpl, typename Type>
 JSER_INLINE auto raw_ptr(const basic_ref<PtrImpl, Type>& r)
 -> std::enable_if_t<
-    ::java::type_traits::implements_tag_v<Tag, basic_ref<PtrImpl, Type>>,
+    ::java::type_traits::implements_tag_v<Tag, typename _basic_ref_inheritance<Type>::accessor_type>,
     cycle_ptr::cycle_gptr<typename Tag::erased_type>> {
   if constexpr(std::is_convertible_v<decltype(r.p_), cycle_ptr::cycle_gptr<typename Tag::erased_type>>) {
     return r.p_;
@@ -354,7 +354,7 @@ class basic_ref final
   template<typename FnTag, template<class> class FnPtrImpl, typename FnType>
   friend auto raw_ptr(const basic_ref<FnPtrImpl, FnType>&)
   -> std::enable_if_t<
-      ::java::type_traits::implements_tag_v<FnTag, basic_ref<FnPtrImpl, FnType>>,
+      ::java::type_traits::implements_tag_v<FnTag, typename _basic_ref_inheritance<FnType>::accessor_type>,
       cycle_ptr::cycle_gptr<typename FnTag::erased_type>>;
 
   // Be friend the cast function.
