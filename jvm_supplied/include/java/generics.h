@@ -225,7 +225,7 @@ struct is_t<super_t<Tag, Arguments...>>
 
 template<typename T>
 struct is_t<T*> {
-  using type = is<T>*;
+  using type = T*;
 };
 
 template<typename T>

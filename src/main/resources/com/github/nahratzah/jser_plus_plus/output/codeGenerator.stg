@@ -64,7 +64,7 @@ $endif$
 $if(cdef.model.fields)$
 
   // field accessors
-  $cdef.model.fields:{f|// $fieldGetter(f)$;$"\n"$// $fieldSetter(f)$;}; anchor, separator = "\n"$
+  $cdef.model.fields:{f|$fieldGetter(f)$;$"\n"$$fieldSetter(f)$;}; anchor, separator = "\n"$
 
  private: // fields
   $cdef.model.fields:{f|$field(f)$;}; anchor, separator = "\n"$
