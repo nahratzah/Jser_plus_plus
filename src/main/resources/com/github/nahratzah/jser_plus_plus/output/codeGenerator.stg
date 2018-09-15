@@ -29,6 +29,11 @@ class _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ",
   JSER_INLINE ~_accessor() = default;
 
  public:
+$if (cdef.model.fields)$
+  // field accessors
+  $cdef.model.fields:{f|$fieldAccessors(f)$}; anchor, separator = "\n"$
+$endif$
+
   // XXX field and method forwarders.
 };
 >>
@@ -75,11 +80,8 @@ $endif$
   // XXX methods
 $if(cdef.model.fields)$
 
-  // field accessors
-  $cdef.model.fields:{f|$fieldGetter(f)$;$"\n"$$fieldSetter(f)$;}; anchor, separator = "\n"$
-
- private: // fields
-  $cdef.model.fields:{f|$field(f)$;}; anchor, separator = "\n"$
+  // fields
+  $cdef.model.fields:{f|$f.visibility$: $field(f)$;}; anchor, separator = "\n"$
 $endif$
 $if (cdef.model.enum)$
 
@@ -134,6 +136,11 @@ $if (!f.varType.primitive)$>$endif$
 $" "$
 $f.name$_
 %>
+
+fieldAccessors(f) ::= <<
+$if (f.getterFn)$$fieldGetter(f)$;$else$// No getter for $f.name$$endif$
+$if (f.setterFn)$$fieldSetter(f)$;$else$// No setter for $f.name$$endif$
+>>
 
 fieldGetter(f) ::= <%
 auto $f.name$() const ->
