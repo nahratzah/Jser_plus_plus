@@ -326,6 +326,20 @@ public class CodeGenerator {
         }
         w.append("} /* namespace ").append(erasedTypeNs).append(" */\n");
 
+        // Implement accessor source-file methods.
+        w.append('\n'); // Separator.
+        w.append("namespace java {\n\n");
+        {
+            for (final JavaClass type : types) {
+                w
+                        .append(CODE_GENERATOR_TEMPLATE.getInstanceOf("accessorImplSrc")
+                                .add("cdef", type)
+                                .render())
+                        .append('\n');
+            }
+        }
+        w.append("} /* namespace java */\n");
+
         return w;
     }
 

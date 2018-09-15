@@ -11,6 +11,14 @@ class _static_accessor<$[cdef.tagName, cdef.templateArguments]; separator = ", "
 
  public:
 $if (cdef.model.enum)$
+  /**
+   * \brief Raw enum constants for $[cdef.namespace, cdef.className]; separator = "."$
+   * \note Enums start with upper case, followed by lower case, to avoid name clashes with defines.
+   */
+  enum class enum_t {
+    $cdef.model.enumValues:{kv|$kv.remappedName$}; anchor, separator = ",\n"$
+  };
+
   // Enum constants.
   $cdef.model.enumValues:{kv | $accessorEnumConstantMethodDeclaration(cdef, kv)$}; anchor, separator = "\n"$
 $endif$
@@ -36,6 +44,10 @@ $endif$
 
   // XXX field and method forwarders.
 };
+$if (cdef.model.enum)$
+
+auto to_string(::java::_static_accessor<$cdef.tagName$>::enum_t enum_value) noexcept -> std::string_view;
+$endif$
 >>
 
 class(cdef) ::= <<
@@ -50,13 +62,7 @@ $if (cdef.model.enum)$
   $cdef.className$& operator=($cdef.className$&&) = delete;
 
  public:
-  /**
-   * \brief Raw enum constants for $[cdef.namespace, cdef.className]; separator = "."$
-   * \note Enums start with upper case, followed by lower case, to avoid name clashes with defines.
-   */
-  enum class enum_t {
-    $cdef.model.enumValues:{kv|$kv.remappedName$}; anchor, separator = ",\n"$
-  };
+  using enum_t = ::java::_static_accessor<$cdef.tagName$>::enum_t;
 
   $cdef.model.enumValues:{kv| $classEnumConstantMethodDeclaration(cdef, kv)$}; anchor, separator = "\n"$
 
@@ -90,10 +96,6 @@ $if (cdef.model.enum)$
   const enum_t value;
 $endif$
 };
-$if (cdef.model.enum)$
-
-auto to_string($cdef.className$::enum_t enum_value) noexcept -> std::string_view;
-$endif$
 >>
 
 accessorImpl(cdef) ::= <<
@@ -104,6 +106,25 @@ $endif$
 $cdef.model.fields:{f|$fieldAccessorsImpl(cdef, f)$}; separator = "\n"$
 >>
 
+accessorImplSrc(cdef) ::= <<
+$if (cdef.model.enum)$
+auto to_string(::java::_static_accessor<$cdef.tagName$>::enum_t enum_value) noexcept
+-> std::string_view {
+  using enum_t = ::$[cdef.namespace, cdef.className, "enum_t"]; separator = "::"$;
+  using namespace std::string_view_literals;
+
+  switch (enum_value) {
+  $cdef.model.enumValues
+  : { v |
+case enum_t::$v.remappedName$:
+  return $u8StringView(v.name)$;$\\$
+    }
+  ; anchor, separator = "\n"$
+  }
+}
+$endif$
+>>
+
 classImpl(cdef) ::= <<
 $if (!cdef.model.enum)$
 $cdef.className$::$cdef.className$() = default;
@@ -111,22 +132,6 @@ $cdef.className$::$cdef.className$(const $cdef.className$&) = default;
 $cdef.className$::$cdef.className$($cdef.className$&&) = default;
 $endif$
 $cdef.className$::~$cdef.className$() noexcept = default;
-
-$if (cdef.model.enum)$
-auto to_string($cdef.className$::enum_t enum_value) noexcept
--> std::string_view {
-  using namespace std::string_view_literals;
-
-  switch (enum_value) {
-  $cdef.model.enumValues
-  : { v |
-case $cdef.className$::enum_t::$v.remappedName$:
-  return $u8StringView(v.name)$;$\\$
-    }
-  ; anchor, separator = "\n"$
-  }
-}
-$endif$
 
 $cdef.model.enumValues:{ kv | $classEnumConstantMethod(cdef, kv)$}; separator = "\n"$
 >>
