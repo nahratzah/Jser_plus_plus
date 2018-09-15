@@ -596,13 +596,13 @@ using field_t = typename change_ptr_type_<cycle_ptr::cycle_member_ptr, BasicRef>
 ///\details Implements type erase, such that `? super X` will be `X`.
 ///\sa java::type_traits::parameter_type_for
 template<typename BasicRef>
-using param_t = var_t<java::type_traits::parameter_type_for_t<type_of_t<BasicRef>>>;
+using param_t = type<java::type_traits::parameter_type_for_t<type_of_t<BasicRef>>>;
 
 ///\brief Convert basic_ref to a return type reference.
 ///\details Implements type erase, such that `? extends X` will be `X`.
 ///\sa java::type_traits::return_type_for
 template<typename BasicRef>
-using return_t = var_t<java::type_traits::return_type_for_t<type_of_t<BasicRef>>>;
+using return_t = type<java::type_traits::return_type_for_t<type_of_t<BasicRef>>>;
 
 
 } /* namespace java */

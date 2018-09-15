@@ -61,8 +61,10 @@ $endif$
   // XXX constructors that take arguments.
 
   // XXX methods
-  // XXX field accessors
 $if(cdef.model.fields)$
+
+  // field accessors
+  $cdef.model.fields:{f|// $fieldGetter(f)$;$"\n"$// $fieldSetter(f)$;}; anchor, separator = "\n"$
 
  private: // fields
   $cdef.model.fields:{f|$field(f)$;}; anchor, separator = "\n"$
@@ -119,6 +121,27 @@ $fieldType(f.varType)$
 $if (!f.varType.primitive)$>$endif$
 $" "$
 $f.name$_
+%>
+
+fieldGetter(f) ::= <%
+auto $f.name$() const ->
+$" "$
+$if (!f.varType.primitive)$::java::return_t<$endif$
+$fieldType(f.varType)$
+$if (!f.varType.primitive)$>$endif$
+%>
+
+fieldSetter(f) ::= <%
+auto $f.name$(
+$if (!f.varType.primitive)$::java::param_t<$endif$
+$fieldType(f.varType)$
+$if (!f.varType.primitive)$>$endif$
+$" "$
+value) ->
+$" "$
+$if (!f.varType.primitive)$::java::return_t<$endif$
+$fieldType(f.varType)$
+$if (!f.varType.primitive)$>$endif$
 %>
 
 fieldType(t) ::= <%
