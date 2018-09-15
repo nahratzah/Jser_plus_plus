@@ -62,9 +62,11 @@ $endif$
 
   // XXX methods
   // XXX field accessors
-  // XXX fields
-  $cdef.model.fields:{f|$field(f)$;}; anchor, separator = "\n"$
+$if(cdef.model.fields)$
 
+ private: // fields
+  $cdef.model.fields:{f|$field(f)$;}; anchor, separator = "\n"$
+$endif$
 $if (cdef.model.enum)$
 
  public:
@@ -116,7 +118,7 @@ $if (!f.varType.primitive)$::java::field_t<$endif$
 $fieldType(f.varType)$
 $if (!f.varType.primitive)$>$endif$
 $" "$
-$f.name$
+$f.name$_
 %>
 
 fieldType(t) ::= <%
