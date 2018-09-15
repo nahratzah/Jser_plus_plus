@@ -302,7 +302,7 @@ struct array_t;
 namespace java {
 
 template<template<class> class PtrImpl, typename Type>
-class basic_ref<PtrImpl, Type[]> final {
+class basic_ref<PtrImpl, Type*> final {
  protected:
   using ptr_type = PtrImpl<::java::_erased::java::array_intf>;
 
@@ -345,7 +345,7 @@ namespace {
 
 template<typename Type, std::size_t Dimensions>
 struct add_dimensions_ {
-  using type = typename add_dimensions_<Type, Dimensions - 1>::type[];
+  using type = typename add_dimensions_<Type, Dimensions - 1>::type*;
 };
 
 template<typename Type>

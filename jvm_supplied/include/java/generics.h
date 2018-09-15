@@ -32,7 +32,7 @@ struct is_compact_generic_<T, true> {
 };
 
 template<typename T>
-struct is_compact_generic_<T[], true>
+struct is_compact_generic_<T*, true>
 : is_compact_generic_<T>
 {};
 
@@ -223,6 +223,17 @@ struct is_t<super_t<Tag, Arguments...>>
 {};
 
 
+template<typename T>
+struct is_t<T*> {
+  using type = is<T>*;
+};
+
+template<typename T>
+struct extends_t<T*>
+: is_t<T*> // Arrays are final, thus `? extends T[]` is the same as `? is T[]`.
+{};
+
+
 /**
  * \brief Multiple generics constraints pack.
  * \details Contains zero or more generics.
@@ -284,7 +295,7 @@ namespace java::type_traits {
 namespace {
 
 template<typename T>
-struct is_generic_<T[]>
+struct is_generic_<T*>
 : is_generic_<T>
 {};
 
