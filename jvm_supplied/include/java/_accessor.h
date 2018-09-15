@@ -35,6 +35,25 @@ template<typename Base, typename Tag, typename... Arguments>
 class _accessor;
 
 
+/**
+ * \brief Accessor for static fields and values of a specific type.
+ * \details
+ * Each type declares a static accessor, which allows access to all static
+ * methods of the implementation type.
+ *
+ * A static accessor shall not derive from parent types.
+ *
+ * A static accessor shall only have protected constructors, destructors, and copy/move assignment.
+ *
+ * An accessor shall not have member fields.
+ * \note Only specializations of this type exist.
+ * \tparam Tag type identification tag.
+ * \tparam Arguments generics arguments for the type.
+ */
+template<typename Tag, typename... Arguments>
+class _static_accessor;
+
+
 } /* namespace java */
 
 namespace java::type_traits {

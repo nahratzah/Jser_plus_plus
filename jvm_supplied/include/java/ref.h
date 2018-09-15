@@ -89,15 +89,15 @@ class Object;
  * \details Provides access to the type-erased object held by the accessor.
  * \tparam ErasedPtr pointer implementation.
  */
-template<typename ErasedPtr>
+template<typename ErasedRef>
 class _accessor_base {
  protected:
-  constexpr JSER_INLINE _accessor_base() = default;
+  constexpr JSER_INLINE _accessor_base(ErasedRef& ref) noexcept : ref__(ref) {}
 
   JSER_INLINE _accessor_base(const _accessor_base&) = default;
   JSER_INLINE _accessor_base(_accessor_base&&) = default;
-  JSER_INLINE _accessor_base& operator=(const _accessor_base&) = default;
-  JSER_INLINE _accessor_base& operator=(_accessor_base&&) = default;
+  _accessor_base& operator=(const _accessor_base&) = delete;
+  _accessor_base& operator=(_accessor_base&&) = delete;
   JSER_INLINE ~_accessor_base() = default;
 
   /**
@@ -111,10 +111,10 @@ class _accessor_base {
    */
   template<typename ErasedType>
   JSER_INLINE auto ref_() const -> const ErasedType& {
-    if constexpr(std::is_convertible_v<typename std::pointer_traits<ErasedPtr>::element_type*, ErasedType*>) {
-      return ref__();
+    if constexpr(std::is_convertible_v<ErasedRef*, ErasedType*>) {
+      return ref__;
     } else {
-      return dynamic_cast<ErasedType&>(ref__());
+      return dynamic_cast<const ErasedType&>(ref__);
     }
   }
 
@@ -129,16 +129,15 @@ class _accessor_base {
    */
   template<typename ErasedType>
   JSER_INLINE auto ref_() -> ErasedType& {
-    if constexpr(std::is_convertible_v<typename std::pointer_traits<ErasedPtr>::element_type*, ErasedType*>) {
-      return ref__();
+    if constexpr(std::is_convertible_v<ErasedRef*, ErasedType*>) {
+      return ref__;
     } else {
-      return dynamic_cast<ErasedType&>(ref__());
+      return dynamic_cast<ErasedType&>(ref__);
     }
   }
 
  private:
-  virtual auto ref__() const -> const typename std::pointer_traits<ErasedPtr>::element_type& = 0;
-  virtual auto ref__() -> typename std::pointer_traits<ErasedPtr>::element_type& = 0;
+  ErasedRef& ref__;
 };
 
 template<typename Base, typename T>
@@ -187,9 +186,8 @@ struct _accessor_for_type_<Base, java::G::pack_t<>>
 
 
 ///\brief Helper type to figure out types to use in basic_ref.
-///\tparam PtrType template of the pointer class to use, typically one of `cycle_ptr::cycle_gptr` or `cycle_ptr::cycle_member_ptr`.
 ///\tparam Type java::G::* (generics) type description.
-template<template<typename> class PtrType, typename Type>
+template<typename Type>
 struct _basic_ref_inheritance {
   static_assert(
       java::type_traits::is_generic_v<Type>,
@@ -198,15 +196,13 @@ struct _basic_ref_inheritance {
  private:
   // A dummy base used to figure out accessor information prior to us deciding
   // on the actual base type to use.
-  using obj_base = _accessor_base<cycle_ptr::cycle_gptr<java::_erased::java::lang::Object>>;
+  using obj_base = _accessor_base<java::_erased::java::lang::Object>;
 
  public:
   ///\brief Type-erased type held by basic_ref.
   using erased_type = typename _accessor_for_type_<obj_base, Type>::erased_type;
-  ///\brief Pointer-type held by basic_ref.
-  using ptr_type = PtrType<erased_type>;
   ///\brief Base type that all accessors (ultimately) inherit from.
-  using base_type = _accessor_base<ptr_type>;
+  using base_type = _accessor_base<erased_type>;
   ///\brief Accessor type.
   using accessor_type = _accessor_for_type<base_type, Type>;
 
@@ -217,6 +213,59 @@ struct _basic_ref_inheritance {
  private:
   ///\brief Not instantiable.
   _basic_ref_inheritance() noexcept = delete;
+};
+
+struct _no_static_accessor_ {};
+
+template<typename T>
+struct _static_accessor_for_type_ {
+  using type = _no_static_accessor_;
+};
+
+template<typename Tag, typename... Args>
+struct _static_accessor_for_type_<::java::G::is_t<Tag, Args...>> {
+  using type = _static_accessor<Tag, Args...>;
+};
+
+template<typename T>
+using _static_accessor_for_type = typename _static_accessor_for_type_<T>::type;
+
+template<typename T>
+class _accessor_proxy final
+: private _basic_ref_inheritance<T>::accessor_type
+{
+ private:
+  explicit JSER_INLINE _accessor_proxy(typename _basic_ref_inheritance<T>::erased_type& ref) noexcept
+  : _basic_ref_inheritance<T>::base_type(ref)
+  {}
+
+ public:
+  JSER_INLINE _accessor_proxy(const _accessor_proxy&) = default;
+  JSER_INLINE _accessor_proxy& operator=(const _accessor_proxy&) = delete;
+
+  JSER_INLINE auto operator->() const noexcept
+  -> typename _basic_ref_inheritance<T>::accessor_type* {
+    return const_cast<_accessor_proxy*>(this);
+  }
+};
+
+template<typename T>
+class _accessor_proxy<const T> final
+: private _basic_ref_inheritance<T>::accessor_type
+{
+ private:
+  explicit JSER_INLINE _accessor_proxy(typename _basic_ref_inheritance<T>::erased_type& ref) noexcept
+  : _basic_ref_inheritance<T>::base_type(ref)
+  {}
+
+ public:
+  JSER_INLINE _accessor_proxy(const _accessor_proxy&) = default;
+  JSER_INLINE _accessor_proxy& operator=(const _accessor_proxy&) = delete;
+
+  JSER_INLINE auto operator->() const noexcept
+  -> const typename _basic_ref_inheritance<T>::accessor_type* {
+    return this;
+  }
 };
 
 } /* namespace java::<unnamed> */
@@ -278,7 +327,7 @@ JSER_INLINE auto cast(const basic_ref<PtrImpl, Type>& r)
  */
 template<template<class> class PtrImpl, typename Type>
 class basic_ref final
-: public _basic_ref_inheritance<PtrImpl, Type>::accessor_type
+: public _static_accessor_for_type<Type>
 {
   // Be friends with all our specializations.
   template<template<class> class, typename> friend class java::basic_ref;
@@ -296,8 +345,8 @@ class basic_ref final
   -> var_ref<type_of_t<FnRefType>>;
 
  protected:
-  using erased_type = typename _basic_ref_inheritance<PtrImpl, Type>::erased_type;
-  using ptr_type = typename _basic_ref_inheritance<PtrImpl, Type>::ptr_type;
+  using erased_type = typename _basic_ref_inheritance<Type>::erased_type;
+  using ptr_type = PtrImpl<erased_type>;
 
  public:
   JSER_INLINE basic_ref() = default;
@@ -553,19 +602,20 @@ class basic_ref final
     return p_ != nullptr;
   }
 
+  /**
+   * \brief Dereference this reference.
+   * \details
+   * Dereferences this reference using a proxy,
+   * granting access to the instance methods of the pointed-to object.
+   * \throws ::java::null_error if the reference is a null reference.
+   */
+  JSER_INLINE auto operator->() const
+  -> _accessor_proxy<Type> {
+    if (!*this) throw ::java::null_error();
+    return _accessor_proxy<Type>(*p_);
+  }
+
  private:
-  // Provide implementation of method in base_type.
-  JSER_INLINE auto ref__() const -> const erased_type& override {
-    if (p_ == nullptr) throw ::java::null_error();
-    return *p_;
-  }
-
-  // Provide implementation of method in base_type.
-  JSER_INLINE auto ref__() -> erased_type& override {
-    if (p_ == nullptr) throw ::java::null_error();
-    return *p_;
-  }
-
   ///\brief Pointer to the erased type.
   ptr_type p_ = nullptr;
 };
