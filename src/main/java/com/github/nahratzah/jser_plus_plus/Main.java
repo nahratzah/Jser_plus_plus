@@ -18,6 +18,7 @@ import java.util.stream.Stream;
  * @author ariane
  */
 public class Main {
+    private static final Logger LOG = Logger.getLogger(Main.class.getName());
     private static final boolean ENABLE_DEBUG_LOGS = false;
     private static final File CONFIG_FILE = new File("/home/ariane/programming/JSer++-2/JvmConfig.yaml");
 
@@ -34,7 +35,8 @@ public class Main {
                     .filter(serializable::isAssignableFrom)
                     .filter(c -> !c.isPrimitive())
                     .filter(c -> !c.isAnonymousClass())
-                    .filter(cfg.getScan().filter())) {
+                    .filter(cfg.getScan().filter())
+                    .peek(c -> LOG.log(Level.FINE, "Adding scanned {0}", c))) {
                 p.addClasses(classStream.collect(Collectors.toList()));
             }
 
