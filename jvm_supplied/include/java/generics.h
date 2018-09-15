@@ -325,20 +325,6 @@ struct is_satisfied_by_<java::G::super_t<X...>, java::G::pack_t<Y...>> {
   using type = std::disjunction<is_satisfied_by<java::G::super_t<X...>, Y>...>;
 };
 
-// Everything is a java.lang.Object.
-template<typename... Y>
-struct is_satisfied_by_<java::G::is_t<java::_tags::java::lang::Object>, java::G::pack_t<Y...>> {
-  using type = std::true_type;
-};
-
-// Everything is a java.lang.Object.
-template<typename Y>
-struct is_satisfied_by_<java::G::is_t<java::_tags::java::lang::Object>, Y> {
-  static_assert(is_generic_v<Y>);
-
-  using type = std::true_type;
-};
-
 // Everything extends java.lang.Object.
 template<typename... Y>
 struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::pack_t<Y...>> {

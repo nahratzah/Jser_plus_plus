@@ -63,7 +63,7 @@ $endif$
   // XXX methods
   // XXX field accessors
   // XXX fields
-  $cdef.model.fields:{f|// $f.name$}; anchor, separator = "\n"$
+  $cdef.model.fields:{f|$field(f)$;}; anchor, separator = "\n"$
 
 $if (cdef.model.enum)$
 
@@ -110,6 +110,31 @@ $endif$
 
 $cdef.model.enumValues:{ kv | $classEnumConstantMethod(cdef, kv)$}; separator = "\n"$
 >>
+
+field(f) ::= <%
+$if (!f.varType.primitive)$::java::field_t<$endif$
+$fieldType(f.varType)$
+$if (!f.varType.primitive)$>$endif$
+$" "$
+$f.name$
+%>
+
+fieldType(t) ::= <%
+$template(t,
+    {$\\$
+      ::$[t.type.namespace, t.type.simpleName]; separator = "::"$$\\$
+      $if (t.bindings)$<$t.bindings:{b | $fieldType(b)$}; separator = ", "$>$endif$$\\$
+    },
+    {$\\$
+      $t.name$$\\$
+    },
+    {$\\$
+      ::java::array_type<$fieldType(t.type)$, $t.extents$>$\\$
+    },
+    {$\\$
+      ::java::lang::Object
+    })$
+%>
 
 classInheritance(model) ::= <%
 $if (strip([model.superClass, model.interfaces]))$

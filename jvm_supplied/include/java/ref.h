@@ -14,13 +14,6 @@ class basic_ref;
 template<typename Type>
 using var_ref = basic_ref<cycle_ptr::cycle_gptr, Type>;
 
-///\brief Type declaration.
-///\details Types are exposed as references, since that is the most similar way
-///for anyone, to reason about the types.
-///By similar, we mean that it resembles the Java language most closely.
-template<typename Tag, typename... Args>
-using type = var_ref<java::G::is<Tag, Args...>>;
-
 
 namespace {
 
@@ -40,6 +33,17 @@ struct type_of_<basic_ref<PtrType, Type>> {
   using type = Type;
 };
 
+
+template<typename Type>
+struct maybe_unpack_type_ {
+  using type = Type;
+};
+
+template<template<class> class PtrImpl, typename Type>
+struct maybe_unpack_type_<basic_ref<PtrImpl, Type>> {
+  using type = Type;
+};
+
 } /* namespace java::<unnamed> */
 
 
@@ -50,6 +54,14 @@ using type_of = type_of_<BasicRef>;
 ///\brief Extract the underlying type from a basic_ref.
 template<typename BasicRef>
 using type_of_t = typename type_of<BasicRef>::type;
+
+
+///\brief Type declaration.
+///\details Types are exposed as references, since that is the most similar way
+///for anyone, to reason about the types.
+///By similar, we mean that it resembles the Java language most closely.
+template<typename Tag, typename... Args>
+using type = var_ref<java::G::is<Tag, typename maybe_unpack_type_<Args>::type...>>;
 
 } /* namespace java */
 
@@ -286,9 +298,6 @@ class basic_ref final
  protected:
   using erased_type = typename _basic_ref_inheritance<PtrImpl, Type>::erased_type;
   using ptr_type = typename _basic_ref_inheritance<PtrImpl, Type>::ptr_type;
-
-  // Validate erased_type
-  static_assert(std::is_base_of_v<java::object_intf, erased_type>);
 
  public:
   JSER_INLINE basic_ref() = default;

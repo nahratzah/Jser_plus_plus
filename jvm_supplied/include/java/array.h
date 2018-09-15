@@ -342,6 +342,20 @@ class array_ref
   ptr_type p_ = nullptr;
 };
 
+template<typename T, std::size_t Dimensions = 1>
+using array_type = array_ref<
+    cycle_ptr::cycle_gptr,
+    typename maybe_unpack_type_<T>::type,
+    Dimensions>;
+
+namespace {
+
+template<template<typename> class PtrType, template<typename> class OldPtrType, typename Type, std::size_t Dimensions>
+struct change_ptr_type_<PtrType, array_ref<OldPtrType, Type, Dimensions>> {
+  using type = array_ref<PtrType, Type, Dimensions>;
+};
+
+} /* namespace java::<unnamed> */
 } /* namespace java */
 
 

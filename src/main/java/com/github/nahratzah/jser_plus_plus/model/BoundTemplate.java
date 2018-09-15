@@ -6,6 +6,7 @@ import static java.util.Collections.singleton;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * A template with bound names.
@@ -55,6 +56,35 @@ public interface BoundTemplate {
             @Override
             public String apply(Any b) {
                 return "templateAny";
+            }
+        });
+    }
+
+    /**
+     * Detect if this template refers to a primitive type.
+     *
+     * @return True of the template renders a primitive type, false otherwise.
+     */
+    public default boolean isPrimitive() {
+        return visit(new Visitor<Boolean>() {
+            @Override
+            public Boolean apply(VarBinding b) {
+                return false;
+            }
+
+            @Override
+            public Boolean apply(ClassBinding b) {
+                return b.getType() instanceof PrimitiveType;
+            }
+
+            @Override
+            public Boolean apply(ArrayBinding b) {
+                return false;
+            }
+
+            @Override
+            public Boolean apply(Any b) {
+                return false;
             }
         });
     }
@@ -111,6 +141,11 @@ public interface BoundTemplate {
             return v.apply(this);
         }
 
+        @Override
+        public String toString() {
+            return getName();
+        }
+
         private String name;
     }
 
@@ -161,6 +196,16 @@ public interface BoundTemplate {
         @Override
         public <T> T visit(Visitor<T> v) {
             return v.apply(this);
+        }
+
+        @Override
+        public String toString() {
+            final String bindingsStr;
+            if (bindings == null || bindings.isEmpty())
+                bindingsStr = "";
+            else
+                bindingsStr = bindings.stream().map(Object::toString).collect(Collectors.joining(", ", "<", ">"));
+            return type.getName() + bindingsStr;
         }
 
         private JavaType type;
@@ -218,6 +263,11 @@ public interface BoundTemplate {
             return v.apply(this);
         }
 
+        @Override
+        public String toString() {
+            return type.toString() + IntStream.range(0, extents).mapToObj(i -> "[]").collect(Collectors.joining());
+        }
+
         private BoundTemplate type;
         private int extents;
     }
@@ -242,6 +292,11 @@ public interface BoundTemplate {
         @Override
         public <T> T visit(Visitor<T> v) {
             return v.apply(this);
+        }
+
+        @Override
+        public String toString() {
+            return "ANY";
         }
     }
 }
