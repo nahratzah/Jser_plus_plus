@@ -18,12 +18,13 @@ import java.util.stream.Stream;
  * @author ariane
  */
 public class Main {
-    private static boolean ENABLE_DEBUG_LOGS = false;
+    private static final boolean ENABLE_DEBUG_LOGS = false;
+    private static final File CONFIG_FILE = new File("/home/ariane/programming/JSer++-2/JvmConfig.yaml");
 
     public static void main(String[] args) throws Exception {
         if (ENABLE_DEBUG_LOGS) enableDebugLog(Level.FINE);
 
-        Config cfg = new Config();
+        final Config cfg = Config.fromFile(CONFIG_FILE);
 
         try (final Scanner s = new Scanner(ADD_BOOT_CLASSPATH)) {
             final Processor p = new Processor(s.getClassLoader(), cfg);
@@ -32,7 +33,8 @@ public class Main {
             try (final Stream<Class<?>> classStream = s.getClassesChecked()
                     .filter(serializable::isAssignableFrom)
                     .filter(c -> !c.isPrimitive())
-                    .filter(c -> !c.isAnonymousClass())) {
+                    .filter(c -> !c.isAnonymousClass())
+                    .filter(cfg.getScan().filter())) {
                 p.addClasses(classStream.collect(Collectors.toList()));
             }
 
