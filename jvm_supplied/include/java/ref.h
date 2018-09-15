@@ -44,6 +44,24 @@ struct maybe_unpack_type_<basic_ref<PtrImpl, Type>> {
   using type = Type;
 };
 
+
+template<typename BasicRef>
+struct change_to_const_;
+
+template<template<typename> class PtrType, typename Type>
+struct change_to_const_<basic_ref<PtrType, Type>> {
+  using type = basic_ref<PtrType, std::add_const_t<Type>>;
+};
+
+
+template<typename BasicRef>
+struct change_to_non_const_;
+
+template<template<typename> class PtrType, typename Type>
+struct change_to_non_const_<basic_ref<PtrType, Type>> {
+  using type = basic_ref<PtrType, std::remove_const_t<Type>>;
+};
+
 } /* namespace java::<unnamed> */
 
 
@@ -653,6 +671,14 @@ using param_t = type<java::type_traits::parameter_type_for_t<type_of_t<BasicRef>
 ///\sa java::type_traits::return_type_for
 template<typename BasicRef>
 using return_t = type<java::type_traits::return_type_for_t<type_of_t<BasicRef>>>;
+
+///\brief Convert basic_ref to a const-reference.
+template<typename BasicRef>
+using const_ref = typename change_to_const_<BasicRef>::type;
+
+///\brief Convert basic_ref to a non-const-reference.
+template<typename BasicRef>
+using non_const_ref = typename change_to_non_const_<BasicRef>::type;
 
 
 } /* namespace java */
