@@ -146,7 +146,7 @@ public class ClassType implements JavaType {
                     final CfgField fieldCfg = entry.getValue();
                     final BoundTemplate type = new BoundTemplate.Any(); // XXX figure out how to configure a synthetic field!
 
-                    return new FieldType(name, new BoundTemplate.Any(), false);
+                    return new FieldType(name, type, false);
                 })
                 .collect(Collectors.toList());
 
@@ -296,7 +296,13 @@ public class ClassType implements JavaType {
 
         @Override
         public BoundTemplate apply(WildcardType var) {
-            return new BoundTemplate.Any();
+            final List<BoundTemplate> extendTypes = Arrays.stream(var.getUpperBounds())
+                    .map(t -> ReflectUtil.visitType(t, this))
+                    .collect(Collectors.toList());
+            final List<BoundTemplate> superTypes = Arrays.stream(var.getLowerBounds())
+                    .map(t -> ReflectUtil.visitType(t, this))
+                    .collect(Collectors.toList());
+            return new BoundTemplate.Any(superTypes, extendTypes);
         }
 
         @Override

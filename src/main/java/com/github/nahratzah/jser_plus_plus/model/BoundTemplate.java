@@ -1,12 +1,15 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
 import java.util.Collection;
+import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import java.util.List;
+import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * A template with bound names.
@@ -276,6 +279,31 @@ public interface BoundTemplate {
      * Wildcard binding.
      */
     public static class Any implements BoundTemplate {
+        public Any() {
+            this(EMPTY_LIST, EMPTY_LIST);
+        }
+
+        public Any(List<BoundTemplate> superTypes, List<BoundTemplate> extendTypes) {
+            this.superTypes = requireNonNull(superTypes);
+            this.extendTypes = requireNonNull(extendTypes);
+        }
+
+        public List<BoundTemplate> getSuperTypes() {
+            return superTypes;
+        }
+
+        public void setSuperTypes(List<BoundTemplate> superTypes) {
+            this.superTypes = superTypes;
+        }
+
+        public List<BoundTemplate> getExtendTypes() {
+            return extendTypes;
+        }
+
+        public void setExtendTypes(List<BoundTemplate> extendTypes) {
+            this.extendTypes = extendTypes;
+        }
+
         @Override
         public Set<String> getUnresolvedTemplateNames() {
             return emptySet();
@@ -296,7 +324,12 @@ public interface BoundTemplate {
 
         @Override
         public String toString() {
-            return "ANY";
+            final String spec = Stream.concat(superTypes.stream().map(t -> " super " + t), extendTypes.stream().map(t -> " extend " + t))
+                    .collect(Collectors.joining());
+            return "?" + spec;
         }
+
+        private List<BoundTemplate> superTypes;
+        private List<BoundTemplate> extendTypes;
     }
 }

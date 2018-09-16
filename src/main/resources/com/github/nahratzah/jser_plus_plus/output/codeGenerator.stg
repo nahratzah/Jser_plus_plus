@@ -210,7 +210,10 @@ $template(t,
       ::java::array_type<$fieldType(t.type)$, $t.extents$>$\\$
     },
     {$\\$
-      ::java::lang::Object
+      ::java::type<::java::G::pack<$[
+          {$t.superTypes:{st|::java::G::super<st>}; separator = ", "$},
+          {$t.extendTypes:{st|::java::G::extends<st>}; separator = ", "$}
+        ]; separator = ", "$>>
     })$
 %>
 
