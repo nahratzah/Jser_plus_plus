@@ -1,6 +1,6 @@
 accessor(cdef) ::= <<
-template<$[cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
-class _static_accessor<$[cdef.tagName, cdef.templateArguments]; separator = ", "$> {
+$templateLine(cdef.templateArguments, true)$
+class _static_accessor$templateArgs([cdef.tagName, cdef.templateArguments], true)$ {
  protected:
   JSER_INLINE _static_accessor() = default;
   JSER_INLINE _static_accessor(const _static_accessor&) = default;
@@ -24,8 +24,8 @@ $if (cdef.model.enum)$
 $endif$
 };
 
-template<$["Base_", cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
-class _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>
+$templateLine(["Base_", cdef.templateArguments], true)$
+class _accessor$templateArgs(["Base_", cdef.tagName, cdef.templateArguments], true)$
 : public virtual Base_
 {
  protected:
@@ -48,7 +48,13 @@ $endif$
 };
 $if (cdef.model.enum)$
 
-auto to_string(::java::_static_accessor<$cdef.tagName$>::enum_t enum_value) noexcept -> std::string_view;
+$function(
+    name="to_string",
+    doImplement=false,
+    noexcept="noexcept",
+    return="std::string_view",
+    argumentTypes=[{::java::_static_accessor$templateArgs([cdef.tagName], true)$::enum_t}],
+    argumentNames=["enum_value"])$
 $endif$
 >>
 
@@ -111,23 +117,32 @@ $cdef.model.fields:{f|$fieldAccessorsImpl(cdef, f)$}; separator = "\n"$
 >>
 
 
-accessorImplSrc(cdef) ::= <<
+accessorImplSrc(cdef) ::= <%
 $if (cdef.model.enum)$
-auto to_string(::java::_static_accessor<$cdef.tagName$>::enum_t enum_value) noexcept
--> std::string_view {
-  using enum_t = ::$[cdef.namespace, cdef.className, "enum_t"]; separator = "::"$;
-  using namespace std::string_view_literals;
+$function(
+    name="to_string",
+    doImplement=true,
+    noexcept="noexcept",
+    return="std::string_view",
+    argumentTypes=[{::java::_static_accessor$templateArgs([cdef.tagName], true)$::enum_t}],
+    argumentNames=["enum_value"],
+    body={$accessorImplSrcBody(cdef)$})$
+$endif$
+%>
 
-  switch (enum_value) {
-  $cdef.model.enumValues
+
+accessorImplSrcBody(cdef) ::= <<
+using enum_t = ::java::_static_accessor$templateArgs([cdef.tagName], true)$::enum_t;
+using namespace std::string_view_literals;
+
+switch (enum_value) {
+$ cdef.model.enumValues
   : { v |
 case enum_t::$v.remappedName$:
   return $u8StringView(v.name)$;$\\$
     }
   ; anchor, separator = "\n"$
-  }
 }
-$endif$
 >>
 
 

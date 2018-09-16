@@ -7,3 +7,62 @@ u8StringView(s) ::= <%u8$cxxString(s)$sv%>
 u16StringView(s) ::= <%u16$cxxString(s)$sv%>
 u32StringView(s) ::= <%u32$cxxString(s)$sv%>
 wStringView(s) ::= <%L$cxxString(s)$sv%>
+
+
+function(name,
+         doImplement,
+         return,
+         argumentTypes=[],
+         argumentNames=[],
+         body="",
+         containingClass=false,
+         containingClassTemplateArguments=[],
+         templateArguments=[],
+         static=false,
+         virtual=false,
+         inline=false,
+         noexcept=false
+         ) ::= <<
+$if (doImplement)$$templateLine(containingClassTemplateArguments)$$endif$
+$templateLine(templateArguments)$
+$if (!doImplement && static)$static $endif$$\\$
+$if (!doImplement && virtual)$virtual $endif$$\\$
+$if (inline)$$inline$ $endif$$\\$
+auto $\\$
+$if (doImplement && containingClass)$
+$containingClass$$templateArgs(containingClassTemplateArguments)$::$\\$
+$endif$
+$name$$functionArguments(argumentTypes, argumentNames)$$\\$
+$if (noexcept)$ $noexcept$$endif$$\\$
+$if (return)$$"\n"$-> $return; wrap = "\n    "$$endif$$\\$
+$if (!doImplement)$$\\$
+;
+$else$$\\$
+$" "${
+  $body; anchor$
+}
+$endif$
+>>
+
+
+functionArguments(argumentTypes, argumentNames) ::= <%
+($argumentTypes, argumentNames:{type, name | $type$ $name$}; anchor, wrap, separator = ", "$)
+%>
+
+
+templateLine(names, force=false) ::= <%
+$if (names || force)$
+  template<
+  $names:{name | typename $name$}; anchor, wrap, separator = ", "$
+  >
+$endif$
+%>
+
+
+templateArgs(names, force=false) ::= <%
+$if (names || force)$
+  <
+  $names; anchor, wrap, separator = ", "$
+  >
+$endif$
+%>
