@@ -3,6 +3,7 @@ package com.github.nahratzah.jser_plus_plus.config.class_members;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.nahratzah.jser_plus_plus.config.ClassMember;
 import com.github.nahratzah.jser_plus_plus.config.Includes;
+import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,15 @@ public class Method implements ClassMember {
     private Includes includes = new Includes();
     @JsonProperty("body")
     private String body;
+    @JsonProperty("virtual")
+    private boolean virtual = false;
+    @JsonProperty("visibility")
+    private Visibility visibility = Visibility.PUBLIC;
+
+    @Override
+    public <T> T visit(Visitor<T> visitor) {
+        return visitor.apply(this);
+    }
 
     /**
      * Name of the method.
@@ -85,4 +95,27 @@ public class Method implements ClassMember {
     public void setBody(String body) {
         this.body = body;
     }
+
+    /**
+     * If set, the method must be virtual.
+     *
+     * @return True if the method must be virtual. False if default rules apply.
+     */
+    public boolean isVirtual() {
+        return virtual;
+    }
+
+    public void setVirtual(boolean virtual) {
+        this.virtual = virtual;
+    }
+
+    @Override
+    public Visibility getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(Visibility visibility) {
+        this.visibility = visibility;
+    }
+
 }

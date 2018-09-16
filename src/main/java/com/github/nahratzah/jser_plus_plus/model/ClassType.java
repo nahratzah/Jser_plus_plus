@@ -2,7 +2,11 @@ package com.github.nahratzah.jser_plus_plus.model;
 
 import com.github.nahratzah.jser_plus_plus.config.CfgField;
 import com.github.nahratzah.jser_plus_plus.config.ClassConfig;
+import com.github.nahratzah.jser_plus_plus.config.ClassMember;
 import com.github.nahratzah.jser_plus_plus.config.Config;
+import com.github.nahratzah.jser_plus_plus.config.class_members.Constructor;
+import com.github.nahratzah.jser_plus_plus.config.class_members.Destructor;
+import com.github.nahratzah.jser_plus_plus.config.class_members.Method;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.java.ReflectUtil;
 import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
@@ -65,6 +69,7 @@ public class ClassType implements JavaType {
         initClassAttributes(ctx, classCfg, argRename);
         initSuperTypes(ctx, classCfg, argRename);
         initFields(ctx, classCfg, argRename, streamClass);
+        initClassMembers(ctx, classCfg, argRename);
     }
 
     private void initTemplateArguments(Context ctx, ClassConfig classCfg, List<? extends TypeVariable<? extends Class<?>>> cTypeParameters, Map<String, String> argRename) {
@@ -171,6 +176,29 @@ public class ClassType implements JavaType {
                 .collect(Collectors.toList());
     }
 
+    private void initClassMembers(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
+        this.classMembers = classCfg.getClassMembers()
+                .map(cfgMember -> {
+                    return cfgMember.visit(new ClassMember.Visitor<ClassMemberModel>() {
+                        @Override
+                        public ClassMemberModel apply(Method method) {
+                            return new ClassMemberModel.ClassMethod(method);
+                        }
+
+                        @Override
+                        public ClassMemberModel apply(Constructor constructor) {
+                            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                        }
+
+                        @Override
+                        public ClassMemberModel apply(Destructor destructor) {
+                            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                        }
+                    });
+                })
+                .collect(Collectors.toList());
+    }
+
     @Override
     public int getNumTemplateArguments() {
         return getAllTypeParameters(this.c).size();
@@ -224,6 +252,10 @@ public class ClassType implements JavaType {
     @Override
     public boolean isFinal() {
         return finalVar;
+    }
+
+    public Collection<ClassMemberModel> getClassMembers() {
+        return classMembers;
     }
 
     /**
@@ -467,4 +499,8 @@ public class ClassType implements JavaType {
      * If the class is a final class.
      */
     private boolean finalVar;
+    /**
+     * Class members for the class.
+     */
+    private Collection<ClassMemberModel> classMembers;
 }

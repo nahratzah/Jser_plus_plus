@@ -35,3 +35,13 @@ classes:
       dummySyntheticFieldForTestingTheCodeGenerator:
         final: false
         visibility: private
+    members:
+    - type: method
+      name: foobar
+      return: ::std::string
+      includes:
+        declaration:
+        - string
+      body: |
+        return "foobar"
+      visibility: public

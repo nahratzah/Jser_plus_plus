@@ -3,6 +3,7 @@ package com.github.nahratzah.jser_plus_plus.config;
 import static java.util.Collections.unmodifiableMap;
 import java.util.Map;
 import static java.util.Objects.requireNonNull;
+import java.util.stream.Stream;
 
 /**
  * Synthesized configuration from applying all filters.
@@ -20,6 +21,10 @@ public class ClassConfig {
 
     public Boolean isFinal() {
         return cfgClass.isFinal();
+    }
+
+    public Stream<ClassMember> getClassMembers() {
+        return cfgClass.getMembers().stream();
     }
 
     private final CfgClass cfgClass;

@@ -42,7 +42,9 @@ $if (cdef.model.fields)$
   $cdef.model.fields:{f|$fieldAccessors(f)$}; anchor, separator = "\n"$
 $endif$
 
-  // XXX field and method forwarders.
+#if 0
+  $cdef.model.classMembers; anchor, separator = "\n\n"$
+#endif
 };
 $if (cdef.model.enum)$
 
