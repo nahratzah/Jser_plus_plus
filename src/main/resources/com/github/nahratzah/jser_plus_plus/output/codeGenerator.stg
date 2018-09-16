@@ -211,8 +211,8 @@ $template(t,
     },
     {$\\$
       ::java::type<::java::G::pack<$[
-          {$t.superTypes:{st|::java::G::super<st>}; separator = ", "$},
-          {$t.extendTypes:{st|::java::G::extends<st>}; separator = ", "$}
+          {$t.superTypes:{st|::java::G::super<$fieldType(st)$>}; separator = ", "$},
+          {$t.extendTypes:{st|::java::G::extends<$fieldType(st)$>}; separator = ", "$}
         ]; separator = ", "$>>
     })$
 %>
