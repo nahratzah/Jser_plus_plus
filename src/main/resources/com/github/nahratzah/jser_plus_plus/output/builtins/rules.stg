@@ -71,3 +71,8 @@ $endif$
 renderDocString(docString) ::= <<
 $renderDocString_.(docString)$
 >>
+
+
+boundTemplateType(t, format="") ::= <%
+$t; format=format$
+%>

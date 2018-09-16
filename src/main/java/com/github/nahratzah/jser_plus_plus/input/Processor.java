@@ -204,7 +204,9 @@ public class Processor implements Context {
 
                     @Override
                     public Stream<String> apply(BoundTemplate.ClassBinding b) {
-                        return b.getType().getIncludes(publicOnly).stream();
+                        return Stream.concat(
+                                b.getType().getIncludes(publicOnly).stream(),
+                                b.getBindings().stream().flatMap(template -> template.visit(this)));
                     }
 
                     @Override
@@ -216,7 +218,8 @@ public class Processor implements Context {
 
                     @Override
                     public Stream<String> apply(BoundTemplate.Any b) {
-                        return Stream.empty();
+                        return Stream.concat(b.getExtendTypes().stream(), b.getSuperTypes().stream())
+                                .flatMap(template -> template.visit(this));
                     }
                 };
 

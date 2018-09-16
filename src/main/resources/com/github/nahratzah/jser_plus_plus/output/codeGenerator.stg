@@ -26,7 +26,7 @@ $endif$
 
 $templateLine(["Base_", cdef.templateArguments], true)$
 class _accessor$templateArgs(["Base_", cdef.tagName, cdef.templateArguments], true)$
-: public virtual Base_
+$accessorInheritance(cdef.model, "Base_")$
 {
  protected:
   JSER_INLINE _accessor() = default;
@@ -264,6 +264,15 @@ $! Interfaces need to have ::java::object_intf as a base, so if they don't
  ! derive from an interface, declare the interface now.
  !$
 : public virtual ::java::object_intf
+$endif$
+%>
+
+
+accessorInheritance(model, base) ::= <%
+$if (strip([model.superClass, model.interfaces]))$
+: $ strip([model.superClass, model.interfaces]): {t|public virtual $boundTemplateType(t, {accessor, base=$base$, style=type})$}; anchor, separator=",\n"$
+$else$
+: public virtual $base$
 $endif$
 %>
 
