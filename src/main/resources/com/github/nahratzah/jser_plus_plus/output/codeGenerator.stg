@@ -48,13 +48,7 @@ $endif$
 };
 $if (cdef.model.enum)$
 
-$function(
-    name="to_string",
-    doImplement=false,
-    noexcept="noexcept",
-    return="std::string_view",
-    argumentTypes=[{::java::_static_accessor$templateArgs([cdef.tagName], true)$::enum_t}],
-    argumentNames=["enum_value"])$
+$accessorEnumToString(cdef, false)$
 $endif$
 >>
 
@@ -108,7 +102,7 @@ $endif$
 >>
 
 
-accessorImpl(cdef) ::= <<
+accessorImpl(cdefs) ::= <<
 $if (cdef.model.enum)$
 $cdef.model.enumValues:{kv | $accessorEnumConstantMethod(cdef, kv)$}; anchor, separator = "\n"$
 $endif$
@@ -117,21 +111,24 @@ $cdef.model.fields:{f|$fieldAccessorsImpl(cdef, f)$}; separator = "\n"$
 >>
 
 
-accessorImplSrc(cdef) ::= <%
-$if (cdef.model.enum)$
+accessorImplSrc(cdef) ::= <<
+$if (cdef.model.enum)$$accessorEnumToString(cdef, true)$$endif$
+>>
+
+
+accessorEnumToString(cdef, doImplement) ::= <%
 $function(
     name="to_string",
-    doImplement=true,
+    doImplement=doImplement,
     noexcept="noexcept",
     return="std::string_view",
     argumentTypes=[{::java::_static_accessor$templateArgs([cdef.tagName], true)$::enum_t}],
     argumentNames=["enum_value"],
-    body={$accessorImplSrcBody(cdef)$})$
-$endif$
+    body={$accessorEnumToStringBody(cdef)$})$
 %>
 
 
-accessorImplSrcBody(cdef) ::= <<
+accessorEnumToStringBody(cdef) ::= <<
 using enum_t = ::java::_static_accessor$templateArgs([cdef.tagName], true)$::enum_t;
 using namespace std::string_view_literals;
 
