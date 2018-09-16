@@ -50,6 +50,7 @@ auto to_string(::java::_static_accessor<$cdef.tagName$>::enum_t enum_value) noex
 $endif$
 >>
 
+
 class(cdef) ::= <<
 class $cdef.className$$if (cdef.model.final)$ final$endif$
 $classInheritance(cdef.model)$
@@ -98,6 +99,7 @@ $endif$
 };
 >>
 
+
 accessorImpl(cdef) ::= <<
 $if (cdef.model.enum)$
 $cdef.model.enumValues:{kv | $accessorEnumConstantMethod(cdef, kv)$}; anchor, separator = "\n"$
@@ -105,6 +107,7 @@ $endif$
 
 $cdef.model.fields:{f|$fieldAccessorsImpl(cdef, f)$}; separator = "\n"$
 >>
+
 
 accessorImplSrc(cdef) ::= <<
 $if (cdef.model.enum)$
@@ -125,6 +128,7 @@ case enum_t::$v.remappedName$:
 $endif$
 >>
 
+
 classImpl(cdef) ::= <<
 $if (!cdef.model.enum)$
 $cdef.className$::$cdef.className$() = default;
@@ -136,6 +140,7 @@ $cdef.className$::~$cdef.className$() noexcept = default;
 $cdef.model.enumValues:{ kv | $classEnumConstantMethod(cdef, kv)$}; separator = "\n"$
 >>
 
+
 field(f) ::= <%
 $if (!f.varType.primitive)$$if (f.final)$const $endif$::java::field_t<$endif$
 $fieldType(f.varType)$
@@ -144,15 +149,18 @@ $" "$
 $f.name$
 %>
 
+
 fieldAccessors(f) ::= <<
 $if (f.getterFn)$$fieldGetter(f)$;$else$// No getter for $f.name$$endif$
 $if (f.setterFn)$$fieldSetter(f)$;$else$// No setter for $f.name$$endif$
 >>
 
+
 fieldAccessorsImpl(cdef, f) ::= <<
 $if (f.getterFn)$$fieldGetterImpl(cdef, f)$$endif$
 $if (f.setterFn)$$fieldSetterImpl(cdef, f)$$endif$
 >>
+
 
 fieldGetter(f) ::= <%
 auto $f.name$() const ->
@@ -161,6 +169,7 @@ $if (!f.varType.primitive)$::java::return_t<$endif$
 $fieldType(f.varType)$
 $if (!f.varType.primitive)$>$endif$
 %>
+
 
 fieldSetter(f) ::= <%
 auto $f.name$(
@@ -175,6 +184,7 @@ $fieldType(f.varType)$
 $if (!f.varType.primitive)$>$endif$
 %>
 
+
 fieldGetterImpl(cdef, f) ::= <<
 template<$["Base_", cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
 JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>::$f.name$() const
@@ -182,6 +192,7 @@ JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; sep
   return this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$;
 }
 >>
+
 
 fieldSetterImpl(cdef, f) ::= <<
 template<$["Base_", cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
@@ -196,6 +207,7 @@ $else$
 $endif$
 }
 >>
+
 
 fieldType(t) ::= <%
 $template(t,
@@ -216,6 +228,7 @@ $template(t,
         ]; separator = ", "$>>
     })$
 %>
+
 
 classInheritance(model) ::= <%
 $if (strip([model.superClass, model.interfaces]))$
@@ -240,11 +253,13 @@ $! Interfaces need to have ::java::object_intf as a base, so if they don't
 $endif$
 %>
 
+
 accessorEnumConstantMethodDeclaration(cdef, kv) ::= <<
 ///\brief Enum constant $kv.name$.
 static auto $kv.remappedName$()
 -> ::$[cdef.namespace, cdef.className]; separator = "::"$;
 >>
+
 
 accessorEnumConstantMethod(cdef, kv) ::= <<
 $if (cdef.templateArguments)$
@@ -258,11 +273,13 @@ JSER_INLINE auto _static_accessor<$[cdef.tagName, cdef.templateArguments]; separ
 }
 >>
 
+
 classEnumConstantMethodDeclaration(cdef, kv) ::= <<
 ///\brief Enum constant $kv.name$.
 static auto $kv.remappedName$()
 -> cycle_ptr::cycle_gptr<$cdef.className$>;
 >>
+
 
 classEnumConstantMethod(cdef, kv) ::= <<
 auto $cdef.className$::$kv.remappedName$()
@@ -273,13 +290,16 @@ auto $cdef.className$::$kv.remappedName$()
 }
 >>
 
+
 classInheritTemplateClassRenderer(model) ::= <%
 $if (model.interface)$public virtual$else$public$endif$ ::$["java", "_erased", model.namespace, model.simpleName]; separator = "::"$
 %>
 
+
 template(t, classRenderer, varRenderer, arrayRenderer, anyRenderer) ::= <%
 $(t.templateStyle)(classRenderer, varRenderer, arrayRenderer, anyRenderer)$
 %>
+
 
 templateClass(classRenderer, varRenderer, arrayRenderer, anyRenderer) ::= <%$classRenderer$%>
 templateVar(classRenderer, varRenderer, arrayRenderer, anyRenderer) ::= <%$varRenderer$%>
