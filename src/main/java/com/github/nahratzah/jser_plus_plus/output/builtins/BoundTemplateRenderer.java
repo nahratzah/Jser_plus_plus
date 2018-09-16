@@ -192,7 +192,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
             public TypeVisitor(Config config) {
                 this.config = requireNonNull(config);
                 final Config rawConfig = Config.typeWithBase(config.base);
-                if (Objects.equals(rawConfig, config))
+                if (config.classType || Objects.equals(rawConfig, config))
                     this.raw = this;
                 else
                     this.raw = new TypeVisitor(rawConfig);

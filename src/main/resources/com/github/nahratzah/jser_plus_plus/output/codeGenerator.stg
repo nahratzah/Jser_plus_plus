@@ -157,7 +157,7 @@ $cdef.model.enumValues:{ kv | $classEnumConstantMethod(cdef, kv, true)$}; separa
 
 field(f) ::= <%
 $if (!f.varType.primitive)$$if (f.final)$const $endif$::java::field_t<$endif$
-$fieldType(f.varType)$
+$boundTemplateType(f.varType, "style=type, class")$
 $if (!f.varType.primitive)$>$endif$
 $" "$
 $f.name$
@@ -180,7 +180,7 @@ fieldGetter(f) ::= <%
 auto $f.name$() const ->
 $" "$
 $if (!f.varType.primitive)$::java::return_t<$endif$
-$fieldType(f.varType)$
+$boundTemplateType(f.varType, "style=type, class")$
 $if (!f.varType.primitive)$>$endif$
 %>
 
@@ -188,13 +188,13 @@ $if (!f.varType.primitive)$>$endif$
 fieldSetter(f) ::= <%
 auto $f.name$(
 $if (!f.varType.primitive)$::java::param_t<$endif$
-$fieldType(f.varType)$
+$boundTemplateType(f.varType, "style=type, class")$
 $if (!f.varType.primitive)$>$endif$
 $" "$
 value) ->
 $" "$
 $if (!f.varType.primitive)$::java::return_t<$endif$
-$fieldType(f.varType)$
+$boundTemplateType(f.varType, "style=type, class")$
 $if (!f.varType.primitive)$>$endif$
 %>
 
@@ -202,7 +202,7 @@ $if (!f.varType.primitive)$>$endif$
 fieldGetterImpl(cdef, f) ::= <<
 template<$["Base_", cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
 JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>::$f.name$() const
--> $if (!f.varType.primitive)$::java::return_t<$endif$$fieldType(f.varType)$$if (!f.varType.primitive)$>$endif$ {
+-> $if (!f.varType.primitive)$::java::return_t<$endif$$boundTemplateType(f.varType, "style=type, class")$$if (!f.varType.primitive)$>$endif$ {
   return this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$;
 }
 >>
@@ -210,38 +210,17 @@ JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; sep
 
 fieldSetterImpl(cdef, f) ::= <<
 template<$["Base_", cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
-JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>::$f.name$($if (!f.varType.primitive)$::java::param_t<$endif$$fieldType(f.varType)$$if (!f.varType.primitive)$>$endif$ value)
--> $if (!f.varType.primitive)$::java::return_t<$endif$$fieldType(f.varType)$$if (!f.varType.primitive)$>$endif$ {
+JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>::$f.name$($if (!f.varType.primitive)$::java::param_t<$endif$$boundTemplateType(f.varType, "style=type, class")$$if (!f.varType.primitive)$>$endif$ value)
+-> $if (!f.varType.primitive)$::java::return_t<$endif$$boundTemplateType(f.varType, "style=type, class")$$if (!f.varType.primitive)$>$endif$ {
 $if (f.varType.primitive)$
   return ::std::exchange(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$, value);
 $else$
-  ::java::return_t<$fieldType(f.varType)$> result = ::std::move(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$);
+  ::java::return_t<$boundTemplateType(f.varType, "style=type, class")$> result = ::std::move(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$);
   this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$ = ::std::move(value);
   return result;
 $endif$
 }
 >>
-
-
-fieldType(t) ::= <%
-$template(t,
-    {$\\$
-      ::$[t.type.namespace, t.type.simpleName]; separator = "::"$$\\$
-      $if (t.bindings)$<$t.bindings:{b | $fieldType(b)$}; separator = ", "$>$endif$$\\$
-    },
-    {$\\$
-      $t.name$$\\$
-    },
-    {$\\$
-      ::java::array_type<$fieldType(t.type)$, $t.extents$>$\\$
-    },
-    {$\\$
-      ::java::type<::java::G::pack<$[
-          {$t.superTypes:{st|::java::G::super<$fieldType(st)$>}; separator = ", "$},
-          {$t.extendTypes:{st|::java::G::extends<$fieldType(st)$>}; separator = ", "$}
-        ]; separator = ", "$>>
-    })$
-%>
 
 
 classInheritance(model) ::= <%
