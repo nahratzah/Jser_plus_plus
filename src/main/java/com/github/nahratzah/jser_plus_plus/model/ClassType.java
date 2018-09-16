@@ -1,5 +1,7 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
+import com.github.nahratzah.jser_plus_plus.config.CfgField;
+import com.github.nahratzah.jser_plus_plus.config.ClassConfig;
 import com.github.nahratzah.jser_plus_plus.config.Config;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.java.ReflectUtil;
@@ -25,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +49,7 @@ public class ClassType implements JavaType {
     @Override
     public void init(Context ctx, Config cfg) {
         LOG.log(Level.INFO, "Initializing {0}", c);
+        final ClassConfig classCfg = cfg.getConfigForClass(c);
 
         final List<? extends TypeVariable<? extends Class<?>>> cTypeParameters = getAllTypeParameters(this.c);
         LOG.log(Level.FINE, "Type parameters: {0}", cTypeParameters);
@@ -57,12 +61,12 @@ public class ClassType implements JavaType {
         final ObjectStreamClass streamClass = ObjectStreamClass.lookupAny(this.c);
 
         this.serialVersionUID = streamClass.getSerialVersionUID();
-        initTemplateArguments(ctx, cfg, cTypeParameters, argRename);
-        initSuperTypes(ctx, cfg, argRename);
-        initFields(ctx, cfg, argRename, streamClass);
+        initTemplateArguments(ctx, classCfg, cTypeParameters, argRename);
+        initSuperTypes(ctx, classCfg, argRename);
+        initFields(ctx, classCfg, argRename, streamClass);
     }
 
-    private void initTemplateArguments(Context ctx, Config cfg, List<? extends TypeVariable<? extends Class<?>>> cTypeParameters, Map<String, String> argRename) {
+    private void initTemplateArguments(Context ctx, ClassConfig classCfg, List<? extends TypeVariable<? extends Class<?>>> cTypeParameters, Map<String, String> argRename) {
         this.templateArguments = cTypeParameters.stream()
                 .map(cTypeParameter -> {
                     final String argName = requireNonNull(argRename.get(cTypeParameter.getName()));
@@ -74,7 +78,7 @@ public class ClassType implements JavaType {
                 .collect(Collectors.toList());
     }
 
-    private void initSuperTypes(Context ctx, Config cfg, Map<String, String> argRename) {
+    private void initSuperTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
         this.superType = Optional.ofNullable(this.c.getGenericSuperclass())
                 .map(t -> ReflectUtil.visitType(t, new ParentTypeVisitor(ctx, argRename)))
                 .orElse(null);
@@ -83,7 +87,7 @@ public class ClassType implements JavaType {
                 .collect(Collectors.toList());
     }
 
-    private void initFields(Context ctx, Config cfg, Map<String, String> argRename, ObjectStreamClass streamClass) {
+    private void initFields(Context ctx, ClassConfig classCfg, Map<String, String> argRename, ObjectStreamClass streamClass) {
         class IntermediateFieldDescr {
             public IntermediateFieldDescr(String name, Class<?> classType, Type reflectType) {
                 this.name = name;
@@ -105,7 +109,8 @@ public class ClassType implements JavaType {
             public final Type reflectType;
         }
 
-        this.fields = Arrays.stream(streamClass.getFields())
+        // Generate fields based on reflection logic.
+        final List<FieldType> reflectedFields = Arrays.stream(streamClass.getFields())
                 .map(f -> {
                     final String name = f.getName();
                     final Class<?> type = f.getType();
@@ -126,6 +131,36 @@ public class ClassType implements JavaType {
                     final Type visitType = iField.reflectType != null ? iField.reflectType : iField.classType;
                     final BoundTemplate type = ReflectUtil.visitType(visitType, new BoundsMapping(ctx, argRename));
                     return new FieldType(iField.name, type);
+                })
+                .collect(Collectors.toList());
+        // Store names of reflected fields, for quick access.
+        final Set<String> reflectedFieldNames = reflectedFields.stream()
+                .map(FieldType::getName)
+                .collect(Collectors.toSet());
+
+        // Generate list of configured fields.
+        final List<FieldType> syntheticFields = classCfg.getFields().entrySet().stream()
+                .filter(entry -> !reflectedFieldNames.contains(entry.getKey()))
+                .map(entry -> {
+                    final String name = entry.getKey();
+                    final CfgField fieldCfg = entry.getValue();
+                    final BoundTemplate type = new BoundTemplate.Any(); // XXX figure out how to configure a synthetic field!
+
+                    return new FieldType(name, new BoundTemplate.Any(), false);
+                })
+                .collect(Collectors.toList());
+
+        // Apply configuration patches to all the fields.
+        this.fields = Stream.concat(reflectedFields.stream(), syntheticFields.stream())
+                .peek(iField -> {
+                    final CfgField fieldCfg = classCfg.getFields().get(iField.getName());
+                    if (fieldCfg == null) return;
+
+                    if (fieldCfg.getVisibility() != null)
+                        iField.setVisibility(fieldCfg.getVisibility());
+                    iField.setGetterFn(fieldCfg.getGetterFn());
+                    iField.setSetterFn(fieldCfg.getSetterFn());
+                    iField.setFinal(fieldCfg.isFinal());
                 })
                 .collect(Collectors.toList());
     }

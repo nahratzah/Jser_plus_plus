@@ -84,6 +84,17 @@ public class Config {
                 .collect(Collectors.toSet())::contains;
     }
 
+    public ClassConfig getConfigForClass(Class<?> c) {
+        final CfgClass cfgClass = getClasses().entrySet().stream()
+                .filter(entry -> Objects.equals(entry.getKey().getName(), c.getName()))
+                .map(entry -> entry.getValue())
+                .filter(Objects::nonNull)
+                .findAny()
+                .orElseGet(CfgClass::new);
+
+        return new ClassConfig(cfgClass);
+    }
+
     public List<MatchMethod> getMatchMethods() {
         return matchMethods;
     }

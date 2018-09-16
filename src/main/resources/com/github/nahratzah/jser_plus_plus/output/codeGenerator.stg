@@ -137,7 +137,7 @@ $cdef.model.enumValues:{ kv | $classEnumConstantMethod(cdef, kv)$}; separator = 
 >>
 
 field(f) ::= <%
-$if (!f.varType.primitive)$::java::field_t<$endif$
+$if (!f.varType.primitive)$$if (f.final)$const $endif$::java::field_t<$endif$
 $fieldType(f.varType)$
 $if (!f.varType.primitive)$>$endif$
 $" "$

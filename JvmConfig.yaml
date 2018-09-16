@@ -30,3 +30,7 @@ scan:
 classes:
   java.io.Serializable:
   java.lang.Class<Type>:
+    fields:
+      dummySyntheticFieldForTestingTheCodeGenerator:
+        final: false
+        visibility: private

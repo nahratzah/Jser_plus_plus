@@ -105,7 +105,7 @@ public class FieldType {
      * @return True if a setter function for this field is to be generated.
      */
     public boolean isSetterFn() {
-        return setterFn == null ? visibility == Visibility.PUBLIC : setterFn;
+        return setterFn == null ? getVisibility() == Visibility.PUBLIC && !isFinal() : setterFn;
     }
 
     /**
@@ -121,6 +121,32 @@ public class FieldType {
         this.setterFn = setterFn;
     }
 
+    /**
+     * Test if the field is final.
+     *
+     * Final fields will have const pointers, preventing those pointers from
+     * aiming at anything else. Note that this does not affect if the object
+     * pointed at is mutable.
+     *
+     * @return True if the field is a final field.
+     */
+    public boolean isFinal() {
+        return finalVar;
+    }
+
+    /**
+     * Change if the field is final.
+     *
+     * Final fields will have const pointers, preventing those pointers from
+     * aiming at anything else. Note that this does not affect if the object
+     * pointed at is mutable.
+     *
+     * @param finalVar If true, the field pointer will not be mutable.
+     */
+    public void setFinal(boolean finalVar) {
+        this.finalVar = finalVar;
+    }
+
     @Override
     public String toString() {
         return "FieldType{" + "name=" + name + ", type=" + type + ", varType=" + varType + ", encodeEnabled=" + encodeEnabled + ", decodeEnabled=" + decodeEnabled + '}';
@@ -134,4 +160,5 @@ public class FieldType {
     private Visibility visibility = Visibility.PUBLIC;
     private Boolean getterFn = null;
     private Boolean setterFn = null;
+    private boolean finalVar = false;
 }
