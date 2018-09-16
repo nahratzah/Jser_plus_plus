@@ -44,6 +44,7 @@ public class CodeGenerator {
     private static final Comparator<String> INCLUDE_SORTER = CodeGenerator::pathComparison;
     private static final STGroup CODE_GENERATOR_TEMPLATE;
     private static final STGroup FILES_TEMPLATE;
+    private static final int LINE_WRAP = 80;
 
     public CodeGenerator(List<String> baseType) {
         requireNonNull(baseType);
@@ -90,7 +91,7 @@ public class CodeGenerator {
         return FILES_TEMPLATE.getInstanceOf("fwdHeaderFile")
                 .add("codeGen", this)
                 .add("includes", includes)
-                .render();
+                .render(LINE_WRAP);
     }
 
     public String headerFile() {
@@ -114,7 +115,7 @@ public class CodeGenerator {
         return FILES_TEMPLATE.getInstanceOf("headerFile")
                 .add("codeGen", this)
                 .add("includes", includes)
-                .render();
+                .render(LINE_WRAP);
     }
 
     public String sourceFile() {
@@ -136,7 +137,7 @@ public class CodeGenerator {
         return FILES_TEMPLATE.getInstanceOf("srcFile")
                 .add("codeGen", this)
                 .add("includes", includes)
-                .render();
+                .render(LINE_WRAP);
     }
 
     public static List<String> computeBaseType(JavaClass c) {
