@@ -91,7 +91,7 @@ public class CodeGenerator {
         return FILES_TEMPLATE.getInstanceOf("fwdHeaderFile")
                 .add("codeGen", this)
                 .add("includes", includes)
-                .render(LINE_WRAP);
+                .render(Locale.ROOT, LINE_WRAP);
     }
 
     public String headerFile() {
@@ -115,7 +115,7 @@ public class CodeGenerator {
         return FILES_TEMPLATE.getInstanceOf("headerFile")
                 .add("codeGen", this)
                 .add("includes", includes)
-                .render(LINE_WRAP);
+                .render(Locale.ROOT, LINE_WRAP);
     }
 
     public String sourceFile() {
@@ -137,7 +137,7 @@ public class CodeGenerator {
         return FILES_TEMPLATE.getInstanceOf("srcFile")
                 .add("codeGen", this)
                 .add("includes", includes)
-                .render(LINE_WRAP);
+                .render(Locale.ROOT, LINE_WRAP);
     }
 
     public static List<String> computeBaseType(JavaClass c) {
