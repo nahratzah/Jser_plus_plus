@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import java.util.Arrays;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STGroupString;
 
@@ -16,13 +19,6 @@ public class StCtx {
     private StCtx() {
     }
 
-    private static final String[] rules = new String[]{
-        "cxxString(s) ::= \"$cxxString_.(s)$\"",
-        "u8String(s) ::= \"u8$cxxString(s)$s\"",
-        "u16String(s) ::= \"u16$cxxString(s)$s\"",
-        "u8StringView(s) ::= \"u8$cxxString(s)$sv\"",
-        "u16StringView(s) ::= \"u16$cxxString(s)$sv\""
-    };
     public static final STGroup BUILTINS;
 
     static {
@@ -38,5 +34,16 @@ public class StCtx {
         }
 
         BUILTINS.defineDictionary("cxxString_", new FunctionAttrMap(CxxUtil::plainStringLiteral));
+        BUILTINS.defineDictionary("renderDocString_", new FunctionAttrMap(StCtx::renderDocString));
+    }
+
+    private static String renderDocString(String docString) {
+        final String[] lines = docString.split(Pattern.quote("\n"));
+        if (lines.length == 0) return null;
+        if (lines.length == 1) return "///" + lines[0];
+
+        return Arrays.stream(lines)
+                .map(line -> line.isEmpty() ? " *" : " * " + line)
+                .collect(Collectors.joining("\n", "/**\n", "\n */"));
     }
 }
