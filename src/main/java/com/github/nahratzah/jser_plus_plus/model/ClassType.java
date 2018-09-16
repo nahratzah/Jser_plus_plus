@@ -49,7 +49,10 @@ public class ClassType implements JavaType {
 
         final List<? extends TypeVariable<? extends Class<?>>> cTypeParameters = getAllTypeParameters(this.c);
         LOG.log(Level.FINE, "Type parameters: {0}", cTypeParameters);
-        final Map<String, String> argRename = unmodifiableMap(buildRenameMap(cTypeParameters));
+        final Map<String, String> argRename = unmodifiableMap(cfg.getTemplateArguments(c.getName())
+                .map(cfgParameters -> buildRenameMap(cTypeParameters, cfgParameters))
+                .orElseGet(() -> buildRenameMap(cTypeParameters)));
+        LOG.log(Level.INFO, "Rename map for {0} = {1}", new Object[]{c, argRename});
 
         final ObjectStreamClass streamClass = ObjectStreamClass.lookupAny(this.c);
 
@@ -62,7 +65,7 @@ public class ClassType implements JavaType {
     private void initTemplateArguments(Context ctx, Config cfg, List<? extends TypeVariable<? extends Class<?>>> cTypeParameters, Map<String, String> argRename) {
         this.templateArguments = cTypeParameters.stream()
                 .map(cTypeParameter -> {
-                    final String argName = cTypeParameter.getName();
+                    final String argName = requireNonNull(argRename.get(cTypeParameter.getName()));
                     final List<BoundTemplate> argBounds = Arrays.stream(cTypeParameter.getBounds())
                             .map(b -> ReflectUtil.visitType(b, new BoundsMapping(ctx, argRename)))
                             .collect(Collectors.toList());

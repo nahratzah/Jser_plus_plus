@@ -27,3 +27,6 @@ scan:
   - javax.tools
   - javax.transaction
   - javax.xml
+classes:
+  java.io.Serializable:
+  java.lang.Class<Type>:

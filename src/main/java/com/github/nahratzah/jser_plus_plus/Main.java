@@ -27,6 +27,8 @@ public class Main {
 
         final Config cfg = Config.fromFile(CONFIG_FILE);
 
+        LOG.log(Level.SEVERE, "cfg.classes = {0}", cfg.getClasses());
+
         try (final Scanner s = new Scanner(ADD_BOOT_CLASSPATH)) {
             final Processor p = new Processor(s.getClassLoader(), cfg);
 
@@ -35,7 +37,7 @@ public class Main {
                     .filter(serializable::isAssignableFrom)
                     .filter(c -> !c.isPrimitive())
                     .filter(c -> !c.isAnonymousClass())
-                    .filter(cfg.getScan().filter())
+                    .filter(cfg.hasConfigForClass().or(cfg.getScan().filter()))
                     .peek(c -> LOG.log(Level.FINE, "Adding scanned {0}", c))) {
                 p.addClasses(classStream.collect(Collectors.toList()));
             }

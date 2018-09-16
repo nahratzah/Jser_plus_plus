@@ -8,7 +8,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -41,6 +47,43 @@ public class Config {
         this.scan = scan;
     }
 
+    /**
+     * Retrieve mapping of all configured classes.
+     *
+     * @return Mapping of class configurations.
+     */
+    public Map<ClassName, CfgClass> getClasses() {
+        return classes;
+    }
+
+    /**
+     * Set mapping of all configured classes.
+     *
+     * @param classes Mapping of class configurations.
+     */
+    public void setClasses(Map<ClassName, CfgClass> classes) {
+        this.classes = classes;
+    }
+
+    public Optional<List<String>> getTemplateArguments(String className) {
+        return getClasses().keySet().stream()
+                .filter(key -> Objects.equals(key.getName(), className))
+                .map(key -> key.getTemplateArgumentNames())
+                .findAny();
+    }
+
+    /**
+     * Predicate for filtering if a class is declared explicitly in the config.
+     *
+     * @return Predicate that tests if a class is explicitly mentioned in the
+     * config.
+     */
+    public Predicate<Class<?>> hasConfigForClass() {
+        return getClasses().keySet().stream()
+                .map(ClassName::getName)
+                .collect(Collectors.toSet())::contains;
+    }
+
     public List<MatchMethod> getMatchMethods() {
         return matchMethods;
     }
@@ -56,6 +99,9 @@ public class Config {
 
     @JsonProperty(value = "scan", required = true)
     private Scan scan;
+
+    @JsonProperty(value = "classes")
+    private Map<ClassName, CfgClass> classes = new HashMap<>();
 
     @JsonProperty("match_methods")
     private List<MatchMethod> matchMethods = new ArrayList<>();
