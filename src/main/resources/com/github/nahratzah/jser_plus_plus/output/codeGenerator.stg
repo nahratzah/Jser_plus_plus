@@ -226,13 +226,7 @@ $endif$
 classInheritance(model) ::= <%
 $if (strip([model.superClass, model.interfaces]))$
 : $ strip([model.superClass, model.interfaces])
-    : {t|$template(
-            t=t,
-            classRenderer={$classInheritTemplateClassRenderer(t.type)$},
-            varRenderer={/* Can't inherit from 'var' */},
-            arrayRenderer={/* Can't inherit from 'array' */},
-            anyRenderer={/* Can't inherit from 'any' */}
-          )$}
+    : {t|$classInheritTemplateClassRenderer(t.type)$}
     ; anchor, separator = ",\n"
   $
 $elseif (!model.isInterface)$
@@ -299,14 +293,3 @@ return impl;
 classInheritTemplateClassRenderer(model) ::= <%
 $if (model.interface)$public virtual$else$public$endif$ ::$["java", "_erased", model.namespace, model.simpleName]; separator = "::"$
 %>
-
-
-template(t, classRenderer, varRenderer, arrayRenderer, anyRenderer) ::= <%
-$(t.templateStyle)(classRenderer, varRenderer, arrayRenderer, anyRenderer)$
-%>
-
-
-templateClass(classRenderer, varRenderer, arrayRenderer, anyRenderer) ::= <%$classRenderer$%>
-templateVar(classRenderer, varRenderer, arrayRenderer, anyRenderer) ::= <%$varRenderer$%>
-templateArray(classRenderer, varRenderer, arrayRenderer, anyRenderer) ::= <%$arrayRenderer$%>
-templateAny(classRenderer, varRenderer, arrayRenderer, anyRenderer) ::= <%$anyRenderer$%>
