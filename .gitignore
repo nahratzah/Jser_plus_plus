@@ -1,3 +1,4 @@
 /target/
 java.core
 hs_err_pid*
+.JvmConfig.yaml.swp
