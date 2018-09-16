@@ -62,6 +62,7 @@ public class ClassType implements JavaType {
 
         this.serialVersionUID = streamClass.getSerialVersionUID();
         initTemplateArguments(ctx, classCfg, cTypeParameters, argRename);
+        initClassAttributes(ctx, classCfg, argRename);
         initSuperTypes(ctx, classCfg, argRename);
         initFields(ctx, classCfg, argRename, streamClass);
     }
@@ -76,6 +77,11 @@ public class ClassType implements JavaType {
                     return new ClassTemplateArgument(argName, argBounds);
                 })
                 .collect(Collectors.toList());
+    }
+
+    private void initClassAttributes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
+        this.finalVar = Modifier.isFinal(this.c.getModifiers());
+        if (classCfg.isFinal() != null) this.finalVar = classCfg.isFinal();
     }
 
     private void initSuperTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
@@ -217,7 +223,7 @@ public class ClassType implements JavaType {
 
     @Override
     public boolean isFinal() {
-        return Modifier.isFinal(this.c.getModifiers());
+        return finalVar;
     }
 
     /**
@@ -457,4 +463,8 @@ public class ClassType implements JavaType {
      * List of fields.
      */
     private List<FieldType> fields;
+    /**
+     * If the class is a final class.
+     */
+    private boolean finalVar;
 }

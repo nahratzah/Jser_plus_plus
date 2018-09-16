@@ -30,6 +30,7 @@ scan:
 classes:
   java.io.Serializable:
   java.lang.Class<Type>:
+    final: false
     fields:
       dummySyntheticFieldForTestingTheCodeGenerator:
         final: false

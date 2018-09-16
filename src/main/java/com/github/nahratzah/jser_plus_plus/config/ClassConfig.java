@@ -18,5 +18,9 @@ public class ClassConfig {
         return unmodifiableMap(cfgClass.getFields());
     }
 
+    public Boolean isFinal() {
+        return cfgClass.isFinal();
+    }
+
     private final CfgClass cfgClass;
 }
