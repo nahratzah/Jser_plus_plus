@@ -8,6 +8,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableSet;
 import java.util.Comparator;
@@ -40,12 +41,14 @@ public class CodeGenerator {
     private static final String ACCESSOR_INCLUDE = "java/_accessor.h";
     private static final String JAVA_REF_INCLUDE = "java/ref.h";
     private static final Set<String> PRE_INCLUDES = unmodifiableSet(new HashSet<>(Arrays.asList(
-            CSTDDEF_INCLUDE,
-            ACCESSOR_INCLUDE,
-            JAVA_REF_INCLUDE
+            "cstddef",
+            "java/_accessor.h",
+            "java/ref.h",
+            "java/inline.h"
     )));
     private static final Comparator<String> INCLUDE_SORTER = CodeGenerator::pathComparison;
     private static final STGroup CODE_GENERATOR_TEMPLATE;
+    private static final STGroup FILES_TEMPLATE;
 
     public CodeGenerator(List<String> baseType) {
         requireNonNull(baseType);
@@ -74,273 +77,76 @@ public class CodeGenerator {
         return this.types.addAll(c);
     }
 
-    private String erasedTypeNs() {
+    public String getErasedTypeNs() {
         return Stream.concat(ERASED_TYPE_NS.stream(), namespace.stream())
                 .collect(Collectors.joining("::"));
     }
 
-    public <A extends Appendable> A writeFwdHeaderFile(A w) throws IOException {
-        final String tagNs = Stream.concat(TAG_NS.stream(), namespace.stream())
-                .collect(Collectors.joining("::"));
-        final String erasedTypeNs = erasedTypeNs();
-        final String inclusionGuard = "JAVA_FWD_" + String.join("_", baseType).toUpperCase(Locale.ROOT) + "_H";
+    public String fwdHeaderFile() {
+        final Collection<String> includes = types.stream()
+                .unordered()
+                .flatMap(type -> {
+                    return Stream.concat(
+                            type.getIncludes(true).stream().unordered(),
+                            Stream.of(type.getDependentSuperTypes(true), type.getDependentNonSuperTypes(true)).flatMap(Collection::stream).map(CodeGenerator::fwdHeaderName).unordered());
+                })
+                .distinct()
+                .sorted(INCLUDE_SORTER)
+                .filter(include -> !PRE_INCLUDES.contains(include))
+                .filter(include -> !Objects.equals(getFwdHeaderName(), include))
+                .filter(include -> !Objects.equals(getHeaderName(), include))
+                .collect(Collectors.toList());
 
-        // Render inclusion guard and doxygen header documentation.
-        w
-                .append("#ifndef ").append(inclusionGuard).append('\n')
-                .append("#define ").append(inclusionGuard).append('\n')
-                .append('\n')
-                .append("///\\file\n")
-                .append("///\\brief Forward declarations for ").append(String.join(".", baseType)).append('\n')
-                .append("///\\note Include <").append(headerName()).append("> instead.")
-                .append('\n');
-
-        // Include header, so that std::size_t is defined.
-        // (std::size_t is used in the tag description, to hold the arity.)
-        w.append("#include <").append(CSTDDEF_INCLUDE).append(">\n\n");
-
-        w.append("// Forward declare all erased types.\n");
-        w.append("namespace ").append(erasedTypeNs).append(" {\n");
-        for (final JavaClass type : types)
-            w.append("class ").append(type.getClassName()).append(";\n");
-        w.append("} /* namespace ").append(erasedTypeNs).append(" */\n");
-
-        w.append("// Declare all tags.\n");
-        w.append("namespace ").append(tagNs).append(" {\n");
-        for (final JavaClass type : types)
-            w
-                    .append("struct ").append(type.getClassName()).append(" {\n")
-                    .append("  static constexpr ::std::size_t generics_arity = ").append(Integer.toString(type.getTemplateArguments().size())).append(";\n")
-                    .append("  using erased_type = ::").append(erasedTypeNs).append("::").append(type.getClassName()).append(";\n")
-                    .append("};\n");
-        w.append("} /* namespace ").append(tagNs).append(" */\n");
-
-        // Include header for _accessor.
-        w.append('\n'); // Add a new line before the includes.
-        w.append("#include <").append(ACCESSOR_INCLUDE).append(">\n\n");
-
-        w.append("// Forward declare accessors.\n");
-        w.append("namespace java {\n\n");
-        for (final JavaClass type : types) {
-            final String tag = "::" + String.join("::", tagNs) + "::" + type.getClassName();
-            final String accessorTemplate = Stream.concat(
-                    Stream.of("typename _Base"),
-                    type.getTemplateArguments().stream().map(n -> "typename " + n))
-                    .collect(Collectors.joining(", ", "template<", ">"));
-            final String accessorType = Stream.concat(
-                    Stream.of("_Base", tag),
-                    type.getTemplateArguments().stream())
-                    .collect(Collectors.joining(", ", "_accessor<", ">"));
-
-            w
-                    .append("///\\brief Accessor for ").append(namespace.isEmpty() ? "" : String.join(".", namespace) + ".").append(type.getClassName()).append(type.getTemplateArguments().isEmpty() ? "" : "<" + String.join(", ", type.getTemplateArguments()) + ">").append('\n')
-                    .append(accessorTemplate).append('\n')
-                    .append("class ").append(accessorType).append("; // Forward declaration.\n")
-                    .append('\n');
-        }
-        w.append("} /* namespace java */\n");
-
-        // Include header for basic_ref.
-        w.append('\n'); // Add a new line before the includes.
-        w.append("#include <").append(JAVA_REF_INCLUDE).append(">\n");
-
-        // Declare the types.
-        w.append('\n'); // Add a new line before the types.
-        if (!namespace.isEmpty())
-            w.append("namespace ").append(String.join("::", namespace)).append(" {\n\n");
-        for (final JavaClass type : types) {
-            w
-                    .append("/**\n")
-                    .append(" * \\brief Variable reference for ").append(namespace.isEmpty() ? "" : String.join(".", namespace) + ".").append(type.getClassName()).append(type.getTemplateArguments().isEmpty() ? "" : "<" + String.join(", ", type.getTemplateArguments()) + ">").append('\n')
-                    .append(" */\n");
-
-            final String extraTmplArgs;
-            if (!type.getTemplateArguments().isEmpty()) {
-                final String templateArguments = type.getTemplateArguments().stream()
-                        .map(name -> "typename " + name)
-                        .collect(Collectors.joining(", "));
-                w.append("template<").append(templateArguments).append(">\n");
-                extraTmplArgs = type.getTemplateArguments().stream()
-                        .collect(Collectors.joining(", ", ",\n    ", ""));
-            } else {
-                extraTmplArgs = "";
-            }
-            w
-                    .append("using ").append(type.getClassName()).append(" = ")
-                    .append("::java::type<\n")
-                    .append("    ::").append(tagNs).append("::").append(type.getClassName()).append(extraTmplArgs).append(">;\n")
-                    .append('\n');
-        }
-        if (!namespace.isEmpty())
-            w.append("} /* namespace ").append(String.join("::", namespace)).append(" */\n");
-
-        // Render includes
-        {
-            final Iterator<String> includeIter = types.stream()
-                    .unordered()
-                    .flatMap(type -> {
-                        return Stream.concat(
-                                type.getIncludes(true).stream().unordered(),
-                                Stream.of(type.getDependentSuperTypes(true), type.getDependentNonSuperTypes(true)).flatMap(Collection::stream).map(CodeGenerator::fwdHeaderName).unordered());
-                    })
-                    .distinct()
-                    .sorted(INCLUDE_SORTER)
-                    .filter(include -> !PRE_INCLUDES.contains(include))
-                    .filter(include -> !Objects.equals(fwdHeaderName(), include))
-                    .filter(include -> !Objects.equals(headerName(), include))
-                    .iterator();
-            if (includeIter.hasNext()) w.append('\n'); // Separator.
-            while (includeIter.hasNext())
-                w.append("#include <").append(includeIter.next()).append(">\n");
-        }
-
-        w.append("#include <java/inline.h>\n\n");
-
-        w.append("// render accessors\n");
-        w.append("namespace java {\n\n");
-        {
-            for (final JavaClass type : types) {
-                w
-                        .append(CODE_GENERATOR_TEMPLATE.getInstanceOf("accessor")
-                                .add("cdef", type)
-                                .render())
-                        .append('\n');
-            }
-        }
-        w.append("} /* namespace java */\n");
-
-        // Render end of inclusion guard.
-        w.append("#endif /* ").append(inclusionGuard).append(" */\n");
-
-        return w;
+        return FILES_TEMPLATE.getInstanceOf("fwdHeaderFile")
+                .add("codeGen", this)
+                .add("includes", includes)
+                .render();
     }
 
-    public <A extends Appendable> A writeHeaderFile(A w) throws IOException {
-        final String erasedTypeNs = erasedTypeNs();
-        final String inclusionGuard = String.join("_", baseType).toUpperCase(Locale.ROOT) + "_H";
+    public String headerFile() {
+        final Collection<String> includes = Stream.concat(
+                Stream.of("java/inline.h", "java/object_intf.h"),
+                types.stream()
+                        .flatMap(type -> {
+                            return Stream.of(
+                                    type.getIncludes(false).stream(),
+                                    type.getDependentSuperTypes(false).stream().map(CodeGenerator::headerName),
+                                    type.getDependentNonSuperTypes(false).stream().map(CodeGenerator::fwdHeaderName))
+                                    .flatMap(Function.identity());
+                        }))
+                .distinct()
+                .sorted(INCLUDE_SORTER)
+                .filter(include -> !PRE_INCLUDES.contains(include))
+                .filter(include -> !Objects.equals(getFwdHeaderName(), include))
+                .filter(include -> !Objects.equals(getHeaderName(), include))
+                .collect(Collectors.toList());
 
-        // Render inclusion guard and doxygen header documentation.
-        w
-                .append("#ifndef ").append(inclusionGuard).append('\n')
-                .append("#define ").append(inclusionGuard).append('\n')
-                .append('\n')
-                .append("#include <").append(fwdHeaderName()).append(">\n")
-                .append('\n')
-                .append("///\\file\n")
-                .append("///\\brief Code for ").append(String.join(".", baseType)).append('\n');
-
-        // Render includes
-        {
-            final Iterator<String> includeIter = Stream.concat(
-                    Stream.of("java/inline.h", "java/object_intf.h"),
-                    types.stream()
-                            .flatMap(type -> {
-                                return Stream.of(
-                                        type.getIncludes(false).stream(),
-                                        type.getDependentSuperTypes(false).stream().map(CodeGenerator::headerName),
-                                        type.getDependentNonSuperTypes(false).stream().map(CodeGenerator::fwdHeaderName))
-                                        .flatMap(Function.identity());
-                            }))
-                    .distinct()
-                    .sorted(INCLUDE_SORTER)
-                    .filter(include -> !PRE_INCLUDES.contains(include))
-                    .filter(include -> !Objects.equals(fwdHeaderName(), include))
-                    .filter(include -> !Objects.equals(headerName(), include))
-                    .iterator();
-            if (includeIter.hasNext()) w.append('\n'); // Separator.
-            while (includeIter.hasNext())
-                w.append("#include <").append(includeIter.next()).append(">\n");
-        }
-
-        w.append('\n');
-
-        // render erased type
-        w.append("namespace ").append(erasedTypeNs).append(" {\n\n");
-        {
-            for (final JavaClass type : reorderTypesForInheritance()) {
-                w
-                        .append(CODE_GENERATOR_TEMPLATE.getInstanceOf("class")
-                                .add("cdef", type)
-                                .render())
-                        .append('\n');
-            }
-        }
-        w.append("} /* namespace ").append(erasedTypeNs).append(" */\n");
-
-        // implement accessor members
-        w.append("// render accessors\n");
-        w.append("namespace java {\n\n");
-        {
-            for (final JavaClass type : types) {
-                w
-                        .append(CODE_GENERATOR_TEMPLATE.getInstanceOf("accessorImpl")
-                                .add("cdef", type)
-                                .render())
-                        .append('\n');
-            }
-        }
-        w.append("} /* namespace java */\n");
-
-        w.append("#endif /* ").append(inclusionGuard).append(" */\n");
-
-        return w;
+        return FILES_TEMPLATE.getInstanceOf("headerFile")
+                .add("codeGen", this)
+                .add("includes", includes)
+                .render();
     }
 
-    public <A extends Appendable> A writeSourceFile(A w) throws IOException {
-        final String erasedTypeNs = erasedTypeNs();
+    public String sourceFile() {
+        final Collection<String> includes = types.stream()
+                .flatMap(type -> {
+                    return Stream.of(
+                            type.getIncludes(false).stream(),
+                            type.getDependentSuperTypes(false).stream().map(CodeGenerator::headerName),
+                            type.getDependentNonSuperTypes(false).stream().map(CodeGenerator::headerName))
+                            .flatMap(Function.identity());
+                })
+                .distinct()
+                .sorted(INCLUDE_SORTER)
+                .filter(include -> !PRE_INCLUDES.contains(include))
+                .filter(include -> !Objects.equals(getFwdHeaderName(), include))
+                .filter(include -> !Objects.equals(getHeaderName(), include))
+                .collect(Collectors.toList());
 
-        w.append("#include <").append(headerName()).append(">\n");
-
-        // Render includes
-        {
-            final Iterator<String> includeIter = types.stream()
-                    .flatMap(type -> {
-                        return Stream.of(
-                                type.getIncludes(false).stream(),
-                                type.getDependentSuperTypes(false).stream().map(CodeGenerator::headerName),
-                                type.getDependentNonSuperTypes(false).stream().map(CodeGenerator::headerName))
-                                .flatMap(Function.identity());
-                    })
-                    .distinct()
-                    .sorted(INCLUDE_SORTER)
-                    .filter(include -> !PRE_INCLUDES.contains(include))
-                    .filter(include -> !Objects.equals(fwdHeaderName(), include))
-                    .filter(include -> !Objects.equals(headerName(), include))
-                    .iterator();
-            if (includeIter.hasNext()) w.append('\n'); // Separator.
-            while (includeIter.hasNext())
-                w.append("#include <").append(includeIter.next()).append(">\n");
-        }
-
-        // implement erased type members
-        w.append('\n'); // Separator.
-        w.append("namespace ").append(erasedTypeNs).append(" {\n\n");
-        {
-            for (final JavaClass type : types) {
-                w
-                        .append(CODE_GENERATOR_TEMPLATE.getInstanceOf("classImpl")
-                                .add("cdef", type)
-                                .render()).append('\n')
-                        .append('\n');
-            }
-        }
-        w.append("} /* namespace ").append(erasedTypeNs).append(" */\n");
-
-        // Implement accessor source-file methods.
-        w.append('\n'); // Separator.
-        w.append("namespace java {\n\n");
-        {
-            for (final JavaClass type : types) {
-                w
-                        .append(CODE_GENERATOR_TEMPLATE.getInstanceOf("accessorImplSrc")
-                                .add("cdef", type)
-                                .render())
-                        .append('\n');
-            }
-        }
-        w.append("} /* namespace java */\n");
-
-        return w;
+        return FILES_TEMPLATE.getInstanceOf("srcFile")
+                .add("codeGen", this)
+                .add("includes", includes)
+                .render();
     }
 
     public static List<String> computeBaseType(JavaClass c) {
@@ -443,11 +249,11 @@ public class CodeGenerator {
         public Object getModel();
     }
 
-    public String fwdHeaderName() {
+    public String getFwdHeaderName() {
         return fwdHeaderName(baseType);
     }
 
-    public String headerName() {
+    public String getHeaderName() {
         return headerName(baseType);
     }
 
@@ -500,6 +306,37 @@ public class CodeGenerator {
     }
 
     /**
+     * Get all types of this code generator.
+     *
+     * @return All types for this code generator.
+     */
+    public Collection<JavaClass> getTypes() {
+        return unmodifiableCollection(types);
+    }
+
+    /**
+     * Return the "base" type, on which the file name is based.
+     *
+     * @return Path of the base type.
+     */
+    public List<String> getBaseType() {
+        return unmodifiableList(baseType);
+    }
+
+    public String getIncludeGuard() {
+        return String.join("_", getBaseType()).toUpperCase(Locale.ROOT) + "_H";
+    }
+
+    /**
+     * Return the namespace of the types in this code generator.
+     *
+     * @return The namespace of the java types generated by this code generator.
+     */
+    public List<String> getNamespace() {
+        return unmodifiableList(namespace);
+    }
+
+    /**
      * Get reordered types, for rendering erased type implementations.
      *
      * In order to have inheritance function, each parent of the to-be-rendered
@@ -509,7 +346,7 @@ public class CodeGenerator {
      * @return Types ordered such that any base types of a Type are before that
      * Type.
      */
-    private Collection<JavaClass> reorderTypesForInheritance() {
+    public Collection<JavaClass> getReorderTypesForInheritance() {
         final Collection<JavaClass> result = new LinkedHashSet<>();
 
         /**
@@ -557,7 +394,19 @@ public class CodeGenerator {
             throw new IllegalStateException("unable to load accessor template", ex);
         }
 
+        try (Reader accessorFile = new InputStreamReader(CodeGenerator.class.getResourceAsStream("files.stg"), UTF_8)) {
+            final char[] cbuf = new char[1024];
+            StringBuilder sb = new StringBuilder();
+            for (int rlen = accessorFile.read(cbuf); rlen != -1;
+                 rlen = accessorFile.read(cbuf))
+                sb.append(cbuf, 0, rlen);
+            FILES_TEMPLATE = new STGroupString("codeGenerator.stg", sb.toString(), '$', '$');
+        } catch (IOException ex) {
+            throw new IllegalStateException("unable to load accessor template", ex);
+        }
+
         CODE_GENERATOR_TEMPLATE.importTemplates(StCtx.BUILTINS);
+        FILES_TEMPLATE.importTemplates(CODE_GENERATOR_TEMPLATE);
     }
 
     /**

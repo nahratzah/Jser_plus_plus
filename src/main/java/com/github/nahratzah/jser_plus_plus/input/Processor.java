@@ -101,14 +101,14 @@ public class Processor implements Context {
 
         for (final CodeGenerator cg : cgMap.values()) {
             setFileContents(
-                    module.addHeader(cg.fwdHeaderName()).toPath(),
-                    cg.writeFwdHeaderFile(new StringBuilder()).toString());
+                    module.addHeader(cg.getFwdHeaderName()).toPath(),
+                    cg.fwdHeaderFile());
             setFileContents(
-                    module.addHeader(cg.headerName()).toPath(),
-                    cg.writeHeaderFile(new StringBuilder()).toString());
+                    module.addHeader(cg.getHeaderName()).toPath(),
+                    cg.headerFile());
             setFileContents(
                     module.addSource(cg.sourceName()).toPath(),
-                    cg.writeSourceFile(new StringBuilder()).toString());
+                    cg.sourceFile());
         }
     }
 

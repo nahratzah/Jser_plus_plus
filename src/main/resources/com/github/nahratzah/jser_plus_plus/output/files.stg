@@ -1,0 +1,131 @@
+fwdHeaderFile(codeGen, includes) ::= <<
+#ifndef JAVA_FWD_$codeGen.includeGuard$
+#define JAVA_FWD_$codeGen.includeGuard$
+
+///\file
+///\brief Forward declarations for $codeGen.baseType; separator = "."$
+///\note Include <$codeGen.headerName$> instead.
+
+#include <cstddef>
+#include <java/_accessor.h>
+#include <java/ref.h>
+#include <java/inline.h>
+
+// Forward declare all erased types.
+namespace $codeGen.erasedTypeNs$ {
+
+$codeGen.types:{cdef|class $cdef.className$;}; separator = "\n"$
+
+} /* namespace $codeGen.erasedTypeNs$ */
+
+// Declare all tags.
+namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ {
+
+$codeGen.types:{cdef|$tagDeclaration(cdef)$}; separator = "\n\n"$
+
+} /* namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ */
+
+// Forward declare accessors.
+namespace java {
+
+$codeGen.types:{cdef|$forwardDeclareAccessor(cdef)$; // Forward declaration.}; separator = "\n\n"$
+
+} /* namespace java */
+
+$if (codeGen.namespace)$
+namespace $codeGen.namespace; separator = "::"$ {
+
+$endif$
+$codeGen.types:{cdef|$declareBasicRef(cdef)$}; separator = "\n"$
+$if (codeGen.namespace)$
+
+} /* namespace $codeGen.namespace; separator = "::"$ */
+$endif$
+
+$includes:{f|$include(f)$}; separator = "\n"$
+
+// render accessors
+namespace java {
+
+$codeGen.types:{cdef|$accessor(cdef)$}; separator = "\n\n"$
+
+} /* namespace java */
+
+#endif /* JAVA_FWD_$codeGen.includeGuard$ */
+
+>>
+
+
+headerFile(codeGen, includes) ::= <<
+#ifndef $codeGen.includeGuard$
+#define $codeGen.includeGuard$
+
+$include(codeGen.fwdHeaderName)$
+
+///\file
+///\brief Code for $codeGen.baseType; separator = "."$
+
+$includes:{f|$include(f)$}; separator = "\n"$
+
+// render erased types
+namespace $codeGen.erasedTypeNs$ {
+
+$codeGen.reorderTypesForInheritance:{cdef|$class(cdef)$}; separator = "\n\n"$
+
+} /* namespace $codeGen.erasedTypeNs$ */
+
+// render accessors
+namespace java {
+
+$codeGen.types:{cdef|$accessorImpl(cdef)$}; separator = "\n\n"$
+
+} /* namespace java */
+
+#endif /* $codeGen.includeGuard$ */
+
+>>
+
+
+srcFile(codeGen, includes) ::= <<
+$[codeGen.headerName, includes]:{f|$include(f)$}; separator = "\n"$
+
+namespace $codeGen.erasedTypeNs$ {
+
+$codeGen.types:{cdef|$classImpl(cdef)$}; separator = "\n\n"$
+
+} /* namespace $codeGen.erasedTypeNs$ */
+
+namespace java {
+
+$codeGen.types:{cdef|$accessorImplSrc(cdef)$}; separator = "\n\n"$
+
+} /* namespace java */
+
+>>
+
+
+tagDeclaration(cdef) ::= <<
+struct $cdef.className$ {
+  static constexpr ::std::size_t generics_arity = $length(cdef.templateArguments)$;
+  using erased_type = ::$codeGen.erasedTypeNs$::$cdef.className$;
+};
+>>
+
+
+forwardDeclareAccessor(cdef) ::= <<
+template<$["Base_", cdef.templateArguments]:{x|typename $x$}; anchor, wrap, separator = ", "$>
+class _accessor<$["Base_", {::$["java", "_tags", cdef.namespace, cdef.className]; separator = "::"$}, cdef.templateArguments]; anchor, wrap, separator = ", "$>
+>>
+
+
+declareBasicRef(cdef) ::= <<
+$if (cdef.templateArguments)$
+template<$cdef.templateArguments:{x|typename $x$}; anchor, wrap, separator = ", "$>
+$endif$
+using $cdef.className$ = ::java::type<$[{::$["java", "_tags", cdef.namespace, cdef.className]; separator = "::"$}, cdef.templateArguments]:{x|$x$}; anchor, wrap, separator = ", "$>;
+>>
+
+
+include(file) ::= <<
+#include <$file$>
+>>
