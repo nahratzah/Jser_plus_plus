@@ -35,11 +35,6 @@ import org.stringtemplate.v4.STGroupString;
  * @author ariane
  */
 public class CodeGenerator {
-    private static final List<String> TAG_NS = unmodifiableList(Arrays.asList("java", "_tags"));
-    private static final List<String> ERASED_TYPE_NS = unmodifiableList(Arrays.asList("java", "_erased"));
-    private static final String CSTDDEF_INCLUDE = "cstddef";
-    private static final String ACCESSOR_INCLUDE = "java/_accessor.h";
-    private static final String JAVA_REF_INCLUDE = "java/ref.h";
     private static final Set<String> PRE_INCLUDES = unmodifiableSet(new HashSet<>(Arrays.asList(
             "cstddef",
             "java/_accessor.h",
@@ -75,11 +70,6 @@ public class CodeGenerator {
         });
 
         return this.types.addAll(c);
-    }
-
-    public String getErasedTypeNs() {
-        return Stream.concat(ERASED_TYPE_NS.stream(), namespace.stream())
-                .collect(Collectors.joining("::"));
     }
 
     public String fwdHeaderFile() {

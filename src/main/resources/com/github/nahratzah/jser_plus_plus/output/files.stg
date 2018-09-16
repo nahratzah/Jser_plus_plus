@@ -12,11 +12,11 @@ fwdHeaderFile(codeGen, includes) ::= <<
 #include <java/inline.h>
 
 // Forward declare all erased types.
-namespace $codeGen.erasedTypeNs$ {
+namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
 
 $codeGen.types:{cdef|class $cdef.className$;}; separator = "\n"$
 
-} /* namespace $codeGen.erasedTypeNs$ */
+} /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
 
 // Declare all tags.
 namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ {
@@ -68,11 +68,11 @@ $include(codeGen.fwdHeaderName)$
 $includes:{f|$include(f)$}; separator = "\n"$
 
 // render erased types
-namespace $codeGen.erasedTypeNs$ {
+namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
 
 $codeGen.reorderTypesForInheritance:{cdef|$class(cdef)$}; separator = "\n\n"$
 
-} /* namespace $codeGen.erasedTypeNs$ */
+} /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
 
 // render accessors
 namespace java {
@@ -89,11 +89,11 @@ $codeGen.types:{cdef|$accessorImpl(cdef)$}; separator = "\n\n"$
 srcFile(codeGen, includes) ::= <<
 $[codeGen.headerName, includes]:{f|$include(f)$}; separator = "\n"$
 
-namespace $codeGen.erasedTypeNs$ {
+namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
 
 $codeGen.types:{cdef|$classImpl(cdef)$}; separator = "\n\n"$
 
-} /* namespace $codeGen.erasedTypeNs$ */
+} /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
 
 namespace java {
 
@@ -107,7 +107,7 @@ $codeGen.types:{cdef|$accessorImplSrc(cdef)$}; separator = "\n\n"$
 tagDeclaration(cdef) ::= <<
 struct $cdef.className$ {
   static constexpr ::std::size_t generics_arity = $length(cdef.templateArguments)$;
-  using erased_type = ::$codeGen.erasedTypeNs$::$cdef.className$;
+  using erased_type = ::$["java", "_erased", codeGen.namespace, cdef.className]; separator = "::"$;
 };
 >>
 
