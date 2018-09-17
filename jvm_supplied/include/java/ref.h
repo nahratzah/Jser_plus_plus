@@ -683,4 +683,25 @@ using non_const_ref = typename change_to_non_const_<BasicRef>::type;
 
 } /* namespace java */
 
+namespace std {
+
+///\brief Specialize std::exchange for basic_ref.
+template<template<typename> class PtrImpl, typename Type, typename U>
+auto exchange(::java::basic_ref<PtrImpl, Type>& obj, U&& new_value)
+noexcept(
+    is_nothrow_constructible_v<
+        ::java::var_t<::java::basic_ref<PtrImpl, Type>>,
+        ::java::basic_ref<PtrImpl, Type>>
+    &&
+    is_nothrow_assignable_v<::java::basic_ref<PtrImpl, Type>&, U&&>)
+-> std::enable_if_t<
+    is_assignable_v<::java::basic_ref<PtrImpl, Type>&, U&&>,
+    ::java::var_t<::java::basic_ref<PtrImpl, Type>>> {
+  ::java::var_t<::java::basic_ref<PtrImpl, Type>> result = std::move(obj);
+  obj = std::forward<U>(new_value);
+  return result;
+}
+
+} /* namespace std */
+
 #endif /* JAVA_PTR_H */

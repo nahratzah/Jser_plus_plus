@@ -203,7 +203,7 @@ $function(
     doImplement=doImplement,
     return={$boundTemplateType(f.varType, "style=type, class=return")$},
     argumentTypes=[{$boundTemplateType(f.varType, "style=type, class=param")$}],
-    argumentNames=["value"],
+    argumentNames=[{$f.name$}],
     body={$fieldSetterBody(cdef, f)$},
     containingClass="_accessor",
     containingClassTemplateArguments=["Base_", cdef.templateArguments],
@@ -219,13 +219,7 @@ return this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$;
 
 
 fieldSetterBody(cdef, f) ::= <<
-$if (f.varType.primitive)$
-return ::std::exchange(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$, value);
-$else$
-$boundTemplateType(f.varType, "style=type, class=return")$ result = ::std::move(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$);
-this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$ = ::std::move(value);
-return result;
-$endif$
+return ::std::exchange(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$, std::move($f.name$));
 >>
 
 
