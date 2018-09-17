@@ -39,6 +39,10 @@ public class StCtx {
     }
 
     private static String renderDocString(String docString) {
+        // Remove trailing new lines.
+        while (docString.endsWith("\n"))
+            docString = docString.substring(0, docString.length() - 1);
+
         final String[] lines = docString.split(Pattern.quote("\n"));
         if (lines.length == 0) return null;
         if (lines.length == 1) return "///" + lines[0];

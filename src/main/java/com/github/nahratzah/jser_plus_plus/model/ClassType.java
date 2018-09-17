@@ -172,6 +172,8 @@ public class ClassType implements JavaType {
                     iField.setGetterFn(fieldCfg.getGetterFn());
                     iField.setSetterFn(fieldCfg.getSetterFn());
                     iField.setFinal(fieldCfg.isFinal());
+                    if (fieldCfg.getDocString() != null)
+                        iField.setDocString(fieldCfg.getDocString());
                 })
                 .collect(Collectors.toList());
     }

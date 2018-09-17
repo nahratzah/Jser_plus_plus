@@ -90,7 +90,7 @@ $endif$
 $if(cdef.model.fields)$
 
   // fields
-  $cdef.model.fields:{f|$f.visibility$: $field(f)$;}; anchor, separator = "\n"$
+  $cdef.model.fields:{f|$if (f.docString)$$renderDocString(f.docString)$$"\n"$$endif$$f.visibility$: $field(f)$;}; anchor, separator = "\n"$
 $endif$
 $if (cdef.model.enum)$
 

@@ -41,6 +41,14 @@ public class CfgField {
         this.finalVar = finalVar;
     }
 
+    public String getDocString() {
+        return docString;
+    }
+
+    public void setDocString(String docString) {
+        this.docString = docString;
+    }
+
     @JsonProperty("getter")
     private Boolean getterFn;
     @JsonProperty("setter")
@@ -49,4 +57,6 @@ public class CfgField {
     private Visibility visibility;
     @JsonProperty("final")
     private boolean finalVar = false;
+    @JsonProperty("doc_string")
+    private String docString = null;
 }

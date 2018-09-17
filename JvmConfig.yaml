@@ -35,6 +35,9 @@ classes:
       dummySyntheticFieldForTestingTheCodeGenerator:
         final: false
         visibility: private
+        doc_string: |
+          \brief This field serves no purpose.
+          \details I just wanted a synthetic field, to test that configuration fields end up correctly in the emitted code.
     members:
     - type: method
       name: foobar

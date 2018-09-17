@@ -147,6 +147,19 @@ public class FieldType {
         this.finalVar = finalVar;
     }
 
+    /**
+     * Get the documentation for the field.
+     *
+     * @return Documentation of the field, or null if the field is undocumented.
+     */
+    public String getDocString() {
+        return docString;
+    }
+
+    public void setDocString(String docString) {
+        this.docString = docString;
+    }
+
     @Override
     public String toString() {
         return "FieldType{" + "name=" + name + ", type=" + type + ", varType=" + varType + ", encodeEnabled=" + encodeEnabled + ", decodeEnabled=" + decodeEnabled + '}';
@@ -161,4 +174,5 @@ public class FieldType {
     private Boolean getterFn = null;
     private Boolean setterFn = null;
     private boolean finalVar = false;
+    private String docString = null;
 }
