@@ -10,6 +10,7 @@ import com.github.nahratzah.jser_plus_plus.config.class_members.Method;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.java.ReflectUtil;
 import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
+import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
 import java.io.ObjectStreamClass;
 import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
@@ -174,17 +175,20 @@ public class ClassType implements JavaType {
                     iField.setFinal(fieldCfg.isFinal());
                     if (fieldCfg.getDocString() != null)
                         iField.setDocString(fieldCfg.getDocString());
+                    if (fieldCfg.getType() != null)
+                        iField.setType(typeFromCfgType(fieldCfg.getType(), ctx, argRename.values()));
                 })
                 .collect(Collectors.toList());
     }
 
     private void initClassMembers(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
+        final ClassType cdef = this;
         this.classMembers = classCfg.getClassMembers()
                 .map(cfgMember -> {
                     return cfgMember.visit(new ClassMember.Visitor<ClassMemberModel>() {
                         @Override
                         public ClassMemberModel apply(Method method) {
-                            return new ClassMemberModel.ClassMethod(method);
+                            return new ClassMemberModel.ClassMethod(ctx, cdef, method);
                         }
 
                         @Override

@@ -49,6 +49,14 @@ public class CfgField {
         this.docString = docString;
     }
 
+    public CfgType getType() {
+        return type;
+    }
+
+    public void setType(CfgType type) {
+        this.type = type;
+    }
+
     @JsonProperty("getter")
     private Boolean getterFn;
     @JsonProperty("setter")
@@ -59,4 +67,6 @@ public class CfgField {
     private boolean finalVar = false;
     @JsonProperty("doc_string")
     private String docString = null;
+    @JsonProperty(value = "type", required = true)
+    private CfgType type;
 }

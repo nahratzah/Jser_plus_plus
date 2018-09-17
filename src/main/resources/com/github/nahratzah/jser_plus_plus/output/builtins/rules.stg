@@ -30,7 +30,7 @@ $templateLine(templateArguments)$
 $if (!doImplement && static)$static $endif$$\\$
 $if (!doImplement && virtual)$virtual $endif$$\\$
 $if (inline)$$inline$ $endif$$\\$
-auto $\\$
+$if (return)$auto $endif$$\\$
 $if (doImplement && containingClass)$$containingClass$$templateArgs(containingClassTemplateArguments)$::$endif$$\\$
 $name$$functionArguments(argumentTypes, argumentNames)$$\\$
 $if (noexcept)$ $noexcept$$endif$$\\$

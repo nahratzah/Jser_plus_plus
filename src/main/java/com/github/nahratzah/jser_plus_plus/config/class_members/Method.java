@@ -1,6 +1,8 @@
 package com.github.nahratzah.jser_plus_plus.config.class_members;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.nahratzah.jser_plus_plus.config.CfgArgument;
+import com.github.nahratzah.jser_plus_plus.config.CfgType;
 import com.github.nahratzah.jser_plus_plus.config.ClassMember;
 import com.github.nahratzah.jser_plus_plus.config.Includes;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
@@ -16,9 +18,9 @@ public class Method implements ClassMember {
     @JsonProperty(value = "name", required = true)
     private String name;
     @JsonProperty("return")
-    private String returnType = "void";
+    private CfgType returnType;
     @JsonProperty("arguments")
-    private List<String> arguments = new ArrayList<>();
+    private List<CfgArgument> arguments = new ArrayList<>();
     @JsonProperty("includes")
     private Includes includes = new Includes();
     @JsonProperty("body")
@@ -27,6 +29,12 @@ public class Method implements ClassMember {
     private boolean virtual = false;
     @JsonProperty("visibility")
     private Visibility visibility = Visibility.PUBLIC;
+    @JsonProperty("doc_string")
+    private String docString;
+
+    public Method() {
+        returnType = new CfgType("void", null);
+    }
 
     @Override
     public <T> T visit(Visitor<T> visitor) {
@@ -51,11 +59,11 @@ public class Method implements ClassMember {
      *
      * @return A string encoding of the ST4 template.
      */
-    public String getReturnType() {
+    public CfgType getReturnType() {
         return returnType;
     }
 
-    public void setReturnType(String returnType) {
+    public void setReturnType(CfgType returnType) {
         this.returnType = returnType;
     }
 
@@ -65,11 +73,11 @@ public class Method implements ClassMember {
      * @return A list of strings (one for each argument) encoding of the ST4
      * template.
      */
-    public List<String> getArguments() {
+    public List<CfgArgument> getArguments() {
         return arguments;
     }
 
-    public void setArguments(List<String> arguments) {
+    public void setArguments(List<CfgArgument> arguments) {
         this.arguments = arguments;
     }
 
@@ -118,4 +126,11 @@ public class Method implements ClassMember {
         this.visibility = visibility;
     }
 
+    public String getDocString() {
+        return docString;
+    }
+
+    public void setDocString(String docString) {
+        this.docString = docString;
+    }
 }

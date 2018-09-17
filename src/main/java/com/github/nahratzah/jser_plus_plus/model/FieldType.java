@@ -9,13 +9,13 @@ import static java.util.Objects.requireNonNull;
  * @author ariane
  */
 public class FieldType {
-    public FieldType(String name, BoundTemplate type) {
+    public FieldType(String name, Type type) {
         this(name, type, true);
     }
 
-    public FieldType(String name, BoundTemplate type, boolean enableSerialization) {
+    public FieldType(String name, Type type, boolean enableSerialization) {
         this.name = requireNonNull(name);
-        this.type = this.varType = requireNonNull(type);
+        this.type = requireNonNull(type);
         this.encodeEnabled = this.decodeEnabled = enableSerialization;
     }
 
@@ -27,19 +27,19 @@ public class FieldType {
         this.name = name;
     }
 
-    public BoundTemplate getType() {
+    public Type getType() {
         return type;
     }
 
-    public void setType(BoundTemplate type) {
+    public void setType(Type type) {
         this.type = type;
     }
 
-    public BoundTemplate getVarType() {
-        return varType;
+    public Type getVarType() {
+        return (varType != null ? varType : getType());
     }
 
-    public void setVarType(BoundTemplate varType) {
+    public void setVarType(Type varType) {
         this.varType = varType;
     }
 
@@ -166,8 +166,8 @@ public class FieldType {
     }
 
     private String name;
-    private BoundTemplate type;
-    private BoundTemplate varType;
+    private Type type;
+    private Type varType;
     private boolean encodeEnabled;
     private boolean decodeEnabled;
     private Visibility visibility = Visibility.PUBLIC;

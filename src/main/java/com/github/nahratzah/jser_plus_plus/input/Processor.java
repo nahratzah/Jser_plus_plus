@@ -151,10 +151,14 @@ public class Processor implements Context {
                 if (publicOnly) {
                     fields = jc.getFields().stream()
                             .filter(field -> field.isGetterFn() || field.isSetterFn())
-                            .map(field -> field.getVarType());
+                            .map(field -> field.getVarType())
+                            .filter(BoundTemplate.class::isInstance)
+                            .map(BoundTemplate.class::cast);
                 } else {
                     fields = jc.getFields().stream()
-                            .flatMap(field -> Stream.of(field.getType(), field.getVarType()));
+                            .flatMap(field -> Stream.of(field.getType(), field.getVarType()))
+                            .filter(BoundTemplate.class::isInstance)
+                            .map(BoundTemplate.class::cast);
                 }
 
                 return fields
@@ -196,35 +200,8 @@ public class Processor implements Context {
 
             @Override
             public Collection<String> getIncludes(boolean publicOnly) {
-                final BoundTemplate.Visitor<Stream<String>> templateVisitor = new BoundTemplate.Visitor<Stream<String>>() {
-                    @Override
-                    public Stream<String> apply(BoundTemplate.VarBinding b) {
-                        return Stream.empty();
-                    }
-
-                    @Override
-                    public Stream<String> apply(BoundTemplate.ClassBinding b) {
-                        return Stream.concat(
-                                b.getType().getIncludes(publicOnly).stream(),
-                                b.getBindings().stream().flatMap(template -> template.visit(this)));
-                    }
-
-                    @Override
-                    public Stream<String> apply(BoundTemplate.ArrayBinding b) {
-                        return Stream.concat(
-                                Stream.of("java/array.h"),
-                                b.getType().visit(this));
-                    }
-
-                    @Override
-                    public Stream<String> apply(BoundTemplate.Any b) {
-                        return Stream.concat(b.getExtendTypes().stream(), b.getSuperTypes().stream())
-                                .flatMap(template -> template.visit(this));
-                    }
-                };
-
                 final Stream<String> parentTypes = Stream.concat(Stream.of(jc.getSuperClass()).filter(Objects::nonNull), jc.getInterfaces().stream())
-                        .flatMap(c -> c.visit(templateVisitor));
+                        .flatMap(c -> c.getIncludes(publicOnly).stream());
                 final Stream<String> includes = jc.getIncludes(publicOnly).stream();
 
                 final Stream<String> fields;
@@ -232,11 +209,11 @@ public class Processor implements Context {
                     fields = jc.getFields().stream()
                             .filter(field -> field.isGetterFn() || field.isSetterFn())
                             .map(field -> field.getVarType())
-                            .flatMap(c -> c.visit(templateVisitor));
+                            .flatMap(c -> c.getIncludes(publicOnly).stream());
                 } else {
                     fields = jc.getFields().stream()
                             .flatMap(field -> Stream.of(field.getType(), field.getVarType()))
-                            .flatMap(c -> c.visit(templateVisitor));
+                            .flatMap(c -> c.getIncludes(publicOnly).stream());
                 }
 
                 return Stream.of(parentTypes, includes, fields)

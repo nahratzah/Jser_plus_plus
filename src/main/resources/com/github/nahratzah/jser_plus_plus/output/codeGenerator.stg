@@ -43,7 +43,7 @@ $if (cdef.model.fields)$
 $endif$
 
 #if 0
-  $cdef.model.classMembers; anchor, separator = "\n\n"$
+  $cdef.model.classMembers: {m | $m$$"\n"$$if (m.body)$$m.body$$endif$}; anchor, separator = "\n\n"$
 #endif
 };
 $if (cdef.model.enum)$
@@ -85,8 +85,22 @@ $endif$
   ~$cdef.className$() noexcept override$if (cdef.model.interface || cdef.model.abstract)$ = 0$endif$;
 
   // XXX constructors that take arguments.
+$if (cdef.model.classMembers)$
 
-  // XXX methods
+  // methods
+#if 0
+  $ cdef.model.classMembers
+    : {m | $function(
+                name=m.name,
+                doImplement=true,
+                return={::java::return_t<$m.returnType; format="style=type, class=return"$>},
+                body=m.body,
+                argumentNames=m.argumentNames,
+                argumentTypes=m.argumentTypes:{a|$boundTemplateType(a, "style=type, class=param")$}
+              )$}
+    ; anchor, separator = "\n\n"$
+#endif
+$endif$
 $if(cdef.model.fields)$
 
   // fields
@@ -156,9 +170,7 @@ $cdef.model.enumValues:{ kv | $classEnumConstantMethod(cdef, kv, true)$}; separa
 
 
 field(f) ::= <%
-$if (!f.varType.primitive)$$if (f.final)$const $endif$::java::field_t<$endif$
-$boundTemplateType(f.varType, "style=type, class")$
-$if (!f.varType.primitive)$>$endif$
+$boundTemplateType(f.varType, "style=type, class=field")$
 $" "$
 $f.name$
 %>
@@ -179,30 +191,24 @@ $if (f.setterFn)$$fieldSetterImpl(cdef, f)$$endif$
 fieldGetter(f) ::= <%
 auto $f.name$() const ->
 $" "$
-$if (!f.varType.primitive)$::java::return_t<$endif$
-$boundTemplateType(f.varType, "style=type, class")$
-$if (!f.varType.primitive)$>$endif$
+$boundTemplateType(f.varType, "style=type, class=return")$
 %>
 
 
 fieldSetter(f) ::= <%
 auto $f.name$(
-$if (!f.varType.primitive)$::java::param_t<$endif$
-$boundTemplateType(f.varType, "style=type, class")$
-$if (!f.varType.primitive)$>$endif$
+$boundTemplateType(f.varType, "style=type, class=param")$
 $" "$
 value) ->
 $" "$
-$if (!f.varType.primitive)$::java::return_t<$endif$
-$boundTemplateType(f.varType, "style=type, class")$
-$if (!f.varType.primitive)$>$endif$
+$boundTemplateType(f.varType, "style=type, class=return")$
 %>
 
 
 fieldGetterImpl(cdef, f) ::= <<
 template<$["Base_", cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
 JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>::$f.name$() const
--> $if (!f.varType.primitive)$::java::return_t<$endif$$boundTemplateType(f.varType, "style=type, class")$$if (!f.varType.primitive)$>$endif$ {
+-> $boundTemplateType(f.varType, "style=type, class=return")$ {
   return this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$;
 }
 >>
@@ -210,12 +216,12 @@ JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; sep
 
 fieldSetterImpl(cdef, f) ::= <<
 template<$["Base_", cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
-JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>::$f.name$($if (!f.varType.primitive)$::java::param_t<$endif$$boundTemplateType(f.varType, "style=type, class")$$if (!f.varType.primitive)$>$endif$ value)
--> $if (!f.varType.primitive)$::java::return_t<$endif$$boundTemplateType(f.varType, "style=type, class")$$if (!f.varType.primitive)$>$endif$ {
+JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>::$f.name$($boundTemplateType(f.varType, "style=type, class=param")$ value)
+-> $boundTemplateType(f.varType, "style=type, class=return")$ {
 $if (f.varType.primitive)$
   return ::std::exchange(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$, value);
 $else$
-  ::java::return_t<$boundTemplateType(f.varType, "style=type, class")$> result = ::std::move(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$);
+  $boundTemplateType(f.varType, "style=type, class=return")$ result = ::std::move(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$);
   this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$ = ::std::move(value);
   return result;
 $endif$

@@ -29,6 +29,16 @@ scan:
   - javax.xml
 classes:
   java.io.Serializable:
+  java.lang.String:
+    fields:
+      value:
+        doc_string: |
+          \brief Contents of `java.lang.String`.
+        type:
+          cxx: ::std::string
+          includes:
+            declaration:
+            - string
   java.lang.Class<Type>:
     final: false
     fields:
@@ -38,13 +48,23 @@ classes:
         doc_string: |
           \brief This field serves no purpose.
           \details I just wanted a synthetic field, to test that configuration fields end up correctly in the emitted code.
+        type:
+          java: java.lang.Object
     members:
     - type: method
       name: foobar
-      return: ::std::string
+      return:
+        java: java.lang.Class<java.lang.CharSequence>
+      arguments:
+      - name: x
+        type:
+          cxx: int
+      - name: y
+        type:
+          java: java.lang.Integer
       includes:
         declaration:
         - string
       body: |
-        return "foobar"
+        return "foobar";
       visibility: public

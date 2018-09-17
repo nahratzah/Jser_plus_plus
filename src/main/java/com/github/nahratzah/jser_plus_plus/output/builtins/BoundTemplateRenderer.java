@@ -39,6 +39,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
         if (formatString == null) formatString = "";
         final Config config = new Config(formatString);
         final BoundTemplate tmpl = (BoundTemplate) o;
+
         return tmpl.visit(config.style.apply(config));
     }
 
@@ -86,6 +87,8 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                     });
 
             LOG.log(Level.FINEST, "Parsed format string \"{0}\" into {1}", new Object[]{formatString, this});
+            if (accessorType && classType != null)
+                throw new IllegalArgumentException("Must specify at most one of 'accessor' and 'class' in the formatter.");
         }
 
         /**
@@ -94,9 +97,11 @@ public class BoundTemplateRenderer implements AttributeRenderer {
         public Style style = Style.TYPE;
         /**
          * If the style is {@link Style#TYPE}, create class types instead of
-         * generics.
+         * generics, by applying the wrapper.
+         *
+         * If this is null, it indicates not to create class types.
          */
-        public boolean classType = false;
+        public ClassWrapper classType = null;
         /**
          * If the style is {@link Style#TYPE}, create accessor types instead of
          * generics.
@@ -119,6 +124,8 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                 style = Style.valueOf(value.toUpperCase(Locale.ROOT));
             else if (Objects.equals(key, "base"))
                 base = value;
+            else if (Objects.equals(key, "class"))
+                classType = ClassWrapper.valueOf(value.toUpperCase(Locale.ROOT));
             else
                 throw new IllegalArgumentException("Invalid key \"" + key + "\"");
         }
@@ -130,7 +137,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
          */
         private void apply(String key) {
             if (Objects.equals(key, "class"))
-                classType = true;
+                classType = ClassWrapper.IDENTITY;
             else if (Objects.equals(key, "accessor"))
                 accessorType = true;
             else
@@ -141,7 +148,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
         public int hashCode() {
             int hash = 7;
             hash = 97 * hash + Objects.hashCode(this.style);
-            hash = 97 * hash + (this.classType ? 1 : 0);
+            hash = 97 * hash + Objects.hashCode(this.classType);
             hash = 97 * hash + (this.accessorType ? 1 : 0);
             hash = 97 * hash + Objects.hashCode(this.base);
             return hash;
@@ -163,6 +170,25 @@ public class BoundTemplateRenderer implements AttributeRenderer {
         @Override
         public String toString() {
             return "Config{" + "style=" + style + ", classType=" + classType + ", accessorType=" + accessorType + ", base=" + base + '}';
+        }
+    }
+
+    private static enum ClassWrapper implements Function<String, String> {
+        IDENTITY("", ""),
+        RETURN("::java::return_t<", ">"),
+        PARAM("::java::param_t<", ">"),
+        FIELD("::java::field_t<", ">");
+
+        private ClassWrapper(String prefix, String suffix) {
+            this.prefix = requireNonNull(prefix);
+            this.suffix = requireNonNull(suffix);
+        }
+
+        private final String prefix, suffix;
+
+        @Override
+        public String apply(String s) {
+            return prefix + s + suffix;
         }
     }
 
@@ -273,7 +299,10 @@ public class BoundTemplateRenderer implements AttributeRenderer {
         public TypeVisitor(Config config) {
             this.config = requireNonNull(config);
             final Config rawConfig = Config.typeWithBase(config.base);
-            if (config.classType || Objects.equals(rawConfig, config))
+            if (config.classType != null)
+                rawConfig.classType = ClassWrapper.IDENTITY;
+
+            if (Objects.equals(rawConfig, config))
                 this.raw = this;
             else
                 this.raw = new TypeVisitor(rawConfig);
@@ -281,8 +310,8 @@ public class BoundTemplateRenderer implements AttributeRenderer {
 
         @Override
         public String apply(BoundTemplate.VarBinding b) {
-            if (config.classType)
-                return "::java::type<" + b.getName() + ">";
+            if (config.classType != null)
+                return config.classType.apply("::java::type<" + b.getName() + ">");
             if (config.accessorType)
                 throw new IllegalArgumentException("Variables do not have accessors.");
             return b.getName();
@@ -297,9 +326,14 @@ public class BoundTemplateRenderer implements AttributeRenderer {
             final Stream<String> bindings = b.getBindings().stream()
                     .map(tmpl -> tmpl.visit(raw));
 
-            if (config.classType) {
-                if (b.getBindings().isEmpty()) return clsType;
-                return clsType + bindings.collect(Collectors.joining(", ", "<", ">"));
+            if (config.classType != null) {
+                String result;
+                if (b.getBindings().isEmpty())
+                    result = clsType;
+                else
+                    result = clsType + bindings.collect(Collectors.joining(", ", "<", ">"));
+                if (b.getType() instanceof PrimitiveType) return result;
+                return config.classType.apply(result);
             }
 
             final String tagName = "::java::_tags" + clsType;
@@ -329,7 +363,8 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                     + b.getExtents()
                     + ">";
 
-            if (config.classType) return arrayObj;
+            if (config.classType != null)
+                return config.classType.apply(arrayObj);
             if (config.accessorType)
                 throw new IllegalArgumentException("Arrays do not have accessors.");
             return "::java::type_of<" + arrayObj + ">";
@@ -346,7 +381,8 @@ public class BoundTemplateRenderer implements AttributeRenderer {
             final String type = "::java::G::pack"
                     + Stream.concat(extendStream, superStream).collect(Collectors.joining(", ", "<", ">"));
 
-            if (config.classType) return "::java::type<" + type + ">";
+            if (config.classType != null)
+                return config.classType.apply("::java::type<" + type + ">");
             if (config.accessorType)
                 throw new IllegalArgumentException("Unbound typres do not have accessors.");
             return type;

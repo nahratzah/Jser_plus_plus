@@ -14,6 +14,11 @@ import java.util.regex.Pattern;
 /**
  * An interface for a java type.
  *
+ * Note: despite the name (JavaType), these are {@link Type types}. This is
+ * because a {@link Type} is emittable in the source code as a whole type,
+ * whereas {@link JavaType} models a type declaration; {@link Type} are
+ * instantiable.
+ *
  * @author ariane
  */
 public interface JavaType {
