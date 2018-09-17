@@ -37,7 +37,7 @@ $if (doImplement && containingClass)$$containingClass$$templateArgs(containingCl
 $name$$functionArguments(argumentTypes, argumentNames)$$\\$
 $if (const)$ const$endif$$\\$
 $if (noexcept)$ $noexcept$$endif$$\\$
-$if (return)$$"\n"$-> $return; wrap = "\n    "$$endif$$\\$
+$if (return)$$"\n"$-> $return; wrap = "\n    ", format="style=type, class=return"$$endif$$\\$
 $if (!doImplement)$$\\$
 ;
 $else$$\\$
@@ -49,7 +49,7 @@ $endif$
 
 
 functionArguments(argumentTypes, argumentNames) ::= <%
-($argumentTypes, argumentNames:{type, name | $type$ $name$}; anchor, wrap, separator = ", "$)
+($argumentTypes, argumentNames:{type, name | $type; format="style=type, class=param"$ $name$}; anchor, wrap, separator = ", "$)
 %>
 
 

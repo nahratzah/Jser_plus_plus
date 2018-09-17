@@ -93,10 +93,10 @@ $if (cdef.model.classMembers)$
     : {m | $function(
                 name=m.name,
                 doImplement=true,
-                return={::java::return_t<$m.returnType; format="style=type, class=return"$>},
+                return=m.returnType,
                 body=m.body,
                 argumentNames=m.argumentNames,
-                argumentTypes=m.argumentTypes:{a|$boundTemplateType(a, "style=type, class=param")$}
+                argumentTypes=m.argumentTypes
               )$}
     ; anchor, separator = "\n\n"$
 #endif
@@ -186,7 +186,7 @@ fieldGetter(cdef, f, doImplement) ::= <%
 $function(
     name=f.name,
     doImplement=doImplement,
-    return={$boundTemplateType(f.varType, "style=type, class=return")$},
+    return=f.varType,
     body={$fieldGetterBody(cdef, f)$},
     containingClass="_accessor",
     containingClassTemplateArguments=["Base_", cdef.templateArguments],
@@ -201,8 +201,8 @@ fieldSetter(cdef, f, doImplement) ::= <%
 $function(
     name=f.name,
     doImplement=doImplement,
-    return={$boundTemplateType(f.varType, "style=type, class=return")$},
-    argumentTypes=[{$boundTemplateType(f.varType, "style=type, class=param")$}],
+    return=f.varType,
+    argumentTypes=[f.varType],
     argumentNames=[{$f.name$}],
     body={$fieldSetterBody(cdef, f)$},
     containingClass="_accessor",
