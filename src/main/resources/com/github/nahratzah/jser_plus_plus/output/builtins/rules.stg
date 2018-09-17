@@ -18,11 +18,13 @@ function(name,
          docString=false,
          containingClass=false,
          containingClassTemplateArguments=[],
+         containingClassTemplateArgumentsImpl=[],
          templateArguments=[],
          static=false,
          virtual=false,
          inline=false,
-         noexcept=false
+         noexcept=false,
+         const=false
          ) ::= <<
 $if (!doImplement && docString)$$renderDocString(docString)$$endif$
 $if (doImplement)$$templateLine(containingClassTemplateArguments)$$endif$
@@ -31,8 +33,9 @@ $if (!doImplement && static)$static $endif$$\\$
 $if (!doImplement && virtual)$virtual $endif$$\\$
 $if (inline)$$inline$ $endif$$\\$
 $if (return)$auto $endif$$\\$
-$if (doImplement && containingClass)$$containingClass$$templateArgs(containingClassTemplateArguments)$::$endif$$\\$
+$if (doImplement && containingClass)$$containingClass$$templateArgs(containingClassTemplateArgumentsImpl)$::$endif$$\\$
 $name$$functionArguments(argumentTypes, argumentNames)$$\\$
+$if (const)$ const$endif$$\\$
 $if (noexcept)$ $noexcept$$endif$$\\$
 $if (return)$$"\n"$-> $return; wrap = "\n    "$$endif$$\\$
 $if (!doImplement)$$\\$

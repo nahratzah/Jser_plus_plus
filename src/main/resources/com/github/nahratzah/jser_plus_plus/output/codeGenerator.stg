@@ -39,7 +39,7 @@ $accessorInheritance(cdef.model, "Base_")$
  public:
 $if (cdef.model.fields)$
   // field accessors
-  $cdef.model.fields:{f|$fieldAccessors(f)$}; anchor, separator = "\n"$
+  $cdef.model.fields:{f|$fieldAccessors(cdef, f, false)$}; anchor, separator = "\n"$
 $endif$
 
 #if 0
@@ -121,7 +121,7 @@ $if (cdef.model.enum)$
 $cdef.model.enumValues:{kv | $accessorEnumConstantMethod(cdef, kv)$}; anchor, separator = "\n"$
 $endif$
 
-$cdef.model.fields:{f|$fieldAccessorsImpl(cdef, f)$}; separator = "\n"$
+$cdef.model.fields:{f|$fieldAccessors(cdef, f, true)$}; separator = "\n"$
 >>
 
 
@@ -176,56 +176,56 @@ $f.name$
 %>
 
 
-fieldAccessors(f) ::= <<
-$if (f.getterFn)$$fieldGetter(f)$;$else$// No getter for $f.name$$endif$
-$if (f.setterFn)$$fieldSetter(f)$;$else$// No setter for $f.name$$endif$
->>
-
-
-fieldAccessorsImpl(cdef, f) ::= <<
-$if (f.getterFn)$$fieldGetterImpl(cdef, f)$$endif$
-$if (f.setterFn)$$fieldSetterImpl(cdef, f)$$endif$
->>
-
-
-fieldGetter(f) ::= <%
-auto $f.name$() const ->
-$" "$
-$boundTemplateType(f.varType, "style=type, class=return")$
+fieldAccessors(cdef, f, doImplement) ::= <%
+$if (f.getterFn)$$fieldGetter(cdef, f, doImplement)$$endif$
+$if (f.setterFn)$$fieldSetter(cdef, f, doImplement)$$endif$
 %>
 
 
-fieldSetter(f) ::= <%
-auto $f.name$(
-$boundTemplateType(f.varType, "style=type, class=param")$
-$" "$
-value) ->
-$" "$
-$boundTemplateType(f.varType, "style=type, class=return")$
+fieldGetter(cdef, f, doImplement) ::= <%
+$function(
+    name=f.name,
+    doImplement=doImplement,
+    return={$boundTemplateType(f.varType, "style=type, class=return")$},
+    body={$fieldGetterBody(cdef, f)$},
+    containingClass="_accessor",
+    containingClassTemplateArguments=["Base_", cdef.templateArguments],
+    containingClassTemplateArgumentsImpl=["Base_", cdef.tagName, cdef.templateArguments],
+    inline="JSER_INLINE",
+    const=true
+    )$
 %>
 
 
-fieldGetterImpl(cdef, f) ::= <<
-template<$["Base_", cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
-JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>::$f.name$() const
--> $boundTemplateType(f.varType, "style=type, class=return")$ {
-  return this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$;
-}
+fieldSetter(cdef, f, doImplement) ::= <%
+$function(
+    name=f.name,
+    doImplement=doImplement,
+    return={$boundTemplateType(f.varType, "style=type, class=return")$},
+    argumentTypes=[{$boundTemplateType(f.varType, "style=type, class=param")$}],
+    argumentNames=["value"],
+    body={$fieldSetterBody(cdef, f)$},
+    containingClass="_accessor",
+    containingClassTemplateArguments=["Base_", cdef.templateArguments],
+    containingClassTemplateArgumentsImpl=["Base_", cdef.tagName, cdef.templateArguments],
+    inline="JSER_INLINE"
+    )$
+%>
+
+
+fieldGetterBody(cdef, f) ::= <<
+return this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$;
 >>
 
 
-fieldSetterImpl(cdef, f) ::= <<
-template<$["Base_", cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
-JSER_INLINE auto _accessor<$["Base_", cdef.tagName, cdef.templateArguments]; separator = ", "$>::$f.name$($boundTemplateType(f.varType, "style=type, class=param")$ value)
--> $boundTemplateType(f.varType, "style=type, class=return")$ {
+fieldSetterBody(cdef, f) ::= <<
 $if (f.varType.primitive)$
-  return ::std::exchange(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$, value);
+return ::std::exchange(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$, value);
 $else$
-  $boundTemplateType(f.varType, "style=type, class=return")$ result = ::std::move(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$);
-  this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$ = ::std::move(value);
-  return result;
+$boundTemplateType(f.varType, "style=type, class=return")$ result = ::std::move(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$);
+this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$ = ::std::move(value);
+return result;
 $endif$
-}
 >>
 
 
