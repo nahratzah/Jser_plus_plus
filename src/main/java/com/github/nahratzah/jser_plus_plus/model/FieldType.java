@@ -36,7 +36,14 @@ public class FieldType {
     }
 
     public Type getVarType() {
-        return (varType != null ? varType : getType());
+        final Type result = (varType != null ? varType : getType());
+
+        if (result instanceof BoundTemplate.ClassBinding) {
+            final Type varTypeOfResult = ((BoundTemplate.ClassBinding) result).getType().getVarType();
+            if (varTypeOfResult != null) return varTypeOfResult;
+        }
+
+        return result;
     }
 
     public void setVarType(Type varType) {

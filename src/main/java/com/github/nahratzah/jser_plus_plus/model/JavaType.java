@@ -191,6 +191,16 @@ public interface JavaType {
     public boolean isFinal();
 
     /**
+     * Retrieve the default variable type for this class.
+     *
+     * @return The type to use for fields and variables. Returns null if the
+     * class type is to be used directly.
+     */
+    public default Type getVarType() {
+        return null;
+    }
+
+    /**
      * Test if this is an enum class.
      *
      * @return True if this type is an enum.

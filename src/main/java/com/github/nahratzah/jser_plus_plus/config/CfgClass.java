@@ -53,10 +53,28 @@ public class CfgClass {
         this.members = members;
     }
 
+    /**
+     * Retrieve the variable type for this class.
+     *
+     * The variable type is the type used for variables and fields, instead of
+     * the class.
+     *
+     * @return The variable type of the class.
+     */
+    public CfgType getVarType() {
+        return varType;
+    }
+
+    public void setVarType(CfgType varType) {
+        this.varType = varType;
+    }
+
     @JsonProperty("final")
     private Boolean finalVar;
     @JsonProperty("fields")
     private Map<String, CfgField> fields = new HashMap<>();
     @JsonProperty("members")
     private List<ClassMember> members = new ArrayList<>();
+    @JsonProperty("var_type")
+    private CfgType varType;
 }

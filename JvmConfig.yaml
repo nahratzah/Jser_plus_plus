@@ -30,6 +30,11 @@ scan:
 classes:
   java.io.Serializable:
   java.lang.String:
+    var_type:
+      cxx: ::std::string
+      includes:
+        declaration:
+        - string
     fields:
       value:
         doc_string: |

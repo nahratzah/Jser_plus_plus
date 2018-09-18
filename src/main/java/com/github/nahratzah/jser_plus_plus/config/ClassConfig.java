@@ -27,5 +27,9 @@ public class ClassConfig {
         return cfgClass.getMembers().stream();
     }
 
+    public CfgType getVarType() {
+        return cfgClass.getVarType();
+    }
+
     private final CfgClass cfgClass;
 }

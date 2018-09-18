@@ -87,7 +87,11 @@ public class ClassType implements JavaType {
 
     private void initClassAttributes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
         this.finalVar = Modifier.isFinal(this.c.getModifiers());
-        if (classCfg.isFinal() != null) this.finalVar = classCfg.isFinal();
+        if (classCfg.isFinal() != null)
+            this.finalVar = classCfg.isFinal();
+
+        if (classCfg.getVarType() != null)
+            this.varType = typeFromCfgType(classCfg.getVarType(), ctx, argRename.values());
     }
 
     private void initSuperTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
@@ -280,6 +284,11 @@ public class ClassType implements JavaType {
 
     public Collection<ClassMemberModel> getClassMembers() {
         return classMembers;
+    }
+
+    @Override
+    public com.github.nahratzah.jser_plus_plus.model.Type getVarType() {
+        return varType;
     }
 
     /**
@@ -527,4 +536,10 @@ public class ClassType implements JavaType {
      * Class members for the class.
      */
     private Collection<ClassMemberModel> classMembers;
+    /**
+     * Default variable type for a class.
+     *
+     * If null, then use this.
+     */
+    private com.github.nahratzah.jser_plus_plus.model.Type varType;
 }
