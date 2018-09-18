@@ -1,10 +1,8 @@
 package com.github.nahratzah.jser_plus_plus.output.builtins;
 
 import com.github.nahratzah.jser_plus_plus.model.CxxType;
-import java.util.Arrays;
+import com.github.nahratzah.jser_plus_plus.model.Type;
 import java.util.Locale;
-import java.util.regex.Pattern;
-import org.stringtemplate.v4.AttributeRenderer;
 import org.stringtemplate.v4.ST;
 
 /**
@@ -12,15 +10,12 @@ import org.stringtemplate.v4.ST;
  *
  * @author ariane
  */
-public class CxxTypeRenderer implements AttributeRenderer {
+public class CxxTypeRenderer implements TypeAttributeRenderer {
     public static final Class<CxxType> ATTRIBUTE_CLASS = CxxType.class;
 
     @Override
-    public String toString(Object o, String formatString, Locale locale) {
-        final CxxType cxxType = (CxxType) o;
-        final boolean emitConst = Arrays.stream(formatString.split(Pattern.quote(",")))
-                .map(String::trim)
-                .anyMatch("const"::equals);
+    public String toString(Type type, String formatString, Locale locale, boolean emitConst) {
+        final CxxType cxxType = (CxxType) type;
         return (emitConst ? "const " : "")
                 + new ST(StCtx.BUILTINS, cxxType.getTemplate()).render(Locale.ROOT);
     }

@@ -37,6 +37,7 @@ public class StCtx {
         BUILTINS.defineDictionary("renderDocString_", new FunctionAttrMap(StCtx::renderDocString));
         BUILTINS.registerRenderer(BoundTemplateRenderer.ATTRIBUTE_CLASS, new BoundTemplateRenderer());
         BUILTINS.registerRenderer(CxxTypeRenderer.ATTRIBUTE_CLASS, new CxxTypeRenderer());
+        BUILTINS.registerRenderer(ConstTypeRenderer.ATTRIBUTE_CLASS, new ConstTypeRenderer());
     }
 
     private static String renderDocString(String docString) {

@@ -1,6 +1,7 @@
 package com.github.nahratzah.jser_plus_plus.output;
 
 import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
+import com.github.nahratzah.jser_plus_plus.model.ConstType;
 import com.github.nahratzah.jser_plus_plus.model.JavaType;
 import com.github.nahratzah.jser_plus_plus.model.PrimitiveType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
@@ -355,11 +356,21 @@ public class CodeGenerator {
             fields = model.getFields().stream()
                     .filter(field -> field.isGetterFn() || field.isSetterFn())
                     .map(field -> field.getVarType())
+                    .map(type -> {
+                        if (type instanceof ConstType)
+                            return ((ConstType) type).getType();
+                        return type;
+                    })
                     .filter(BoundTemplate.class::isInstance)
                     .map(BoundTemplate.class::cast);
         } else {
             fields = model.getFields().stream()
                     .flatMap(field -> Stream.of(field.getType(), field.getVarType()))
+                    .map(type -> {
+                        if (type instanceof ConstType)
+                            return ((ConstType) type).getType();
+                        return type;
+                    })
                     .filter(BoundTemplate.class::isInstance)
                     .map(BoundTemplate.class::cast);
         }

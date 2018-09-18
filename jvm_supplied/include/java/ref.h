@@ -79,7 +79,11 @@ using type_of_t = typename type_of<BasicRef>::type;
 ///for anyone, to reason about the types.
 ///By similar, we mean that it resembles the Java language most closely.
 template<typename Tag, typename... Args>
-using type = var_ref<java::G::is<Tag, typename maybe_unpack_type_<Args>::type...>>;
+using type = var_ref<
+    std::conditional_t<
+        std::is_const_v<Tag>,
+        const java::G::is<std::remove_const_t<Tag>, typename maybe_unpack_type_<Args>::type...>,
+        java::G::is<std::remove_const_t<Tag>, typename maybe_unpack_type_<Args>::type...>>>;
 
 } /* namespace java */
 

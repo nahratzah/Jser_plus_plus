@@ -132,6 +132,11 @@ constexpr bool is_java_primitive_v = is_java_primitive<T>::value;
 namespace {
 
 template<typename G>
+struct param_convert_<const G> {
+  using type = const typename param_convert_<G>::type;
+};
+
+template<typename G>
 struct param_convert_<G*> {
   static_assert(is_generic_v<G> || is_java_primitive_v<G>,
       "Array type conversion requires generics or primitives.");
@@ -149,6 +154,11 @@ struct param_convert_<java::G::pack_t<X...>> {
   using type = java::G::pack<typename param_convert_<X>::type...>;
 };
 
+
+template<typename G>
+struct return_type_convert_<const G> {
+  using type = const typename return_type_convert_<G>::type;
+};
 
 template<typename G>
 struct return_type_convert_<G*> {

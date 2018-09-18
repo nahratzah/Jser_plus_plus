@@ -2,6 +2,7 @@ package com.github.nahratzah.jser_plus_plus.output.builtins;
 
 import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
 import com.github.nahratzah.jser_plus_plus.model.PrimitiveType;
+import com.github.nahratzah.jser_plus_plus.model.Type;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
@@ -12,33 +13,34 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.stringtemplate.v4.AttributeRenderer;
 
 /**
  * Renderer for {@link BoundTemplate }.
  *
  * @author ariane
  */
-public class BoundTemplateRenderer implements AttributeRenderer {
+public class BoundTemplateRenderer implements TypeAttributeRenderer {
     private static final Logger LOG = Logger.getLogger(BoundTemplateRenderer.class.getName());
     public static final Class<BoundTemplate> ATTRIBUTE_CLASS = BoundTemplate.class;
 
     /**
      * Render a {@link BoundTemplate}.
      *
-     * @param o An instance of {@link BoundTemplate}.
+     * @param type An instance of {@link BoundTemplate}.
      * @param formatString A string containing the configuration of the
      * renderer.
      * @param locale Locale in which to render. This argument is unused.
+     * @param emitConst If set, create a const class.
      * @return Rendered form of the {@link BoundTemplate}, according to options
      * specified in the format string.
      */
     @Override
-    public String toString(Object o, String formatString, Locale locale) {
-        LOG.log(Level.FINEST, "Invoking {0}(Object={1}, formatString={2})", new Object[]{this.getClass(), o, formatString});
+    public String toString(Type type, String formatString, Locale locale, boolean emitConst) {
+        LOG.log(Level.FINEST, "Invoking {0}(Object={1}, formatString={2})", new Object[]{this.getClass(), type, formatString});
         if (formatString == null) formatString = "";
         final Config config = new Config(formatString);
-        final BoundTemplate tmpl = (BoundTemplate) o;
+        config.emitConst = emitConst;
+        final BoundTemplate tmpl = (BoundTemplate) type;
 
         return tmpl.visit(config.style.apply(config));
     }
@@ -150,8 +152,6 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                 classType = ClassWrapper.IDENTITY;
             else if (Objects.equals(key, "accessor"))
                 accessorType = true;
-            else if (Objects.equals(key, "const"))
-                emitConst = true;
             else if (Objects.equals(key, "final"))
                 emitFinal = true;
             else
@@ -205,15 +205,15 @@ public class BoundTemplateRenderer implements AttributeRenderer {
         private final boolean isClassEmitter;
 
         public String apply(String s, Config config) {
-            final StringBuilder result = new StringBuilder()
-                    .append(prefix)
-                    .append(s)
-                    .append(suffix);
+            final StringBuilder result = new StringBuilder(s);
 
             if (config.emitConst && isClassEmitter) {
                 result.insert(0, "::java::const_ref<");
                 result.append('>');
             }
+
+            result.append(suffix);
+            result.insert(0, prefix);
 
             if (config.emitFinal && this == FIELD)
                 result.insert(0, "const ");
