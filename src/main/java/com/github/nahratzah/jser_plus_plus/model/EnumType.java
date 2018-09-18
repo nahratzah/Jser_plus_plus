@@ -18,7 +18,7 @@ import java.util.stream.Stream;
  * @author ariane
  */
 public class EnumType extends ClassType {
-    private static final List<String> EXTRA_PUBLIC_INCLUDES = unmodifiableList(Arrays.asList("string_view"));
+    private static final List<String> EXTRA_PUBLIC_INCLUDES = unmodifiableList(Arrays.asList("string_view", "java/primitives.h"));
 
     public EnumType(Class<?> c) {
         super(c);

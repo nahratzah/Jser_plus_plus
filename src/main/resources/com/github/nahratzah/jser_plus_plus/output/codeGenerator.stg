@@ -15,7 +15,7 @@ $if (cdef.model.enum)$
    * \brief Raw enum constants for $[cdef.model.namespace, cdef.model.className]; separator = "."$
    * \note Enums start with upper case, followed by lower case, to avoid name clashes with defines.
    */
-  enum class enum_t {
+  enum class enum_t : ::java::int_t {
     $cdef.model.enumValues:{kv|$kv.remappedName$}; anchor, separator = ",\n"$
   };
 
