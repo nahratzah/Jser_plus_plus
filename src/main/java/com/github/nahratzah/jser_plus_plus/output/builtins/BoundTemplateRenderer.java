@@ -78,6 +78,8 @@ public class BoundTemplateRenderer implements AttributeRenderer {
             if (formatString.isEmpty()) return;
 
             Arrays.stream(formatString.split(Pattern.quote(",")))
+                    .map(String::trim)
+                    .filter(string -> !string.isEmpty())
                     .map(string -> string.split(Pattern.quote("="), 2))
                     .forEach(args -> {
                         if (args.length == 2)

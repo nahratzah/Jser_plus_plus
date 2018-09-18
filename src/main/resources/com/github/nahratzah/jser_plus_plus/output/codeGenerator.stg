@@ -170,7 +170,7 @@ $model.enumValues:{ kv | $classEnumConstantMethod(model, kv, true)$}; separator 
 
 
 field(f) ::= <%
-$boundTemplateType(f.varType, {style=type, class=field $if (f.const)$, const$endif$})$
+$boundTemplateType(f.varType, {style=type, class=field, $if (f.const)$const$endif$})$
 $" "$
 $f.name$
 %>
