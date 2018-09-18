@@ -2,8 +2,6 @@ package com.github.nahratzah.jser_plus_plus.output;
 
 import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
 import com.github.nahratzah.jser_plus_plus.model.JavaType;
-import com.github.nahratzah.jser_plus_plus.model.PrimitiveType;
-import com.github.nahratzah.jser_plus_plus.model.Type;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -82,7 +80,7 @@ public class CodeGenerator {
                 .flatMap(type -> {
                     return Stream.concat(
                             type.getImplementationIncludes(true),
-                            Stream.of(getDependentSuperTypes(type, true), getDependentNonSuperTypes(type, true)).flatMap(Collection::stream).map(CodeGenerator::fwdHeaderName));
+                            type.getForwardDeclarationJavaTypes().map(CodeGenerator::fwdHeaderName));
                 })
                 .distinct()
                 .sorted(INCLUDE_SORTER)
@@ -104,8 +102,8 @@ public class CodeGenerator {
                         .flatMap(type -> {
                             return Stream.of(
                                     type.getImplementationIncludes(false),
-                                    getDependentSuperTypes(type, false).stream().map(CodeGenerator::headerName),
-                                    getDependentNonSuperTypes(type, false).stream().map(CodeGenerator::fwdHeaderName))
+                                    type.getDeclarationCompleteJavaTypes().map(CodeGenerator::headerName),
+                                    type.getDeclarationForwardJavaTypes().map(CodeGenerator::fwdHeaderName))
                                     .flatMap(Function.identity());
                         }))
                 .distinct()
@@ -126,8 +124,7 @@ public class CodeGenerator {
                 .flatMap(type -> {
                     return Stream.of(
                             type.getImplementationIncludes(false),
-                            getDependentSuperTypes(type, false).stream().map(CodeGenerator::headerName),
-                            getDependentNonSuperTypes(type, false).stream().map(CodeGenerator::headerName))
+                            type.getImplementationJavaTypes().map(CodeGenerator::headerName))
                             .flatMap(Function.identity());
                 })
                 .distinct()
@@ -320,77 +317,6 @@ public class CodeGenerator {
                 })
                 .collect(Collectors.toSet());
     }
-
-    /**
-     * Retrieve list of dependent types required to render the type declaration.
-     *
-     * The includes contain types used for super types only.
-     *
-     * @param model The model for which to figure out the dependent super types.
-     * @param publicOnly If set, only publicly used types are returned.
-     * @return List of dependent super types.
-     */
-    private static Collection<JavaType> getDependentSuperTypes(JavaType model, boolean publicOnly) {
-        final Stream<BoundTemplate> superTypes = Stream.concat(Stream.of(model.getSuperClass()).filter(Objects::nonNull),
-                model.getInterfaces().stream());
-
-        return superTypes
-                .flatMap(c -> c.visit(DEPENDENT_TYPES_TEMPLATE_VISITOR))
-                .distinct()
-                .filter(c -> !(c instanceof PrimitiveType))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Retrieve list of dependent types required to render the type declaration.
-     *
-     * The includes contain types used in fields, and types used in methods.
-     *
-     * @param model The model for which to figure out the dependent super types.
-     * @param publicOnly If set, only publicly used types are returned.
-     * @return List of dependent non-super types.
-     */
-    private static Collection<JavaType> getDependentNonSuperTypes(JavaType model, boolean publicOnly) {
-        final Stream<Type> fields;
-        if (publicOnly) {
-            fields = model.getFields().stream()
-                    .filter(field -> field.isGetterFn() || field.isSetterFn())
-                    .map(field -> field.getVarType());
-        } else {
-            fields = model.getFields().stream()
-                    .flatMap(field -> Stream.of(field.getType(), field.getVarType()));
-        }
-
-        return fields
-                .flatMap(Type::getAllJavaTypes)
-                .distinct()
-                .filter(c -> !(c instanceof PrimitiveType))
-                .collect(Collectors.toList());
-    }
-
-    private static final BoundTemplate.Visitor<Stream<JavaType>> DEPENDENT_TYPES_TEMPLATE_VISITOR = new BoundTemplate.Visitor<Stream<JavaType>>() {
-        @Override
-        public Stream<JavaType> apply(BoundTemplate.VarBinding b) {
-            return Stream.empty();
-        }
-
-        @Override
-        public Stream<JavaType> apply(BoundTemplate.ClassBinding b) {
-            return Stream.concat(
-                    Stream.of(b.getType()),
-                    b.getBindings().stream().flatMap(x -> x.visit(this)));
-        }
-
-        @Override
-        public Stream<JavaType> apply(BoundTemplate.ArrayBinding b) {
-            return b.getType().visit(this);
-        }
-
-        @Override
-        public Stream<JavaType> apply(BoundTemplate.Any b) {
-            return Stream.empty();
-        }
-    };
 
     static {
         try (Reader accessorFile = new InputStreamReader(CodeGenerator.class.getResourceAsStream("codeGenerator.stg"), UTF_8)) {

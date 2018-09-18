@@ -100,6 +100,26 @@ public enum PrimitiveType implements JavaType {
     }
 
     @Override
+    public Stream<JavaType> getForwardDeclarationJavaTypes() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<JavaType> getDeclarationCompleteJavaTypes() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<JavaType> getDeclarationForwardJavaTypes() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<JavaType> getImplementationJavaTypes() {
+        return Stream.empty();
+    }
+
+    @Override
     public boolean isInterface() {
         return false;
     }

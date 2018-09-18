@@ -277,11 +277,64 @@ public class ClassType implements JavaType {
                 .flatMap(Function.identity());
     }
 
+    @Override
+    public Stream<JavaType> getForwardDeclarationJavaTypes() {
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> superTypes = Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull),
+                getInterfaces().stream());
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> publicFields = getFields().stream()
+                .filter(field -> field.isGetterFn() || field.isSetterFn())
+                .map(field -> field.getVarType());
+
+        return Stream.of(superTypes, publicFields)
+                .flatMap(Function.identity())
+                .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
+                .filter(c -> !(c instanceof PrimitiveType));
+    }
+
+    @Override
+    public Stream<JavaType> getDeclarationCompleteJavaTypes() {
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> superTypes = Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull),
+                getInterfaces().stream());
+
+        return Stream.of(superTypes)
+                .flatMap(Function.identity())
+                .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
+                .filter(c -> !(c instanceof PrimitiveType));
+    }
+
+    @Override
+    public Stream<JavaType> getDeclarationForwardJavaTypes() {
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> fieldTypes = getFields().stream()
+                .map(field -> field.getVarType());
+
+        return Stream.of(fieldTypes)
+                .flatMap(Function.identity())
+                .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
+                .filter(c -> !(c instanceof PrimitiveType));
+    }
+
+    @Override
+    public Stream<JavaType> getImplementationJavaTypes() {
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> superTypes = Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull),
+                getInterfaces().stream());
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> fieldTypes = getFields().stream()
+                .flatMap(field -> Stream.of(field.getType(), field.getVarType()));
+
+        return Stream.of(superTypes, fieldTypes)
+                .flatMap(Function.identity())
+                .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
+                .filter(c -> !(c instanceof PrimitiveType));
+    }
+
     public long getSerialVersionUID() {
         return serialVersionUID;
     }
 
-    @Override
+    /**
+     * Retrieve the fields of this type.
+     *
+     * @return The fields of this type.
+     */
     public List<FieldType> getFields() {
         return fields;
     }

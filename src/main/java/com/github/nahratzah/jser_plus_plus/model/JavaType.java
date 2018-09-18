@@ -7,7 +7,6 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import static java.util.Collections.EMPTY_LIST;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -130,13 +129,37 @@ public interface JavaType {
     public Stream<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard);
 
     /**
-     * Retrieve the fields of this type.
+     * Get all java types required to forward declare this type.
      *
-     * @return The fields of this type.
+     * @return All java types required to forward declare this type.
      */
-    public default Collection<FieldType> getFields() {
-        return EMPTY_LIST;
-    }
+    public Stream<JavaType> getForwardDeclarationJavaTypes();
+
+    /**
+     * Get all java types required to declare this type. Only types that must be
+     * complete at the declaration type are returned.
+     *
+     * @return All java types required to declare this type.
+     */
+    public Stream<JavaType> getDeclarationCompleteJavaTypes();
+
+    /**
+     * Get all java types required to declare this type, for which a forward
+     * declaration is sufficient.
+     *
+     * @return All java types required to declare this type.
+     */
+    public Stream<JavaType> getDeclarationForwardJavaTypes();
+
+    /**
+     * Get all java types required to implement functionality of this type.
+     *
+     * This means also looking inside functions and listing their internal
+     * types.
+     *
+     * @return All java types required to implement this type.
+     */
+    public Stream<JavaType> getImplementationJavaTypes();
 
     /**
      * Initialization of this type.
