@@ -10,6 +10,7 @@ import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * An interface for a java type.
@@ -35,6 +36,17 @@ public interface JavaType {
      * @return List of template arguments for this type.
      */
     public List<ClassTemplateArgument> getTemplateArguments();
+
+    /**
+     * The list of template argument names.
+     *
+     * @return List of template argument names.
+     */
+    public default List<String> getTemplateArgumentNames() {
+        return getTemplateArguments().stream()
+                .map(ClassTemplateArgument::getName)
+                .collect(Collectors.toList());
+    }
 
     /**
      * The number of generics arguments for this type.

@@ -2,7 +2,6 @@ package com.github.nahratzah.jser_plus_plus.input;
 
 import com.github.nahratzah.jser_plus_plus.config.Config;
 import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
-import com.github.nahratzah.jser_plus_plus.model.ClassTemplateArgument;
 import com.github.nahratzah.jser_plus_plus.model.ClassType;
 import com.github.nahratzah.jser_plus_plus.model.EnumType;
 import com.github.nahratzah.jser_plus_plus.model.JavaType;
@@ -122,13 +121,6 @@ public class Processor implements Context {
             @Override
             public String getClassName() {
                 return jc.getClassName();
-            }
-
-            @Override
-            public List<String> getTemplateArguments() {
-                return jc.getTemplateArguments().stream()
-                        .map(ClassTemplateArgument::getName)
-                        .collect(Collectors.toList());
             }
 
             @Override

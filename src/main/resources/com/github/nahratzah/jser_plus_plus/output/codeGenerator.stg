@@ -1,6 +1,6 @@
 accessor(cdef) ::= <<
-$templateLine(cdef.templateArguments, true)$
-class _static_accessor$templateArgs([cdef.tagName, cdef.templateArguments], true)$ {
+$templateLine(cdef.model.templateArgumentNames, true)$
+class _static_accessor$templateArgs([tagType(cdef.model), cdef.model.templateArgumentNames], true)$ {
  protected:
   JSER_INLINE _static_accessor() = default;
   JSER_INLINE _static_accessor(const _static_accessor&) = default;
@@ -12,7 +12,7 @@ class _static_accessor$templateArgs([cdef.tagName, cdef.templateArguments], true
  public:
 $if (cdef.model.enum)$
   /**
-   * \brief Raw enum constants for $[cdef.namespace, cdef.className]; separator = "."$
+   * \brief Raw enum constants for $[cdef.model.namespace, cdef.model.className]; separator = "."$
    * \note Enums start with upper case, followed by lower case, to avoid name clashes with defines.
    */
   enum class enum_t {
@@ -24,8 +24,8 @@ $if (cdef.model.enum)$
 $endif$
 };
 
-$templateLine(["Base_", cdef.templateArguments], true)$
-class _accessor$templateArgs(["Base_", cdef.tagName, cdef.templateArguments], true)$
+$templateLine(["Base_", cdef.model.templateArgumentNames], true)$
+class _accessor$templateArgs(["Base_", tagType(cdef.model), cdef.model.templateArgumentNames], true)$
 $accessorInheritance(cdef.model, "Base_")$
 {
  protected:
@@ -54,35 +54,35 @@ $endif$
 
 
 class(cdef) ::= <<
-class $cdef.className$$if (cdef.model.final)$ final$endif$
+class $cdef.model.className$$if (cdef.model.final)$ final$endif$
 $classInheritance(cdef.model)$
 {
 $if (cdef.model.enum)$
-  $cdef.className$() = delete; // Enum types are not default constructible.
-  $cdef.className$(const $cdef.className$&) = delete;
-  $cdef.className$($cdef.className$&&) = delete;
-  $cdef.className$& operator=(const $cdef.className$&) = delete;
-  $cdef.className$& operator=($cdef.className$&&) = delete;
+  $cdef.model.className$() = delete; // Enum types are not default constructible.
+  $cdef.model.className$(const $cdef.model.className$&) = delete;
+  $cdef.model.className$($cdef.model.className$&&) = delete;
+  $cdef.model.className$& operator=(const $cdef.model.className$&) = delete;
+  $cdef.model.className$& operator=($cdef.model.className$&&) = delete;
 
  public:
-  using enum_t = ::java::_static_accessor<$cdef.tagName$>::enum_t;
+  using enum_t = ::java::_static_accessor<$tagType(cdef.model)$>::enum_t;
 
   $cdef.model.enumValues:{kv| $classEnumConstantMethod(cdef, kv, false)$}; anchor, separator = "\n"$
 
   // We don't want this to be public, but without it, we're having a hard time
   // instantiating the enum class.
-  JSER_INLINE $cdef.className$(enum_t enum_value) : value(enum_value) {}
+  JSER_INLINE $cdef.model.className$(enum_t enum_value) : value(enum_value) {}
 $endif$
 
  public:
   $if (!cdef.model.enum)$
-  $cdef.className$();
-  $cdef.className$(const $cdef.className$&);
-  $cdef.className$($cdef.className$&&);
-  JSER_INLINE $cdef.className$& operator=(const $cdef.className$&) = default;
-  JSER_INLINE $cdef.className$& operator=($cdef.className$&&) = default;
+  $cdef.model.className$();
+  $cdef.model.className$(const $cdef.model.className$&);
+  $cdef.model.className$($cdef.model.className$&&);
+  JSER_INLINE $cdef.model.className$& operator=(const $cdef.model.className$&) = default;
+  JSER_INLINE $cdef.model.className$& operator=($cdef.model.className$&&) = default;
   $endif$
-  ~$cdef.className$() noexcept override$if (cdef.model.interface || cdef.model.abstract)$ = 0$endif$;
+  ~$cdef.model.className$() noexcept override$if (cdef.model.interface || cdef.model.abstract)$ = 0$endif$;
 
   // XXX constructors that take arguments.
 $if (cdef.model.classMembers)$
@@ -136,14 +136,14 @@ $function(
     doImplement=doImplement,
     noexcept="noexcept",
     return="std::string_view",
-    argumentTypes=[{::java::_static_accessor$templateArgs([cdef.tagName], true)$::enum_t}],
+    argumentTypes=[{::java::_static_accessor$templateArgs([tagType(cdef.model)], true)$::enum_t}],
     argumentNames=["enum_value"],
     body={$accessorEnumToStringBody(cdef)$})$
 %>
 
 
 accessorEnumToStringBody(cdef) ::= <<
-using enum_t = ::java::_static_accessor$templateArgs([cdef.tagName], true)$::enum_t;
+using enum_t = ::java::_static_accessor$templateArgs([tagType(cdef.model)], true)$::enum_t;
 using namespace std::string_view_literals;
 
 switch (enum_value) {
@@ -159,11 +159,11 @@ case enum_t::$v.remappedName$:
 
 classImpl(cdef) ::= <<
 $if (!cdef.model.enum)$
-$cdef.className$::$cdef.className$() = default;
-$cdef.className$::$cdef.className$(const $cdef.className$&) = default;
-$cdef.className$::$cdef.className$($cdef.className$&&) = default;
+$cdef.model.className$::$cdef.model.className$() = default;
+$cdef.model.className$::$cdef.model.className$(const $cdef.model.className$&) = default;
+$cdef.model.className$::$cdef.model.className$($cdef.model.className$&&) = default;
 $endif$
-$cdef.className$::~$cdef.className$() noexcept = default;
+$cdef.model.className$::~$cdef.model.className$() noexcept = default;
 
 $cdef.model.enumValues:{ kv | $classEnumConstantMethod(cdef, kv, true)$}; separator = "\n"$
 >>
@@ -189,8 +189,8 @@ $function(
     return=f.varType,
     body={$fieldGetterBody(cdef, f)$},
     containingClass="_accessor",
-    containingClassTemplateArguments=["Base_", cdef.templateArguments],
-    containingClassTemplateArgumentsImpl=["Base_", cdef.tagName, cdef.templateArguments],
+    containingClassTemplateArguments=["Base_", cdef.model.templateArgumentNames],
+    containingClassTemplateArgumentsImpl=["Base_", tagType(cdef.model), cdef.model.templateArgumentNames],
     inline="JSER_INLINE",
     const=true
     )$
@@ -206,20 +206,20 @@ $function(
     argumentNames=[{$f.name$}],
     body={$fieldSetterBody(cdef, f)$},
     containingClass="_accessor",
-    containingClassTemplateArguments=["Base_", cdef.templateArguments],
-    containingClassTemplateArgumentsImpl=["Base_", cdef.tagName, cdef.templateArguments],
+    containingClassTemplateArguments=["Base_", cdef.model.templateArgumentNames],
+    containingClassTemplateArgumentsImpl=["Base_", tagType(cdef.model), cdef.model.templateArgumentNames],
     inline="JSER_INLINE"
     )$
 %>
 
 
 fieldGetterBody(cdef, f) ::= <<
-return this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$;
+return this->template ref_<typename $tagType(cdef.model)$::erased_type>().$f.name$;
 >>
 
 
 fieldSetterBody(cdef, f) ::= <<
-return ::std::exchange(this->template ref_<typename $cdef.tagName$::erased_type>().$f.name$, std::move($f.name$));
+return ::std::exchange(this->template ref_<typename $tagType(cdef.model)$::erased_type>().$f.name$, std::move($f.name$));
 >>
 
 
@@ -254,10 +254,10 @@ accessorEnumConstantMethod(cdef, kv, doImplement=true) ::= <%
 $function(
     name=kv.remappedName,
     doImplement=doImplement,
-    return={::$[cdef.namespace, cdef.className]; separator = "::"$},
+    return={::$[cdef.model.namespace, cdef.model.className]; separator = "::"$},
     containingClass="_static_accessor",
-    containingClassTemplateArguments=cdef.templateArguments,
-    containingClassTemplateArgumentsImpl=[tagType(cdef.model), cdef.templateArguments],
+    containingClassTemplateArguments=cdef.model.templateArgumentNames,
+    containingClassTemplateArgumentsImpl=[tagType(cdef.model), cdef.model.templateArgumentNames],
     body=accessorEnumConstantMethodBody(cdef, kv),
     inline="JSER_INLINE",
     static=true,
@@ -274,10 +274,10 @@ return $erasedType(cdef.model)$::$kv.remappedName$();
 classEnumConstantMethod(cdef, kv, doImplement) ::= <%
 $function(
     name=kv.remappedName,
-    docString={\brief Enum constant $kv.name$.$\n$\returns An instance of $[cdef.namespace, cdef.className]; separator = "::"$.},
+    docString={\brief Enum constant $kv.name$.$\n$\returns An instance of $[cdef.model.namespace, cdef.model.className]; separator = "::"$.},
     doImplement=doImplement,
-    return={::$[cdef.namespace, cdef.className]; separator = "::"$},
-    containingClass=cdef.className,
+    return={::$[cdef.model.namespace, cdef.model.className]; separator = "::"$},
+    containingClass=cdef.model.className,
     body={$classEnumConstantMethodBody(cdef, kv)$},
     static=true
     )$

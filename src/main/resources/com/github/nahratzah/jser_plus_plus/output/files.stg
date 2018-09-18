@@ -106,23 +106,23 @@ $codeGen.types:{cdef|$accessorImplSrc(cdef)$}; separator = "\n\n"$
 
 tagDeclaration(cdef) ::= <<
 struct $cdef.className$ {
-  static constexpr ::std::size_t generics_arity = $length(cdef.templateArguments)$;
-  using erased_type = ::$["java", "_erased", codeGen.namespace, cdef.className]; separator = "::"$;
+  static constexpr ::std::size_t generics_arity = $length(cdef.model.templateArguments)$;
+  using erased_type = ::$["java", "_erased", cdef.namespace, cdef.className]; separator = "::"$;
 };
 >>
 
 
 forwardDeclareAccessor(cdef) ::= <<
-template<$["Base_", cdef.templateArguments]:{x|typename $x$}; anchor, wrap, separator = ", "$>
-class _accessor<$["Base_", {::$["java", "_tags", cdef.namespace, cdef.className]; separator = "::"$}, cdef.templateArguments]; anchor, wrap, separator = ", "$>
+template<$["Base_", cdef.model.templateArgumentNames]:{x|typename $x$}; anchor, wrap, separator = ", "$>
+class _accessor<$["Base_", {::$["java", "_tags", cdef.namespace, cdef.className]; separator = "::"$}, cdef.model.templateArgumentNames]; anchor, wrap, separator = ", "$>
 >>
 
 
 declareBasicRef(cdef) ::= <<
-$if (cdef.templateArguments)$
-template<$cdef.templateArguments:{x|typename $x$}; anchor, wrap, separator = ", "$>
+$if (cdef.model.templateArgumentNames)$
+template<$cdef.model.templateArgumentNames:{x|typename $x$}; anchor, wrap, separator = ", "$>
 $endif$
-using $cdef.className$ = ::java::type<$[{::$["java", "_tags", cdef.namespace, cdef.className]; separator = "::"$}, cdef.templateArguments]:{x|$x$}; anchor, wrap, separator = ", "$>;
+using $cdef.className$ = ::java::type<$[{::$["java", "_tags", cdef.namespace, cdef.className]; separator = "::"$}, cdef.model.templateArgumentNames]:{x|$x$}; anchor, wrap, separator = ", "$>;
 >>
 
 

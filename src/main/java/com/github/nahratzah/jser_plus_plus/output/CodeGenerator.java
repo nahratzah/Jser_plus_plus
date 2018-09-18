@@ -1,5 +1,6 @@
 package com.github.nahratzah.jser_plus_plus.output;
 
+import com.github.nahratzah.jser_plus_plus.model.JavaType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -173,25 +174,6 @@ public class CodeGenerator {
         public String getClassName();
 
         /**
-         * Retrieve the tag name.
-         *
-         * @return C++ notation of the full path to the tag.
-         */
-        public default String getTagName() {
-            return Stream.of(Stream.of("java", "_tags"), getNamespace().stream(), Stream.of(getClassName()))
-                    .flatMap(Function.identity())
-                    .map(s -> "::" + s)
-                    .collect(Collectors.joining());
-        }
-
-        /**
-         * Retrieve list of template argument names.
-         *
-         * @return The template argument names for this type.
-         */
-        public List<String> getTemplateArguments();
-
-        /**
          * Retrieve list of dependent types required to render the type
          * declaration.
          *
@@ -237,7 +219,7 @@ public class CodeGenerator {
          *
          * @return Object representing the underlying model.
          */
-        public Object getModel();
+        public JavaType getModel();
     }
 
     public String getFwdHeaderName() {
