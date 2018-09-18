@@ -39,6 +39,10 @@ classes:
       value:
         doc_string: |
           \brief Contents of `java.lang.String`.
+          \note
+          This field is const, so that shared instances of string don't affect eachother.
+          This corresponds to the immutable property of java strings.
+        const: true
         type:
           cxx: ::std::string
           includes:

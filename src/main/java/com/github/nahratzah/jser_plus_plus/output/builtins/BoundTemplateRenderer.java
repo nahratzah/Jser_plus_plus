@@ -112,6 +112,10 @@ public class BoundTemplateRenderer implements AttributeRenderer {
          * accessor.
          */
         public String base;
+        /**
+         * If set and emitting class types, render a reference to const type.
+         */
+        public boolean emitConst = false;
 
         /**
          * Apply configuration key-value item.
@@ -140,17 +144,20 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                 classType = ClassWrapper.IDENTITY;
             else if (Objects.equals(key, "accessor"))
                 accessorType = true;
+            else if (Objects.equals(key, "const"))
+                emitConst = true;
             else
                 throw new IllegalArgumentException("Invalid key \"" + key + "\"");
         }
 
         @Override
         public int hashCode() {
-            int hash = 7;
-            hash = 97 * hash + Objects.hashCode(this.style);
-            hash = 97 * hash + Objects.hashCode(this.classType);
-            hash = 97 * hash + (this.accessorType ? 1 : 0);
-            hash = 97 * hash + Objects.hashCode(this.base);
+            int hash = 5;
+            hash = 89 * hash + Objects.hashCode(this.style);
+            hash = 89 * hash + Objects.hashCode(this.classType);
+            hash = 89 * hash + (this.accessorType ? 1 : 0);
+            hash = 89 * hash + Objects.hashCode(this.base);
+            hash = 89 * hash + (this.emitConst ? 1 : 0);
             return hash;
         }
 
@@ -160,10 +167,11 @@ public class BoundTemplateRenderer implements AttributeRenderer {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
             final Config other = (Config) obj;
-            if (this.classType != other.classType) return false;
             if (this.accessorType != other.accessorType) return false;
+            if (this.emitConst != other.emitConst) return false;
             if (!Objects.equals(this.base, other.base)) return false;
             if (this.style != other.style) return false;
+            if (this.classType != other.classType) return false;
             return true;
         }
 
@@ -173,7 +181,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
         }
     }
 
-    private static enum ClassWrapper implements Function<String, String> {
+    private static enum ClassWrapper {
         IDENTITY("", ""),
         RETURN("::java::return_t<", ">"),
         PARAM("::java::param_t<", ">"),
@@ -186,9 +194,8 @@ public class BoundTemplateRenderer implements AttributeRenderer {
 
         private final String prefix, suffix;
 
-        @Override
-        public String apply(String s) {
-            return prefix + s + suffix;
+        public String apply(String s, boolean emitConst) {
+            return prefix + (emitConst ? "const " : "") + s + suffix;
         }
     }
 
@@ -311,7 +318,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
         @Override
         public String apply(BoundTemplate.VarBinding b) {
             if (config.classType != null)
-                return config.classType.apply("::java::type<" + b.getName() + ">");
+                return config.classType.apply("::java::type<" + b.getName() + ">", config.emitConst);
             if (config.accessorType)
                 throw new IllegalArgumentException("Variables do not have accessors.");
             return b.getName();
@@ -333,7 +340,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                 else
                     result = clsType + bindings.collect(Collectors.joining(", ", "<", ">"));
                 if (b.getType() instanceof PrimitiveType) return result;
-                return config.classType.apply(result);
+                return config.classType.apply(result, config.emitConst);
             }
 
             final String tagName = "::java::_tags" + clsType;
@@ -364,7 +371,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                     + ">";
 
             if (config.classType != null)
-                return config.classType.apply(arrayObj);
+                return config.classType.apply(arrayObj, config.emitConst);
             if (config.accessorType)
                 throw new IllegalArgumentException("Arrays do not have accessors.");
             return "::java::type_of<" + arrayObj + ">";
@@ -382,7 +389,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                     + Stream.concat(extendStream, superStream).collect(Collectors.joining(", ", "<", ">"));
 
             if (config.classType != null)
-                return config.classType.apply("::java::type<" + type + ">");
+                return config.classType.apply("::java::type<" + type + ">", config.emitConst);
             if (config.accessorType)
                 throw new IllegalArgumentException("Unbound typres do not have accessors.");
             return type;

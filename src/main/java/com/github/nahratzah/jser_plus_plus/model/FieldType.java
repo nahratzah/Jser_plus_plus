@@ -112,7 +112,9 @@ public class FieldType {
      * @return True if a setter function for this field is to be generated.
      */
     public boolean isSetterFn() {
-        return setterFn == null ? getVisibility() == Visibility.PUBLIC && !isFinal() : setterFn;
+        if (setterFn != null) return setterFn;
+        return getVisibility() == Visibility.PUBLIC
+                && (getVarType() instanceof CxxType ? !isConst() : !isFinal());
     }
 
     /**
@@ -155,6 +157,27 @@ public class FieldType {
     }
 
     /**
+     * Test if the field is const.
+     *
+     * Const-ness is a property of the element pointed to. If the field is not a
+     * pointer field, it applies to the type directly.
+     *
+     * @return True is the element type if const.
+     */
+    public boolean isConst() {
+        return constVar;
+    }
+
+    /**
+     * Change if the field is const.
+     *
+     * @param constVar Value indicating if the field should be a const field.
+     */
+    public void setConst(boolean constVar) {
+        this.constVar = constVar;
+    }
+
+    /**
      * Get the documentation for the field.
      *
      * @return Documentation of the field, or null if the field is undocumented.
@@ -181,5 +204,6 @@ public class FieldType {
     private Boolean getterFn = null;
     private Boolean setterFn = null;
     private boolean finalVar = false;
+    private boolean constVar = false;
     private String docString = null;
 }
