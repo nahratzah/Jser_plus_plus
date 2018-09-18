@@ -63,7 +63,7 @@ public enum PrimitiveType implements JavaType {
     }
 
     @Override
-    public String getSimpleName() {
+    public String getClassName() {
         return name + "_t";
     }
 

@@ -248,7 +248,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
             return "::java::_tags"
                     + b.getType().getNamespace().stream().map(nsElem -> "::" + nsElem).collect(Collectors.joining())
                     + "::"
-                    + b.getType().getSimpleName();
+                    + b.getType().getClassName();
         }
 
         @Override
@@ -279,7 +279,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
             return "::java::_erased"
                     + b.getType().getNamespace().stream().map(nsElem -> "::" + nsElem).collect(Collectors.joining())
                     + "::"
-                    + b.getType().getSimpleName();
+                    + b.getType().getClassName();
         }
 
         @Override
@@ -321,7 +321,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
         public String apply(BoundTemplate.ClassBinding b) {
             final String clsType = b.getType().getNamespace().stream().map(nsElem -> "::" + nsElem).collect(Collectors.joining())
                     + "::"
-                    + b.getType().getSimpleName();
+                    + b.getType().getClassName();
 
             final Stream<String> bindings = b.getBindings().stream()
                     .map(tmpl -> tmpl.visit(raw));
@@ -350,7 +350,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
             final String elementType;
             if (b.getType() instanceof BoundTemplate.ClassBinding && ((BoundTemplate.ClassBinding) b.getType()).getType() instanceof PrimitiveType) {
                 final PrimitiveType primitiveType = (PrimitiveType) ((BoundTemplate.ClassBinding) b.getType()).getType();
-                elementType = Stream.concat(primitiveType.getNamespace().stream(), Stream.of(primitiveType.getSimpleName()))
+                elementType = Stream.concat(primitiveType.getNamespace().stream(), Stream.of(primitiveType.getClassName()))
                         .map(nameElem -> "::" + nameElem)
                         .collect(Collectors.joining());
             } else {

@@ -121,7 +121,7 @@ public class Processor implements Context {
 
             @Override
             public String getClassName() {
-                return jc.getSimpleName();
+                return jc.getClassName();
             }
 
             @Override

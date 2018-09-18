@@ -60,7 +60,7 @@ public interface JavaType {
      *
      * @return The simple name of the class.
      */
-    public default String getSimpleName() {
+    public default String getClassName() {
         final List<String> parts = Arrays.asList(getName().split(Pattern.quote(".")));
         return parts.get(parts.size() - 1);
     }

@@ -82,10 +82,10 @@ $t; format=format$
 
 
 tagType(model) ::= <%
-::$["java", "_tags", model.namespace, model.simpleName]; separator = "::"$
+::$["java", "_tags", model.namespace, model.className]; separator = "::"$
 %>
 
 
 erasedType(model) ::= <%
-::$["java", "_erased", model.namespace, model.simpleName]; separator = "::"$
+::$["java", "_erased", model.namespace, model.className]; separator = "::"$
 %>
