@@ -3,6 +3,8 @@ package com.github.nahratzah.jser_plus_plus.model;
 import com.github.nahratzah.jser_plus_plus.config.CfgType;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * All types derive from type.
@@ -17,7 +19,21 @@ public interface Type {
      * declarations, not implementations.
      * @return Collection of includes.
      */
-    public Collection<String> getIncludes(boolean publicOnly);
+    public default Collection<String> getIncludes(boolean publicOnly) {
+        return getIncludes(publicOnly, new HashSet<>());
+    }
+
+    /**
+     * Retrieve additional includes required to implement this type.
+     *
+     * @param publicOnly If set, only return includes required to satisfy
+     * declarations, not implementations.
+     * @param recursionGuard A set that each type adds itself to, to detect
+     * recursion. If the type is already in the set, it shall emit an empty
+     * collection.
+     * @return Collection of includes.
+     */
+    public Collection<String> getIncludes(boolean publicOnly, Set<JavaType> recursionGuard);
 
     /**
      * Create a {@link Type} from a {@link CfgType configuration type}.

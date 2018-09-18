@@ -4,11 +4,13 @@ import com.github.nahratzah.jser_plus_plus.config.Config;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import java.util.Arrays;
 import java.util.Collection;
+import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.unmodifiableList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,8 +34,9 @@ public class EnumType extends ClassType {
     }
 
     @Override
-    public Collection<String> getIncludes(boolean publicOnly) {
-        return Stream.concat(super.getIncludes(publicOnly).stream(), EXTRA_PUBLIC_INCLUDES.stream())
+    public Collection<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
+        if (!recursionGuard.add(this)) return EMPTY_LIST;
+        return Stream.concat(super.getImplementationIncludes(publicOnly, recursionGuard).stream(), EXTRA_PUBLIC_INCLUDES.stream())
                 .collect(Collectors.toList());
     }
 

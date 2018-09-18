@@ -14,21 +14,21 @@ fwdHeaderFile(codeGen, includes) ::= <<
 // Forward declare all erased types.
 namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
 
-$codeGen.types:{cdef|class $cdef.className$;}; separator = "\n"$
+$codeGen.types:{model|class $model.className$;}; separator = "\n"$
 
 } /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
 
 // Declare all tags.
 namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ {
 
-$codeGen.types:{cdef|$tagDeclaration(cdef)$}; separator = "\n\n"$
+$codeGen.types:{model|$tagDeclaration(model)$}; separator = "\n\n"$
 
 } /* namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ */
 
 // Forward declare accessors.
 namespace java {
 
-$codeGen.types:{cdef|$forwardDeclareAccessor(cdef)$; // Forward declaration.}; separator = "\n\n"$
+$codeGen.types:{model|$forwardDeclareAccessor(model)$; // Forward declaration.}; separator = "\n\n"$
 
 } /* namespace java */
 
@@ -36,7 +36,7 @@ $if (codeGen.namespace)$
 namespace $codeGen.namespace; separator = "::"$ {
 
 $endif$
-$codeGen.types:{cdef|$declareBasicRef(cdef)$}; separator = "\n"$
+$codeGen.types:{model|$declareBasicRef(model)$}; separator = "\n"$
 $if (codeGen.namespace)$
 
 } /* namespace $codeGen.namespace; separator = "::"$ */
@@ -47,7 +47,7 @@ $includes:{f|$include(f)$}; separator = "\n"$
 // render accessors
 namespace java {
 
-$codeGen.types:{cdef|$accessor(cdef)$}; separator = "\n\n"$
+$codeGen.types:{model|$accessor(model)$}; separator = "\n\n"$
 
 } /* namespace java */
 
@@ -70,14 +70,14 @@ $includes:{f|$include(f)$}; separator = "\n"$
 // render erased types
 namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
 
-$codeGen.reorderTypesForInheritance:{cdef|$class(cdef)$}; separator = "\n\n"$
+$codeGen.reorderTypesForInheritance:{model|$class(model)$}; separator = "\n\n"$
 
 } /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
 
 // render accessors
 namespace java {
 
-$codeGen.types:{cdef|$accessorImpl(cdef)$}; separator = "\n\n"$
+$codeGen.types:{model|$accessorImpl(model)$}; separator = "\n\n"$
 
 } /* namespace java */
 
@@ -91,38 +91,38 @@ $[codeGen.headerName, includes]:{f|$include(f)$}; separator = "\n"$
 
 namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
 
-$codeGen.types:{cdef|$classImpl(cdef)$}; separator = "\n\n"$
+$codeGen.types:{model|$classImpl(model)$}; separator = "\n\n"$
 
 } /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
 
 namespace java {
 
-$codeGen.types:{cdef|$accessorImplSrc(cdef)$}; separator = "\n\n"$
+$codeGen.types:{model|$accessorImplSrc(model)$}; separator = "\n\n"$
 
 } /* namespace java */
 
 >>
 
 
-tagDeclaration(cdef) ::= <<
-struct $cdef.className$ {
-  static constexpr ::std::size_t generics_arity = $length(cdef.model.templateArguments)$;
-  using erased_type = ::$["java", "_erased", cdef.namespace, cdef.className]; separator = "::"$;
+tagDeclaration(model) ::= <<
+struct $model.className$ {
+  static constexpr ::std::size_t generics_arity = $length(model.templateArguments)$;
+  using erased_type = ::$["java", "_erased", model.namespace, model.className]; separator = "::"$;
 };
 >>
 
 
-forwardDeclareAccessor(cdef) ::= <<
-template<$["Base_", cdef.model.templateArgumentNames]:{x|typename $x$}; anchor, wrap, separator = ", "$>
-class _accessor<$["Base_", {::$["java", "_tags", cdef.namespace, cdef.className]; separator = "::"$}, cdef.model.templateArgumentNames]; anchor, wrap, separator = ", "$>
+forwardDeclareAccessor(model) ::= <<
+template<$["Base_", model.templateArgumentNames]:{x|typename $x$}; anchor, wrap, separator = ", "$>
+class _accessor<$["Base_", {::$["java", "_tags", model.namespace, model.className]; separator = "::"$}, model.templateArgumentNames]; anchor, wrap, separator = ", "$>
 >>
 
 
-declareBasicRef(cdef) ::= <<
-$if (cdef.model.templateArgumentNames)$
-template<$cdef.model.templateArgumentNames:{x|typename $x$}; anchor, wrap, separator = ", "$>
+declareBasicRef(model) ::= <<
+$if (model.templateArgumentNames)$
+template<$model.templateArgumentNames:{x|typename $x$}; anchor, wrap, separator = ", "$>
 $endif$
-using $cdef.className$ = ::java::type<$[{::$["java", "_tags", cdef.namespace, cdef.className]; separator = "::"$}, cdef.model.templateArgumentNames]:{x|$x$}; anchor, wrap, separator = ", "$>;
+using $model.className$ = ::java::type<$[{::$["java", "_tags", model.namespace, model.className]; separator = "::"$}, model.templateArgumentNames]:{x|$x$}; anchor, wrap, separator = ", "$>;
 >>
 
 

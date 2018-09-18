@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -95,13 +97,36 @@ public interface JavaType {
     public Collection<BoundTemplate> getInterfaces();
 
     /**
+     * Retrieve includes requires to use this type.
+     *
+     * @return List of includes to use this type.
+     */
+    public default Collection<String> getIncludes() {
+        return EMPTY_LIST;
+    }
+
+    /**
      * Retrieve additional includes required to implement this type.
      *
      * @param publicOnly If set, only return includes required to satisfy
      * declarations, not implementations.
      * @return Collection of includes.
      */
-    public Collection<String> getIncludes(boolean publicOnly);
+    public default Collection<String> getImplementationIncludes(boolean publicOnly) {
+        return getImplementationIncludes(publicOnly, new HashSet<>());
+    }
+
+    /**
+     * Retrieve additional includes required to implement this type.
+     *
+     * @param publicOnly If set, only return includes required to satisfy
+     * declarations, not implementations.
+     * @param recursionGuard A set that each type adds itself to, to detect
+     * recursion. If the type is already in the set, it shall emit an empty
+     * collection.
+     * @return Collection of includes.
+     */
+    public Collection<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard);
 
     /**
      * Retrieve the fields of this type.

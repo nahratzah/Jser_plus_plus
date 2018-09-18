@@ -1,6 +1,8 @@
 package com.github.nahratzah.jser_plus_plus.output;
 
+import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
 import com.github.nahratzah.jser_plus_plus.model.JavaType;
+import com.github.nahratzah.jser_plus_plus.model.PrimitiveType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -56,7 +58,7 @@ public class CodeGenerator {
         this.namespace = this.baseType.subList(0, this.baseType.size() - 1);
     }
 
-    public boolean add(JavaClass c) {
+    public boolean add(JavaType c) {
         // Input validation.
         if (!Objects.equals(this.baseType, computeBaseType(c)))
             throw new IllegalArgumentException("mismatching base type");
@@ -64,7 +66,7 @@ public class CodeGenerator {
         return this.types.add(c);
     }
 
-    public boolean addAll(Collection<? extends JavaClass> c) {
+    public boolean addAll(Collection<? extends JavaType> c) {
         // Input validation.
         c.forEach(cItem -> {
             if (!Objects.equals(this.baseType, computeBaseType(cItem)))
@@ -76,11 +78,10 @@ public class CodeGenerator {
 
     public String fwdHeaderFile() {
         final Collection<String> includes = types.stream()
-                .unordered()
                 .flatMap(type -> {
                     return Stream.concat(
-                            type.getIncludes(true).stream().unordered(),
-                            Stream.of(type.getDependentSuperTypes(true), type.getDependentNonSuperTypes(true)).flatMap(Collection::stream).map(CodeGenerator::fwdHeaderName).unordered());
+                            type.getImplementationIncludes(true).stream(),
+                            Stream.of(getDependentSuperTypes(type, true), getDependentNonSuperTypes(type, true)).flatMap(Collection::stream).map(CodeGenerator::fwdHeaderName));
                 })
                 .distinct()
                 .sorted(INCLUDE_SORTER)
@@ -101,9 +102,9 @@ public class CodeGenerator {
                 types.stream()
                         .flatMap(type -> {
                             return Stream.of(
-                                    type.getIncludes(false).stream(),
-                                    type.getDependentSuperTypes(false).stream().map(CodeGenerator::headerName),
-                                    type.getDependentNonSuperTypes(false).stream().map(CodeGenerator::fwdHeaderName))
+                                    type.getImplementationIncludes(false).stream(),
+                                    getDependentSuperTypes(type, false).stream().map(CodeGenerator::headerName),
+                                    getDependentNonSuperTypes(type, false).stream().map(CodeGenerator::fwdHeaderName))
                                     .flatMap(Function.identity());
                         }))
                 .distinct()
@@ -123,9 +124,9 @@ public class CodeGenerator {
         final Collection<String> includes = types.stream()
                 .flatMap(type -> {
                     return Stream.of(
-                            type.getIncludes(false).stream(),
-                            type.getDependentSuperTypes(false).stream().map(CodeGenerator::headerName),
-                            type.getDependentNonSuperTypes(false).stream().map(CodeGenerator::headerName))
+                            type.getImplementationIncludes(false).stream(),
+                            getDependentSuperTypes(type, false).stream().map(CodeGenerator::headerName),
+                            getDependentNonSuperTypes(type, false).stream().map(CodeGenerator::headerName))
                             .flatMap(Function.identity());
                 })
                 .distinct()
@@ -141,7 +142,7 @@ public class CodeGenerator {
                 .render(Locale.ROOT, LINE_WRAP);
     }
 
-    public static List<String> computeBaseType(JavaClass c) {
+    public static List<String> computeBaseType(JavaType c) {
         // Compute base class name.
         // Anything after the first '$' sign is dropped.
         final String className = c.getClassName();
@@ -158,70 +159,6 @@ public class CodeGenerator {
         return result;
     }
 
-    public static interface JavaClass {
-        /**
-         * Retrieves the namespace of the class.
-         *
-         * @return List of strings that make up the package name of the class.
-         */
-        public List<String> getNamespace();
-
-        /**
-         * Retrieves the class name.
-         *
-         * @return Class name of the type, excluding the namespace.
-         */
-        public String getClassName();
-
-        /**
-         * Retrieve list of dependent types required to render the type
-         * declaration.
-         *
-         * The includes contain types used for super types only.
-         *
-         * @param publicOnly If set, only publicly used types are returned.
-         * @return List of dependent super types.
-         */
-        public Collection<JavaClass> getDependentSuperTypes(boolean publicOnly);
-
-        /**
-         * Retrieve list of dependent types required to render the type
-         * declaration.
-         *
-         * The includes contain types used in fields, and types used in methods.
-         *
-         * @param publicOnly If set, only publicly used types are returned.
-         * @return List of dependent non-super types.
-         */
-        public Collection<JavaClass> getDependentNonSuperTypes(boolean publicOnly);
-
-        /**
-         * Retrieve list of all types that this type inherits from.
-         *
-         * @return Model of super class and models of interfaces.
-         */
-        public Collection<?> getParentModels();
-
-        /**
-         * Retrieve list of includes required to make the type declarations
-         * functional.
-         *
-         * These includes are normal header files. Headers for dependent types
-         * are omitted.
-         *
-         * @param publicOnly If set, only publicly used includes are returned.
-         * @return List of includes.
-         */
-        public Collection<String> getIncludes(boolean publicOnly);
-
-        /**
-         * Access the underlying model.
-         *
-         * @return Object representing the underlying model.
-         */
-        public JavaType getModel();
-    }
-
     public String getFwdHeaderName() {
         return fwdHeaderName(baseType);
     }
@@ -230,11 +167,11 @@ public class CodeGenerator {
         return headerName(baseType);
     }
 
-    public static String fwdHeaderName(JavaClass c) {
+    public static String fwdHeaderName(JavaType c) {
         return fwdHeaderName(computeBaseType(c));
     }
 
-    public static String headerName(JavaClass c) {
+    public static String headerName(JavaType c) {
         return headerName(computeBaseType(c));
     }
 
@@ -283,7 +220,7 @@ public class CodeGenerator {
      *
      * @return All types for this code generator.
      */
-    public Collection<JavaClass> getTypes() {
+    public Collection<JavaType> getTypes() {
         return unmodifiableCollection(types);
     }
 
@@ -319,30 +256,30 @@ public class CodeGenerator {
      * @return Types ordered such that any base types of a Type are before that
      * Type.
      */
-    public Collection<JavaClass> getReorderTypesForInheritance() {
-        final Collection<JavaClass> result = new LinkedHashSet<>();
+    public Collection<JavaType> getReorderTypesForInheritance() {
+        final Collection<JavaType> result = new LinkedHashSet<>();
 
         /**
          * Helper class that cascades recursion, ensuring that if a type is
          * added with priority, its types are also added with priority.
          */
-        class ResultAddFn implements Consumer<JavaClass> {
+        class ResultAddFn implements Consumer<JavaType> {
             /**
              * Set of types which are to be added, but haven't yet been added,
              * because we are scanning their dependencies.
              */
-            final Set<JavaClass> inProgress = new HashSet<>();
+            final Set<JavaType> inProgress = new HashSet<>();
 
             @Override
-            public void accept(JavaClass type) {
+            public void accept(JavaType type) {
                 if (result.contains(type)) return;
 
                 if (!inProgress.add(type))
                     throw new IllegalStateException("Recursion in dependencies.");
                 try {
-                    final Collection<?> parentModels = type.getParentModels();
+                    final Collection<?> parentModels = getParentModels(type);
                     types.stream()
-                            .filter(t -> parentModels.contains(t.getModel()))
+                            .filter(t -> parentModels.contains(t))
                             .forEach(this); // Recursion
                     result.add(type);
                 } finally {
@@ -354,6 +291,109 @@ public class CodeGenerator {
         types.forEach(new ResultAddFn());
         return result;
     }
+
+    private static Collection<JavaType> getParentModels(JavaType model) {
+        return Stream.concat(Stream.of(model.getSuperClass()).filter(Objects::nonNull), model.getInterfaces().stream())
+                .flatMap(c -> {
+                    return c.visit(new BoundTemplate.Visitor<Stream<JavaType>>() {
+                        @Override
+                        public Stream<JavaType> apply(BoundTemplate.VarBinding b) {
+                            return Stream.empty();
+                        }
+
+                        @Override
+                        public Stream<JavaType> apply(BoundTemplate.ClassBinding b) {
+                            return Stream.of(b.getType());
+                        }
+
+                        @Override
+                        public Stream<JavaType> apply(BoundTemplate.ArrayBinding b) {
+                            return b.getType().visit(this);
+                        }
+
+                        @Override
+                        public Stream<JavaType> apply(BoundTemplate.Any b) {
+                            return Stream.empty();
+                        }
+                    });
+                })
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Retrieve list of dependent types required to render the type declaration.
+     *
+     * The includes contain types used for super types only.
+     *
+     * @param model The model for which to figure out the dependent super types.
+     * @param publicOnly If set, only publicly used types are returned.
+     * @return List of dependent super types.
+     */
+    private static Collection<JavaType> getDependentSuperTypes(JavaType model, boolean publicOnly) {
+        final Stream<BoundTemplate> superTypes = Stream.concat(Stream.of(model.getSuperClass()).filter(Objects::nonNull),
+                model.getInterfaces().stream());
+
+        return superTypes
+                .flatMap(c -> c.visit(DEPENDENT_TYPES_TEMPLATE_VISITOR))
+                .distinct()
+                .filter(c -> !(c instanceof PrimitiveType))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieve list of dependent types required to render the type declaration.
+     *
+     * The includes contain types used in fields, and types used in methods.
+     *
+     * @param model The model for which to figure out the dependent super types.
+     * @param publicOnly If set, only publicly used types are returned.
+     * @return List of dependent non-super types.
+     */
+    private static Collection<JavaType> getDependentNonSuperTypes(JavaType model, boolean publicOnly) {
+        final Stream<BoundTemplate> fields;
+        if (publicOnly) {
+            fields = model.getFields().stream()
+                    .filter(field -> field.isGetterFn() || field.isSetterFn())
+                    .map(field -> field.getVarType())
+                    .filter(BoundTemplate.class::isInstance)
+                    .map(BoundTemplate.class::cast);
+        } else {
+            fields = model.getFields().stream()
+                    .flatMap(field -> Stream.of(field.getType(), field.getVarType()))
+                    .filter(BoundTemplate.class::isInstance)
+                    .map(BoundTemplate.class::cast);
+        }
+
+        return fields
+                .flatMap(c -> c.visit(DEPENDENT_TYPES_TEMPLATE_VISITOR))
+                .distinct()
+                .filter(c -> !(c instanceof PrimitiveType))
+                .collect(Collectors.toList());
+    }
+
+    private static final BoundTemplate.Visitor<Stream<JavaType>> DEPENDENT_TYPES_TEMPLATE_VISITOR = new BoundTemplate.Visitor<Stream<JavaType>>() {
+        @Override
+        public Stream<JavaType> apply(BoundTemplate.VarBinding b) {
+            return Stream.empty();
+        }
+
+        @Override
+        public Stream<JavaType> apply(BoundTemplate.ClassBinding b) {
+            return Stream.concat(
+                    Stream.of(b.getType()),
+                    b.getBindings().stream().flatMap(x -> x.visit(this)));
+        }
+
+        @Override
+        public Stream<JavaType> apply(BoundTemplate.ArrayBinding b) {
+            return b.getType().visit(this);
+        }
+
+        @Override
+        public Stream<JavaType> apply(BoundTemplate.Any b) {
+            return Stream.empty();
+        }
+    };
 
     static {
         try (Reader accessorFile = new InputStreamReader(CodeGenerator.class.getResourceAsStream("codeGenerator.stg"), UTF_8)) {
@@ -385,7 +425,7 @@ public class CodeGenerator {
     /**
      * List of types that are to be rendered by this code generator.
      */
-    private final Set<JavaClass> types = new TreeSet<>(Comparator.comparing(JavaClass::getClassName));
+    private final Set<JavaType> types = new TreeSet<>(Comparator.comparing(JavaType::getClassName));
     /**
      * Base type.
      *
