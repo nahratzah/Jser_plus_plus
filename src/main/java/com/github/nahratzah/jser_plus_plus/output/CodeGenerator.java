@@ -80,7 +80,7 @@ public class CodeGenerator {
         final Collection<String> includes = types.stream()
                 .flatMap(type -> {
                     return Stream.concat(
-                            type.getImplementationIncludes(true).stream(),
+                            type.getImplementationIncludes(true),
                             Stream.of(getDependentSuperTypes(type, true), getDependentNonSuperTypes(type, true)).flatMap(Collection::stream).map(CodeGenerator::fwdHeaderName));
                 })
                 .distinct()
@@ -102,7 +102,7 @@ public class CodeGenerator {
                 types.stream()
                         .flatMap(type -> {
                             return Stream.of(
-                                    type.getImplementationIncludes(false).stream(),
+                                    type.getImplementationIncludes(false),
                                     getDependentSuperTypes(type, false).stream().map(CodeGenerator::headerName),
                                     getDependentNonSuperTypes(type, false).stream().map(CodeGenerator::fwdHeaderName))
                                     .flatMap(Function.identity());
@@ -124,7 +124,7 @@ public class CodeGenerator {
         final Collection<String> includes = types.stream()
                 .flatMap(type -> {
                     return Stream.of(
-                            type.getImplementationIncludes(false).stream(),
+                            type.getImplementationIncludes(false),
                             getDependentSuperTypes(type, false).stream().map(CodeGenerator::headerName),
                             getDependentNonSuperTypes(type, false).stream().map(CodeGenerator::headerName))
                             .flatMap(Function.identity());

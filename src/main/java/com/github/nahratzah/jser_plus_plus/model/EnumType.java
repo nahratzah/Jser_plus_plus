@@ -4,7 +4,6 @@ import com.github.nahratzah.jser_plus_plus.config.Config;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import java.util.Arrays;
 import java.util.Collection;
-import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.unmodifiableList;
 import java.util.List;
 import java.util.Locale;
@@ -34,10 +33,11 @@ public class EnumType extends ClassType {
     }
 
     @Override
-    public Collection<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
-        if (!recursionGuard.add(this)) return EMPTY_LIST;
-        return Stream.concat(super.getImplementationIncludes(publicOnly, recursionGuard).stream(), EXTRA_PUBLIC_INCLUDES.stream())
-                .collect(Collectors.toList());
+    public Stream<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
+        if (!recursionGuard.add(this)) return Stream.empty();
+        return Stream.concat(
+                super.getImplementationIncludes(publicOnly, recursionGuard),
+                EXTRA_PUBLIC_INCLUDES.stream());
     }
 
     @Override

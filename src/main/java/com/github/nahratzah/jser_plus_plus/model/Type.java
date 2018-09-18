@@ -5,6 +5,7 @@ import com.github.nahratzah.jser_plus_plus.input.Context;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * All types derive from type.
@@ -19,7 +20,7 @@ public interface Type {
      * declarations, not implementations.
      * @return Collection of includes.
      */
-    public default Collection<String> getIncludes(boolean publicOnly) {
+    public default Stream<String> getIncludes(boolean publicOnly) {
         return getIncludes(publicOnly, new HashSet<>());
     }
 
@@ -33,7 +34,7 @@ public interface Type {
      * collection.
      * @return Collection of includes.
      */
-    public Collection<String> getIncludes(boolean publicOnly, Set<JavaType> recursionGuard);
+    public Stream<String> getIncludes(boolean publicOnly, Set<JavaType> recursionGuard);
 
     /**
      * Create a {@link Type} from a {@link CfgType configuration type}.

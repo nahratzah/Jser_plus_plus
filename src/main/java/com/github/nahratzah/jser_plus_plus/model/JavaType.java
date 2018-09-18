@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An interface for a java type.
@@ -101,8 +102,8 @@ public interface JavaType {
      *
      * @return List of includes to use this type.
      */
-    public default Collection<String> getIncludes() {
-        return EMPTY_LIST;
+    public default Stream<String> getIncludes() {
+        return Stream.empty();
     }
 
     /**
@@ -112,7 +113,7 @@ public interface JavaType {
      * declarations, not implementations.
      * @return Collection of includes.
      */
-    public default Collection<String> getImplementationIncludes(boolean publicOnly) {
+    public default Stream<String> getImplementationIncludes(boolean publicOnly) {
         return getImplementationIncludes(publicOnly, new HashSet<>());
     }
 
@@ -126,7 +127,7 @@ public interface JavaType {
      * collection.
      * @return Collection of includes.
      */
-    public Collection<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard);
+    public Stream<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard);
 
     /**
      * Retrieve the fields of this type.

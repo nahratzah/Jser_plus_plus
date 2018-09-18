@@ -68,7 +68,7 @@ public interface BoundTemplate extends Type {
     }
 
     @Override
-    public default Collection<String> getIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
+    public default Stream<String> getIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
         final Visitor<Stream<String>> includeVisitor = new Visitor<Stream<String>>() {
             @Override
             public Stream<String> apply(VarBinding b) {
@@ -78,7 +78,7 @@ public interface BoundTemplate extends Type {
             @Override
             public Stream<String> apply(ClassBinding b) {
                 return Stream.concat(
-                        b.getType().getIncludes().stream(),
+                        b.getType().getIncludes(),
                         b.getBindings().stream().flatMap(t -> t.visit(this)));
             }
 
@@ -96,7 +96,7 @@ public interface BoundTemplate extends Type {
             }
         };
 
-        return visit(includeVisitor).collect(Collectors.toList());
+        return visit(includeVisitor);
     }
 
     /**

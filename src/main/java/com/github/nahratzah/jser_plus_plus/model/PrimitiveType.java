@@ -3,12 +3,12 @@ package com.github.nahratzah.jser_plus_plus.model;
 import java.util.Arrays;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * A java primitive type.
@@ -89,13 +89,13 @@ public enum PrimitiveType implements JavaType {
     }
 
     @Override
-    public Collection<String> getIncludes() {
-        return singleton("java/primitives.h");
+    public Stream<String> getIncludes() {
+        return Stream.of("java/primitives.h");
     }
 
     @Override
-    public Collection<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
-        if (!recursionGuard.add(this)) return EMPTY_LIST;
+    public Stream<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
+        if (!recursionGuard.add(this)) return Stream.empty();
         return getIncludes();
     }
 

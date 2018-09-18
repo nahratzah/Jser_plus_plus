@@ -1,11 +1,8 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
 import com.github.nahratzah.jser_plus_plus.config.Includes;
-import java.util.Collection;
-import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -20,11 +17,12 @@ public class CxxType implements Type {
     }
 
     @Override
-    public Collection<String> getIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
+    public Stream<String> getIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
         if (publicOnly)
-            return unmodifiableList(includes.getDeclarationIncludes());
-        return Stream.concat(includes.getDeclarationIncludes().stream(), includes.getImplementationIncludes().stream())
-                .collect(Collectors.toList());
+            return includes.getDeclarationIncludes().stream();
+        return Stream.concat(
+                includes.getDeclarationIncludes().stream(),
+                includes.getImplementationIncludes().stream());
     }
 
     public String getTemplate() {

@@ -232,27 +232,26 @@ public class ClassType implements JavaType {
     }
 
     @Override
-    public Collection<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
-        if (!recursionGuard.add(this)) return EMPTY_LIST;
+    public Stream<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
+        if (!recursionGuard.add(this)) return Stream.empty();
 
         final Stream<String> parentTypes = Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull), getInterfaces().stream())
-                .flatMap(c -> c.getIncludes(publicOnly, recursionGuard).stream());
+                .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
 
         final Stream<String> fieldIncludes;
         if (publicOnly) {
             fieldIncludes = getFields().stream()
                     .filter(field -> field.isGetterFn() || field.isSetterFn())
                     .map(field -> field.getVarType())
-                    .flatMap(c -> c.getIncludes(publicOnly, recursionGuard).stream());
+                    .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
         } else {
             fieldIncludes = getFields().stream()
                     .flatMap(field -> Stream.of(field.getType(), field.getVarType()))
-                    .flatMap(c -> c.getIncludes(publicOnly, recursionGuard).stream());
+                    .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
         }
 
         return Stream.of(parentTypes, fieldIncludes)
-                .flatMap(Function.identity())
-                .collect(Collectors.toList());
+                .flatMap(Function.identity());
     }
 
     public long getSerialVersionUID() {
