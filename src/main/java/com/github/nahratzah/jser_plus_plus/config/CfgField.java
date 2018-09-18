@@ -33,19 +33,19 @@ public class CfgField {
         this.visibility = visibility;
     }
 
-    public boolean isFinal() {
+    public Boolean isFinal() {
         return finalVar;
     }
 
-    public void setFinal(boolean finalVar) {
+    public void setFinal(Boolean finalVar) {
         this.finalVar = finalVar;
     }
 
-    public boolean isConst() {
+    public Boolean isConst() {
         return constVar;
     }
 
-    public void setConst(boolean constVar) {
+    public void setConst(Boolean constVar) {
         this.constVar = constVar;
     }
 
@@ -72,9 +72,9 @@ public class CfgField {
     @JsonProperty("visibility")
     private Visibility visibility;
     @JsonProperty("final")
-    private boolean finalVar = false;
+    private Boolean finalVar = null;
     @JsonProperty("const")
-    private boolean constVar = false;
+    private Boolean constVar = null;
     @JsonProperty("doc_string")
     private String docString = null;
     @JsonProperty(value = "type", required = true)

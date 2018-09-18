@@ -208,21 +208,29 @@ struct _accessor_for_type_<Base, java::G::pack_t<>>
 template<typename Type>
 struct _basic_ref_inheritance {
   static_assert(
-      java::type_traits::is_generic_v<Type>,
+      java::type_traits::is_generic_v<std::remove_const_t<Type>>,
       "Must use generics as template arguments.");
 
  private:
   // A dummy base used to figure out accessor information prior to us deciding
   // on the actual base type to use.
-  using obj_base = _accessor_base<java::_erased::java::lang::Object>;
+  using obj_base = ::std::conditional_t<
+      ::std::is_const_v<Type>,
+      _accessor_base<const java::_erased::java::lang::Object>,
+      _accessor_base<java::_erased::java::lang::Object>>;
+  ///\brief Type-erased type held by basic_ref, without considering const-ness.
+  using erased_type_without_constness = typename _accessor_for_type_<obj_base, ::std::remove_const_t<Type>>::erased_type;
 
  public:
   ///\brief Type-erased type held by basic_ref.
-  using erased_type = typename _accessor_for_type_<obj_base, Type>::erased_type;
+  using erased_type = ::std::conditional_t<
+      ::std::is_const_v<Type>,
+      const erased_type_without_constness,
+      erased_type_without_constness>;
   ///\brief Base type that all accessors (ultimately) inherit from.
   using base_type = _accessor_base<erased_type>;
   ///\brief Accessor type.
-  using accessor_type = _accessor_for_type<base_type, Type>;
+  using accessor_type = _accessor_for_type<base_type, ::std::remove_const_t<Type>>;
 
   // Validation
   static_assert(std::is_base_of_v<base_type, accessor_type>,
@@ -486,7 +494,7 @@ class basic_ref final
   ///
   ///\note Even if the type is not self-assignable, it will still be
   ///copy/move constructible.
-  template<bool Enable = java::type_traits::is_assignable_v<Type, Type>>
+  template<bool Enable = java::type_traits::is_assignable_v<::std::remove_const_t<Type>, ::std::remove_const_t<Type>>>
   JSER_INLINE auto operator=(const basic_ref& other)
       noexcept(std::is_nothrow_copy_assignable_v<ptr_type>)
   -> std::enable_if_t<Enable, basic_ref&> {
@@ -503,7 +511,7 @@ class basic_ref final
   ///
   ///\note Even if the type is not self-assignable, it will still be
   ///copy/move constructible.
-  template<bool Enable = java::type_traits::is_assignable_v<Type, Type>>
+  template<bool Enable = java::type_traits::is_assignable_v<::std::remove_const_t<Type>, ::std::remove_const_t<Type>>>
   JSER_INLINE auto operator=(basic_ref&& other)
       noexcept(std::is_nothrow_move_assignable_v<ptr_type>)
   -> std::enable_if_t<Enable, basic_ref&> {
@@ -531,7 +539,8 @@ class basic_ref final
   template<template<class> class OPtrImpl, typename OType>
   JSER_INLINE auto operator=(const basic_ref<OPtrImpl, OType>& other) noexcept
   -> std::enable_if_t<
-      java::type_traits::is_assignable_v<Type, OType>,
+      java::type_traits::is_assignable_v<::std::remove_const_t<Type>, ::std::remove_const_t<OType>>
+      && (::std::is_const_v<Type> || !::std::is_const_v<OType>),
       basic_ref&> {
     if constexpr(std::is_convertible_v<typename basic_ref<OPtrImpl, OType>::ptr_type, ptr_type>) {
       // Use implicit cast if possible.
@@ -552,7 +561,8 @@ class basic_ref final
   template<template<class> class OPtrImpl, typename OType>
   JSER_INLINE auto operator=(basic_ref<OPtrImpl, OType>&& other) noexcept
   -> std::enable_if_t<
-      java::type_traits::is_assignable_v<Type, OType>,
+      java::type_traits::is_assignable_v<::std::remove_const_t<Type>, ::std::remove_const_t<OType>>
+      && (::std::is_const_v<Type> || !::std::is_const_v<OType>),
       basic_ref&> {
     if constexpr(std::is_convertible_v<typename basic_ref<OPtrImpl, OType>::ptr_type, ptr_type>) {
       // Use implicit cast if possible.
@@ -573,8 +583,9 @@ class basic_ref final
   template<template<class> class OPtrImpl, typename OType>
   friend JSER_INLINE auto swap(const basic_ref& x, const basic_ref<OPtrImpl, OType>& y) noexcept
   -> std::enable_if_t<
-      java::type_traits::is_assignable_v<Type, OType>
-      && java::type_traits::is_assignable_v<OType, Type>> {
+      java::type_traits::is_assignable_v<::std::remove_const_t<Type>, ::std::remove_const_t<OType>>
+      && java::type_traits::is_assignable_v<::std::remove_const_t<OType>, ::std::remove_const_t<Type>>
+      && (::std::is_const_v<Type> == ::std::is_const_v<OType>)> {
     if constexpr(std::is_swappable_with_v<typename basic_ref<OPtrImpl, OType>::ptr_type&, ptr_type&>) {
       using std::swap;
       swap(x.p_, y.p_);

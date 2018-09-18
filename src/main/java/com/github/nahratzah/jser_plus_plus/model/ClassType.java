@@ -105,10 +105,11 @@ public class ClassType implements JavaType {
 
     private void initFields(Context ctx, ClassConfig classCfg, Map<String, String> argRename, ObjectStreamClass streamClass) {
         class IntermediateFieldDescr {
-            public IntermediateFieldDescr(String name, Class<?> classType, Type reflectType) {
-                this.name = name;
-                this.classType = classType;
+            public IntermediateFieldDescr(String name, Class<?> classType, Type reflectType, Field reflectField) {
+                this.name = requireNonNull(name);
+                this.classType = requireNonNull(classType);
                 this.reflectType = reflectType;
+                this.reflectField = reflectField;
             }
 
             /**
@@ -123,6 +124,10 @@ public class ClassType implements JavaType {
              * Type of the field, found via reflection. May be null.
              */
             public final Type reflectType;
+            /**
+             * Field found using reflection. May be null.
+             */
+            public final Field reflectField;
         }
 
         // Generate fields based on reflection logic.
@@ -133,20 +138,31 @@ public class ClassType implements JavaType {
 
                     // Fill in the reflect type only if the class implementation
                     // and the serialization code agree on the type.
-                    Type reflectType = null;
+                    Type reflectType;
+                    Field reflectField;
                     try {
-                        final Field reflectField = this.c.getField(name);
-                        if (Objects.equals(reflectField.getType().getName(), type.getName()))
+                        reflectField = this.c.getField(name);
+                        if (Objects.equals(reflectField.getType().getName(), type.getName())) {
                             reflectType = reflectField.getGenericType();
+                        } else {
+                            reflectType = null;
+                            reflectField = null;
+                        }
                     } catch (NoSuchFieldException ex) {
                         reflectType = null;
+                        reflectField = null;
                     }
-                    return new IntermediateFieldDescr(name, type, reflectType);
+                    return new IntermediateFieldDescr(name, type, reflectType, reflectField);
                 })
                 .map(iField -> {
                     final Type visitType = iField.reflectType != null ? iField.reflectType : iField.classType;
                     final BoundTemplate type = ReflectUtil.visitType(visitType, new BoundsMapping(ctx, argRename));
-                    return new FieldType(iField.name, type);
+
+                    final FieldType fieldType = new FieldType(iField.name, type);
+                    if (iField.reflectField != null) {
+                        fieldType.setFinal(Modifier.isFinal(iField.reflectField.getModifiers()));
+                    }
+                    return fieldType;
                 })
                 .collect(Collectors.toList());
         // Store names of reflected fields, for quick access.
@@ -176,8 +192,10 @@ public class ClassType implements JavaType {
                         iField.setVisibility(fieldCfg.getVisibility());
                     iField.setGetterFn(fieldCfg.getGetterFn());
                     iField.setSetterFn(fieldCfg.getSetterFn());
-                    iField.setFinal(fieldCfg.isFinal());
-                    iField.setConst(fieldCfg.isConst());
+                    if (fieldCfg.isFinal() != null)
+                        iField.setFinal(fieldCfg.isFinal());
+                    if (fieldCfg.isConst() != null)
+                        iField.setConst(fieldCfg.isConst());
                     if (fieldCfg.getDocString() != null)
                         iField.setDocString(fieldCfg.getDocString());
                     if (fieldCfg.getType() != null)

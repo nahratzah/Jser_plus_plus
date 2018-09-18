@@ -118,6 +118,10 @@ public class BoundTemplateRenderer implements AttributeRenderer {
          * If set and emitting class types, render a reference to const type.
          */
         public boolean emitConst = false;
+        /**
+         * If rendering a field, mark the field-pointer const.
+         */
+        public boolean emitFinal = false;
 
         /**
          * Apply configuration key-value item.
@@ -148,6 +152,8 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                 accessorType = true;
             else if (Objects.equals(key, "const"))
                 emitConst = true;
+            else if (Objects.equals(key, "final"))
+                emitFinal = true;
             else
                 throw new IllegalArgumentException("Invalid key \"" + key + "\"");
         }
@@ -184,20 +190,35 @@ public class BoundTemplateRenderer implements AttributeRenderer {
     }
 
     private static enum ClassWrapper {
-        IDENTITY("", ""),
-        RETURN("::java::return_t<", ">"),
-        PARAM("::java::param_t<", ">"),
-        FIELD("::java::field_t<", ">");
+        IDENTITY("", "", false),
+        RETURN("::java::return_t<", ">", true),
+        PARAM("::java::param_t<", ">", true),
+        FIELD("::java::field_t<", ">", true);
 
-        private ClassWrapper(String prefix, String suffix) {
+        private ClassWrapper(String prefix, String suffix, boolean isClassEmitter) {
             this.prefix = requireNonNull(prefix);
             this.suffix = requireNonNull(suffix);
+            this.isClassEmitter = isClassEmitter;
         }
 
         private final String prefix, suffix;
+        private final boolean isClassEmitter;
 
-        public String apply(String s, boolean emitConst) {
-            return prefix + (emitConst ? "const " : "") + s + suffix;
+        public String apply(String s, Config config) {
+            final StringBuilder result = new StringBuilder()
+                    .append(prefix)
+                    .append(s)
+                    .append(suffix);
+
+            if (config.emitConst && isClassEmitter) {
+                result.insert(0, "::java::const_ref<");
+                result.append('>');
+            }
+
+            if (config.emitFinal && this == FIELD)
+                result.insert(0, "const ");
+
+            return result.toString();
         }
     }
 
@@ -320,7 +341,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
         @Override
         public String apply(BoundTemplate.VarBinding b) {
             if (config.classType != null)
-                return config.classType.apply("::java::type<" + b.getName() + ">", config.emitConst);
+                return config.classType.apply("::java::type<" + b.getName() + ">", config);
             if (config.accessorType)
                 throw new IllegalArgumentException("Variables do not have accessors.");
             return b.getName();
@@ -342,7 +363,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                 else
                     result = clsType + bindings.collect(Collectors.joining(", ", "<", ">"));
                 if (b.getType() instanceof PrimitiveType) return result;
-                return config.classType.apply(result, config.emitConst);
+                return config.classType.apply(result, config);
             }
 
             final String tagName = "::java::_tags" + clsType;
@@ -373,7 +394,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                     + ">";
 
             if (config.classType != null)
-                return config.classType.apply(arrayObj, config.emitConst);
+                return config.classType.apply(arrayObj, config);
             if (config.accessorType)
                 throw new IllegalArgumentException("Arrays do not have accessors.");
             return "::java::type_of<" + arrayObj + ">";
@@ -391,7 +412,7 @@ public class BoundTemplateRenderer implements AttributeRenderer {
                     + Stream.concat(extendStream, superStream).collect(Collectors.joining(", ", "<", ">"));
 
             if (config.classType != null)
-                return config.classType.apply("::java::type<" + type + ">", config.emitConst);
+                return config.classType.apply("::java::type<" + type + ">", config);
             if (config.accessorType)
                 throw new IllegalArgumentException("Unbound typres do not have accessors.");
             return type;

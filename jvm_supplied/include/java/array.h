@@ -341,6 +341,46 @@ class basic_ref<PtrImpl, Type*> final {
   ptr_type p_ = nullptr;
 };
 
+template<template<class> class PtrImpl, typename Type>
+class basic_ref<PtrImpl, Type*const> final {
+ protected:
+  using ptr_type = PtrImpl<::java::_erased::java::array_intf>;
+
+ public:
+  using size_type = std::size_t;
+
+  JSER_INLINE basic_ref() = default;
+  JSER_INLINE basic_ref(const basic_ref&) = default;
+  JSER_INLINE basic_ref(basic_ref&&) = default;
+  JSER_INLINE basic_ref& operator=(const basic_ref&) = default;
+  JSER_INLINE basic_ref& operator=(basic_ref&&) = default;
+  JSER_INLINE ~basic_ref() noexcept = default;
+
+  JSER_INLINE explicit operator bool() const noexcept {
+    return bool(p_);
+  }
+
+  JSER_INLINE auto operator!() const noexcept -> bool {
+    return !p_;
+  }
+
+  JSER_INLINE auto operator==(::std::nullptr_t np) const noexcept -> bool {
+    return p_ == nullptr;
+  }
+
+  JSER_INLINE auto operator!=(::std::nullptr_t np) const noexcept -> bool {
+    return p_ != nullptr;
+  }
+
+  JSER_INLINE auto size() const noexcept -> size_type {
+    if (!*this) return 0;
+    return p_->size();
+  }
+
+ private:
+  ptr_type p_ = nullptr;
+};
+
 namespace {
 
 template<typename Type, std::size_t Dimensions>
