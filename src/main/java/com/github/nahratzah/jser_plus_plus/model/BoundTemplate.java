@@ -4,7 +4,6 @@ import com.github.nahratzah.jser_plus_plus.input.Context;
 import java.util.ArrayList;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import java.util.List;
 import static java.util.Objects.requireNonNull;
@@ -304,7 +303,9 @@ public interface BoundTemplate extends Type {
 
         @Override
         public String toString() {
-            return type.toString() + IntStream.range(0, extents).mapToObj(i -> "[]").collect(Collectors.joining());
+            String typeStr = type.toString();
+            if (typeStr.indexOf(' ') != -1) typeStr = "(" + typeStr + ")";
+            return typeStr + IntStream.range(0, extents).mapToObj(i -> "[]").collect(Collectors.joining());
         }
 
         private BoundTemplate type;
@@ -342,7 +343,10 @@ public interface BoundTemplate extends Type {
 
         @Override
         public Set<String> getUnresolvedTemplateNames() {
-            return emptySet();
+            return Stream.concat(superTypes.stream(), extendTypes.stream())
+                    .map(BoundTemplate::getUnresolvedTemplateNames)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toSet());
         }
 
         /**
@@ -360,9 +364,29 @@ public interface BoundTemplate extends Type {
 
         @Override
         public String toString() {
-            final String spec = Stream.concat(superTypes.stream().map(t -> " super " + t), extendTypes.stream().map(t -> " extend " + t))
-                    .collect(Collectors.joining());
-            return "?" + spec;
+            final StringBuilder spec = new StringBuilder("?");
+            if (!superTypes.isEmpty()) {
+                spec
+                        .append(" super ")
+                        .append(superTypes.stream()
+                                .map(t -> {
+                                    if (t instanceof Any) return "(" + t + ")";
+                                    return t.toString();
+                                })
+                                .collect(Collectors.joining(" & ")));
+            }
+            if (!extendTypes.isEmpty()) {
+                spec
+                        .append(" extends ")
+                        .append(extendTypes.stream()
+                                .map(t -> {
+                                    if (t instanceof Any) return "(" + t + ")";
+                                    return t.toString();
+                                })
+                                .collect(Collectors.joining(" & ")));
+            }
+
+            return spec.toString();
         }
 
         private List<BoundTemplate> superTypes;
