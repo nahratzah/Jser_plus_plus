@@ -37,6 +37,13 @@ public interface Type {
     public Stream<String> getIncludes(boolean publicOnly, Set<JavaType> recursionGuard);
 
     /**
+     * Retrieve all {@link JavaType java types} that make up this type.
+     *
+     * @return All java types that make up this type.
+     */
+    public Stream<JavaType> getAllJavaTypes();
+
+    /**
      * Create a {@link Type} from a {@link CfgType configuration type}.
      *
      * @param cfgType A type in the configuration.

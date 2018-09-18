@@ -25,6 +25,11 @@ public class CxxType implements Type {
                 includes.getImplementationIncludes().stream());
     }
 
+    @Override
+    public Stream<JavaType> getAllJavaTypes() {
+        return Stream.empty();
+    }
+
     public String getTemplate() {
         return template;
     }

@@ -32,5 +32,10 @@ public class ConstType implements Type {
         return type.getIncludes(publicOnly, recursionGuard);
     }
 
+    @Override
+    public Stream<JavaType> getAllJavaTypes() {
+        return type.getAllJavaTypes();
+    }
+
     private Type type;
 }

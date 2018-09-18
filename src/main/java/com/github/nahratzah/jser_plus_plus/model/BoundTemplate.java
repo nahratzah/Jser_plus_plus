@@ -166,6 +166,11 @@ public interface BoundTemplate extends Type {
             return singleton(name);
         }
 
+        @Override
+        public Stream<JavaType> getAllJavaTypes() {
+            return Stream.empty();
+        }
+
         /**
          * Visit specialization.
          *
@@ -213,6 +218,13 @@ public interface BoundTemplate extends Type {
 
         public void setBindings(List<BoundTemplate> bindings) {
             this.bindings = bindings;
+        }
+
+        @Override
+        public Stream<JavaType> getAllJavaTypes() {
+            return Stream.concat(
+                    Stream.of(getType()),
+                    bindings.stream().flatMap(Type::getAllJavaTypes));
         }
 
         @Override
@@ -284,6 +296,11 @@ public interface BoundTemplate extends Type {
         }
 
         @Override
+        public Stream<JavaType> getAllJavaTypes() {
+            return getType().getAllJavaTypes();
+        }
+
+        @Override
         public Set<String> getUnresolvedTemplateNames() {
             return type.getUnresolvedTemplateNames();
         }
@@ -339,6 +356,12 @@ public interface BoundTemplate extends Type {
 
         public void setExtendTypes(List<BoundTemplate> extendTypes) {
             this.extendTypes = extendTypes;
+        }
+
+        @Override
+        public Stream<JavaType> getAllJavaTypes() {
+            return Stream.concat(getSuperTypes().stream(), getExtendTypes().stream())
+                    .flatMap(Type::getAllJavaTypes);
         }
 
         @Override

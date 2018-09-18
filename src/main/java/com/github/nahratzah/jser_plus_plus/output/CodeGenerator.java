@@ -1,9 +1,9 @@
 package com.github.nahratzah.jser_plus_plus.output;
 
 import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
-import com.github.nahratzah.jser_plus_plus.model.ConstType;
 import com.github.nahratzah.jser_plus_plus.model.JavaType;
 import com.github.nahratzah.jser_plus_plus.model.PrimitiveType;
+import com.github.nahratzah.jser_plus_plus.model.Type;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -351,32 +351,18 @@ public class CodeGenerator {
      * @return List of dependent non-super types.
      */
     private static Collection<JavaType> getDependentNonSuperTypes(JavaType model, boolean publicOnly) {
-        final Stream<BoundTemplate> fields;
+        final Stream<Type> fields;
         if (publicOnly) {
             fields = model.getFields().stream()
                     .filter(field -> field.isGetterFn() || field.isSetterFn())
-                    .map(field -> field.getVarType())
-                    .map(type -> {
-                        if (type instanceof ConstType)
-                            return ((ConstType) type).getType();
-                        return type;
-                    })
-                    .filter(BoundTemplate.class::isInstance)
-                    .map(BoundTemplate.class::cast);
+                    .map(field -> field.getVarType());
         } else {
             fields = model.getFields().stream()
-                    .flatMap(field -> Stream.of(field.getType(), field.getVarType()))
-                    .map(type -> {
-                        if (type instanceof ConstType)
-                            return ((ConstType) type).getType();
-                        return type;
-                    })
-                    .filter(BoundTemplate.class::isInstance)
-                    .map(BoundTemplate.class::cast);
+                    .flatMap(field -> Stream.of(field.getType(), field.getVarType()));
         }
 
         return fields
-                .flatMap(c -> c.visit(DEPENDENT_TYPES_TEMPLATE_VISITOR))
+                .flatMap(Type::getAllJavaTypes)
                 .distinct()
                 .filter(c -> !(c instanceof PrimitiveType))
                 .collect(Collectors.toList());
