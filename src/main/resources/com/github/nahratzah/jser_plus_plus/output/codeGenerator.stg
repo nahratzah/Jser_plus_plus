@@ -20,7 +20,7 @@ $if (cdef.model.enum)$
   };
 
   // Enum constants.
-  $cdef.model.enumValues:{kv | $accessorEnumConstantMethodDeclaration(cdef, kv)$}; anchor, separator = "\n"$
+  $cdef.model.enumValues:{kv | $accessorEnumConstantMethod(cdef, kv, false)$}; anchor, separator = "\n"$
 $endif$
 };
 
@@ -118,7 +118,7 @@ $endif$
 
 accessorImpl(cdefs) ::= <<
 $if (cdef.model.enum)$
-$cdef.model.enumValues:{kv | $accessorEnumConstantMethod(cdef, kv)$}; anchor, separator = "\n"$
+$cdef.model.enumValues:{kv | $accessorEnumConstantMethod(cdef, kv, true)$}; anchor, separator = "\n"$
 $endif$
 
 $cdef.model.fields:{f|$fieldAccessors(cdef, f, true)$}; separator = "\n"$
@@ -250,23 +250,24 @@ $endif$
 %>
 
 
-accessorEnumConstantMethodDeclaration(cdef, kv) ::= <<
-///\brief Enum constant $kv.name$.
-static auto $kv.remappedName$()
--> ::$[cdef.namespace, cdef.className]; separator = "::"$;
->>
+accessorEnumConstantMethod(cdef, kv, doImplement=true) ::= <%
+$function(
+    name=kv.remappedName,
+    doImplement=doImplement,
+    return={::$[cdef.namespace, cdef.className]; separator = "::"$},
+    containingClass="_static_accessor",
+    containingClassTemplateArguments=cdef.templateArguments,
+    containingClassTemplateArgumentsImpl=[tagType(cdef.model), cdef.templateArguments],
+    body=accessorEnumConstantMethodBody(cdef, kv),
+    inline="JSER_INLINE",
+    static=true,
+    docString={\brief Enum constant $kv.name$.}
+    )$
+%>
 
 
-accessorEnumConstantMethod(cdef, kv) ::= <<
-$if (cdef.templateArguments)$
-template<$[cdef.templateArguments]:{x|typename $x$}; separator = ", "$>
-$endif$
-JSER_INLINE auto _static_accessor<$[cdef.tagName, cdef.templateArguments]; separator = ", "$>::$kv.remappedName$()
--> ::$[cdef.namespace, cdef.className]; separator = "::"$ {
-  return ::$[cdef.namespace, cdef.className]; separator = "::"$(
-      ::java::_direct(),
-      $["java", "_erased", cdef.namespace, cdef.className, kv.remappedName]; separator = "::"$());
-}
+accessorEnumConstantMethodBody(cdef, kv) ::= <<
+return $erasedType(cdef.model)$::$kv.remappedName$();
 >>
 
 
@@ -275,7 +276,7 @@ $function(
     name=kv.remappedName,
     docString={\brief Enum constant $kv.name$.$\n$\returns An instance of $[cdef.namespace, cdef.className]; separator = "::"$.},
     doImplement=doImplement,
-    return={cycle_ptr::cycle_gptr<$cdef.className$>},
+    return={::$[cdef.namespace, cdef.className]; separator = "::"$},
     containingClass=cdef.className,
     body={$classEnumConstantMethodBody(cdef, kv)$},
     static=true
@@ -284,8 +285,10 @@ $function(
 
 
 classEnumConstantMethodBody(cdef, kv) ::= <<
-static const cycle_ptr::cycle_gptr<$cdef.className$> impl =
-    cycle_ptr::make_cycle<$cdef.className$>($cdef.className$::enum_t::$kv.remappedName$);
+static const ::$[cdef.model.namespace, cdef.model.simpleName]; separator="::"$ impl =
+    ::$[cdef.model.namespace, cdef.model.simpleName]; separator="::"$(
+        ::java::_direct(),
+        cycle_ptr::make_cycle<$cdef.model.simpleName$>($cdef.model.simpleName$::enum_t::$kv.remappedName$));
 return impl;
 >>
 

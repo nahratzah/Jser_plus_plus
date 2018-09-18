@@ -79,3 +79,13 @@ $renderDocString_.(docString)$
 boundTemplateType(t, format="") ::= <%
 $t; format=format$
 %>
+
+
+tagType(model) ::= <%
+::$["java", "_tags", model.namespace, model.simpleName]; separator = "::"$
+%>
+
+
+erasedType(model) ::= <%
+::$["java", "_erased", model.namespace, model.simpleName]; separator = "::"$
+%>
