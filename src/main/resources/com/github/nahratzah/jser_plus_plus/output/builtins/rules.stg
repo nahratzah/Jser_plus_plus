@@ -24,7 +24,8 @@ function(name,
          virtual=false,
          inline=false,
          noexcept=false,
-         const=false
+         const=false,
+         initializers=[]
          ) ::= <<
 $if (!doImplement && docString)$$renderDocString(docString)$$endif$
 $if (doImplement)$$templateLine(containingClassTemplateArguments)$$endif$
@@ -41,7 +42,15 @@ $if (return)$$"\n"$-> $return; wrap = "\n    ", format="style=type, class=return
 $if (!doImplement)$$\\$
 ;
 $else$$\\$
-$" "${
+$if (initializers)$
+: $ initializers
+    : {initializer | $initializer.key$($initializer.value$)}
+    ; anchor, separator = ",\n"
+  $
+$else$$\\$
+$" "$$\\$
+$endif$
+{
   $body; anchor$
 }
 $endif$

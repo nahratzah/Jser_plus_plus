@@ -223,7 +223,7 @@ public class ClassType implements JavaType {
 
                         @Override
                         public ClassMemberModel apply(Constructor constructor) {
-                            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                            return new ClassMemberModel.ClassConstructor(ctx, cdef, constructor);
                         }
 
                         @Override
@@ -316,12 +316,12 @@ public class ClassType implements JavaType {
     }
 
     @Override
-    public BoundTemplate getSuperClass() {
+    public BoundTemplate.ClassBinding getSuperClass() {
         return this.superType;
     }
 
     @Override
-    public Collection<BoundTemplate> getInterfaces() {
+    public Collection<BoundTemplate.ClassBinding> getInterfaces() {
         return unmodifiableCollection(this.interfaceTypes);
     }
 
@@ -586,14 +586,14 @@ public class ClassType implements JavaType {
     /**
      * Type visitor that resolves a parent type to a bound template.
      */
-    private static class ParentTypeVisitor implements ReflectUtil.Visitor<BoundTemplate> {
+    private static class ParentTypeVisitor implements ReflectUtil.Visitor<BoundTemplate.ClassBinding> {
         public ParentTypeVisitor(Context ctx, Map<? super String, ? extends String> argRename) {
             this.ctx = requireNonNull(ctx);
             this.argRename = requireNonNull(argRename);
         }
 
         @Override
-        public BoundTemplate apply(Class<?> var) {
+        public BoundTemplate.ClassBinding apply(Class<?> var) {
             if (var.isArray())
                 throw new IllegalStateException("Parent type can not be an array.");
 
@@ -601,29 +601,29 @@ public class ClassType implements JavaType {
         }
 
         @Override
-        public BoundTemplate apply(TypeVariable<?> var) {
+        public BoundTemplate.ClassBinding apply(TypeVariable<?> var) {
             throw new IllegalStateException("Parent type can not be a generics variable.");
         }
 
         @Override
-        public BoundTemplate apply(GenericArrayType var) {
+        public BoundTemplate.ClassBinding apply(GenericArrayType var) {
             throw new IllegalStateException("Parent type can not be an array.");
         }
 
         @Override
-        public BoundTemplate apply(WildcardType var) {
+        public BoundTemplate.ClassBinding apply(WildcardType var) {
             throw new IllegalStateException("Parent type can not be a wildcard.");
         }
 
         @Override
-        public BoundTemplate apply(ParameterizedType var) {
+        public BoundTemplate.ClassBinding apply(ParameterizedType var) {
             final BoundsMapping boundsMapping = new BoundsMapping(ctx, argRename);
 
             final List<BoundTemplate> cArgs = Arrays.stream(var.getActualTypeArguments())
                     .map(x -> ReflectUtil.visitType(x, boundsMapping))
                     .collect(Collectors.toList());
 
-            return ReflectUtil.visitType(var.getRawType(), new ReflectUtil.Visitor<BoundTemplate>() {
+            return (BoundTemplate.ClassBinding) ReflectUtil.visitType(var.getRawType(), new ReflectUtil.Visitor<BoundTemplate>() {
                 @Override
                 public BoundTemplate apply(Class<?> var) {
                     if (var.isArray())
@@ -670,11 +670,11 @@ public class ClassType implements JavaType {
      * Super type of this class. May be null, in which case this type has no
      * super class.
      */
-    private BoundTemplate superType;
+    private BoundTemplate.ClassBinding superType;
     /**
      * List of interfaces used by this class.
      */
-    private List<BoundTemplate> interfaceTypes;
+    private List<BoundTemplate.ClassBinding> interfaceTypes;
     /**
      * The serial version UID of the class.
      */

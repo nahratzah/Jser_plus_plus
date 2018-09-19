@@ -104,7 +104,8 @@ $if (model.classMembers)$
                 return=m.returnType,
                 body=m.body,
                 argumentNames=m.argumentNames,
-                argumentTypes=m.argumentTypes
+                argumentTypes=m.argumentTypes,
+                initializers=m.initializers
               )$}
     ; anchor, separator = "\n\n"$
 $endif$

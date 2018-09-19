@@ -1,11 +1,14 @@
 package com.github.nahratzah.jser_plus_plus.config.class_members;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.nahratzah.jser_plus_plus.config.CfgArgument;
 import com.github.nahratzah.jser_plus_plus.config.ClassMember;
 import com.github.nahratzah.jser_plus_plus.config.Includes;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A destructor method.
@@ -14,11 +17,15 @@ import java.util.List;
  */
 public class Constructor implements ClassMember {
     @JsonProperty("arguments")
-    private List<String> arguments = new ArrayList<>();
+    private List<CfgArgument> arguments = new ArrayList<>();
     @JsonProperty("includes")
     private Includes includes = new Includes();
     @JsonProperty("body")
     private String body;
+    @JsonProperty("super")
+    private String superInitializer;
+    @JsonProperty("initializers")
+    private Map<String, String> initializers = new HashMap<>();
     @JsonProperty("visibility")
     private Visibility visibility = Visibility.PUBLIC;
 
@@ -28,16 +35,15 @@ public class Constructor implements ClassMember {
     }
 
     /**
-     * Retrieve the templated arguments of the method.
+     * Retrieve the arguments of the method.
      *
-     * @return A list of strings (one for each argument) encoding of the ST4
-     * template.
+     * @return A list of arguments.
      */
-    public List<String> getArguments() {
+    public List<CfgArgument> getArguments() {
         return arguments;
     }
 
-    public void setArguments(List<String> arguments) {
+    public void setArguments(List<CfgArgument> arguments) {
         this.arguments = arguments;
     }
 
@@ -62,6 +68,32 @@ public class Constructor implements ClassMember {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    /**
+     * Retrieve the initializer for the super type.
+     *
+     * @return Initializer for the super type. May be null.
+     */
+    public String getSuperInitializer() {
+        return superInitializer;
+    }
+
+    public void setSuperInitializer(String superInitializer) {
+        this.superInitializer = superInitializer;
+    }
+
+    /**
+     * Constructor initializers.
+     *
+     * @return Map of field to value template of initializers.
+     */
+    public Map<String, String> getInitializers() {
+        return initializers;
+    }
+
+    public void setInitializers(Map<String, String> initializers) {
+        this.initializers = initializers;
     }
 
     @Override

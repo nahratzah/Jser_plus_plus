@@ -10,8 +10,11 @@ import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.util.ArrayList;
 import static java.util.Collections.unmodifiableList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import static java.util.Objects.requireNonNull;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.stringtemplate.v4.ST;
@@ -151,12 +154,51 @@ public interface ClassMemberModel {
     }
 
     public static class ClassConstructor implements ClassMemberModel {
-        public ClassConstructor(Constructor constructor) {
+        public ClassConstructor(Context ctx, ClassType cdef, Constructor constructor) {
+            final List<String> variables = unmodifiableList(cdef.getTemplateArguments().stream()
+                    .map(ClassTemplateArgument::getName)
+                    .collect(Collectors.toList()));
+
+            this.cdef = requireNonNull(cdef);
             this.constructor = requireNonNull(constructor);
+
+            {
+                final List<Type> argumentTypesTmp = new ArrayList<>();
+                final List<String> argumentNamesTmp = new ArrayList<>();
+                constructor.getArguments()
+                        .forEach(arg -> {
+                            argumentTypesTmp.add(typeFromCfgType(arg.getType(), ctx, variables));
+                            argumentNamesTmp.add(arg.getName());
+                        });
+                this.argumentNames = unmodifiableList(argumentNamesTmp);
+                this.argumentTypes = unmodifiableList(argumentTypesTmp);
+            }
+
+            {
+                final LinkedHashMap<String, String> initializersTmp = new LinkedHashMap<>();
+                if (constructor.getSuperInitializer() != null)
+                    initializersTmp.put(cdef.getSuperClass().getType().getClassName(), constructor.getSuperInitializer());
+                cdef.getFields().stream()
+                        .filter(field -> constructor.getInitializers().containsKey(field.getName()))
+                        .forEachOrdered(field -> {
+                            final String name = field.getName();
+                            final String initializer = constructor.getInitializers().get(name);
+                            initializersTmp.put(name, initializer);
+                        });
+                this.initializers = initializersTmp;
+            }
         }
 
-        public List<String> getArguments() {
-            return constructor.getArguments();
+        public String getName() {
+            return cdef.getClassName();
+        }
+
+        public List<Type> getArgumentTypes() {
+            return argumentTypes;
+        }
+
+        public List<String> getArgumentNames() {
+            return argumentNames;
         }
 
         public Includes getIncludes() {
@@ -173,8 +215,16 @@ public interface ClassMemberModel {
             return Stream.empty();
         }
 
-        public String getBody() {
-            return constructor.getBody();
+        public ST getBody() {
+            if (constructor.getBody() == null)
+                return null;
+            return new ST(StCtx.BUILTINS, constructor.getBody())
+                    .add("cdef", cdef)
+                    .add("method", this);
+        }
+
+        public Set<Map.Entry<String, String>> getInitializers() {
+            return initializers.entrySet();
         }
 
         @Override
@@ -191,15 +241,19 @@ public interface ClassMemberModel {
         public String toString() {
             return "method: "
                     + getVisibility()
-                    + "constructor "
-                    + getArguments().stream().map(Object::toString).collect(Collectors.joining(", ", "(", ")"));
+                    + " constructor "
+                    + getArgumentNames().stream().map(Object::toString).collect(Collectors.joining(", ", "(", ")"));
         }
 
         private final Constructor constructor;
+        private final ClassType cdef;
+        private final List<String> argumentNames;
+        private final List<Type> argumentTypes;
+        private final LinkedHashMap<String, String> initializers;
     }
 
     public static class ClassDestructor implements ClassMemberModel {
-        public ClassDestructor(Destructor destructor) {
+        public ClassDestructor(Context ctx, ClassType cdef, Destructor destructor) {
             this.destructor = requireNonNull(destructor);
         }
 
@@ -235,7 +289,7 @@ public interface ClassMemberModel {
         public String toString() {
             return "method: "
                     + getVisibility()
-                    + "destructor";
+                    + " destructor";
         }
 
         private final Destructor destructor;

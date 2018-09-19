@@ -87,14 +87,14 @@ public interface JavaType {
      * @return The super class of this type, or null if this type has not super
      * class.
      */
-    public BoundTemplate getSuperClass();
+    public BoundTemplate.ClassBinding getSuperClass();
 
     /**
      * Retrieve the interfaces implemented by this type.
      *
      * @return List of interfaces implemented by this type.
      */
-    public Collection<BoundTemplate> getInterfaces();
+    public Collection<BoundTemplate.ClassBinding> getInterfaces();
 
     /**
      * Retrieve includes requires to use this type.

@@ -48,4 +48,17 @@ classes:
           includes:
             declaration:
             - string
+    members:
+    - type: constructor
+      arguments:
+      - name: s
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+            implementation:
+            - string_view
+      initializers:
+        value: s.data(), s.size()
   java.lang.Class<Type>:
