@@ -336,7 +336,7 @@ public class CodeGenerator {
             for (int rlen = accessorFile.read(cbuf); rlen != -1;
                  rlen = accessorFile.read(cbuf))
                 sb.append(cbuf, 0, rlen);
-            FILES_TEMPLATE = new STGroupString("codeGenerator.stg", sb.toString(), '$', '$');
+            FILES_TEMPLATE = new STGroupString("files.stg", sb.toString(), '$', '$');
         } catch (IOException ex) {
             throw new IllegalStateException("unable to load accessor template", ex);
         }
