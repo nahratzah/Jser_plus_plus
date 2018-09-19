@@ -64,6 +64,15 @@ $if (model.enum)$
   $model.className$& operator=(const $model.className$&) = delete;
   $model.className$& operator=($model.className$&&) = delete;
 
+$endif$
+$if (model.templateArguments)$
+ private:
+  $ model.erasedTemplateArguments
+    : {tArg | using $tArg.key$ = ::java::G::pack<$tArg.value:{b | $boundTemplateType(b, "style=type")$}; separator = ", "$>;}
+    ; anchor, separator = "\n"$
+
+$endif$
+$if (model.enum)$
  public:
   using enum_t = ::java::_static_accessor<$tagType(model)$>::enum_t;
 

@@ -20,20 +20,26 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -245,6 +251,70 @@ public class ClassType implements JavaType {
         return unmodifiableList(templateArguments);
     }
 
+    /**
+     * Retrieve all template arguments, with self-references erased, and
+     * ordered.
+     *
+     * Returned arguments will be rebound to have self-references erased.
+     * Returned arguments will be re-ordered to ensure no type depends on a type
+     * that comes later in the list.
+     *
+     * @return Defaulted template arguments.
+     */
+    public ArrayList<Map.Entry<String, List<BoundTemplate>>> getErasedTemplateArguments() {
+        // Output result.
+        final LinkedHashMap<String, List<BoundTemplate>> mapping = new LinkedHashMap<>();
+        // Process raw arguments in deterministic order.
+        final Map<String, List<BoundTemplate>> rawArguments = new LinkedHashMap<>();
+        getTemplateArguments()
+                .stream()
+                .sorted(Comparator.comparing(ClassTemplateArgument::getName))
+                .forEach(cta -> rawArguments.put(cta.getName(), cta.getExtendBounds()));
+
+        class Processor implements BiConsumer<String, List<BoundTemplate>> {
+            private final Set<String> inProgress = new HashSet<>();
+
+            @Override
+            public void accept(String name, List<BoundTemplate> rawExtendTypes) {
+                if (mapping.containsKey(name)) return;
+
+                if (!inProgress.add(name))
+                    throw new IllegalStateException("Recursive use of template argument.");
+                try {
+                    // Build a map to clear self-references.
+                    final Map<String, BoundTemplate> selfRebind = singletonMap(name, new BoundTemplate.Any());
+                    // Replace self-references with the BoundTemplate.Any type.
+                    final List<BoundTemplate> extendTypes = rawExtendTypes.stream()
+                            .map(type -> type.rebind(selfRebind))
+                            .collect(Collectors.toList());
+                    // Figure out all argument names we depend on.
+                    final List<String> requiredNames = extendTypes.stream()
+                            .map(type -> type.getUnresolvedTemplateNames())
+                            .flatMap(c -> c.stream())
+                            .distinct()
+                            .sorted()
+                            .collect(Collectors.toList());
+
+                    // Process all dependent names.
+                    requiredNames.stream()
+                            .filter(rawArguments::containsKey)
+                            .forEach(requiredName -> accept(requiredName, rawArguments.get(requiredName)));
+
+                    // Add current name.
+                    mapping.put(name, extendTypes);
+                } finally {
+                    inProgress.remove(name);
+                }
+            }
+        }
+
+        // Process all arguments.
+        rawArguments.forEach(new Processor());
+
+        // Return result of processing operation.
+        return new ArrayList<>(mapping.entrySet());
+    }
+
     @Override
     public BoundTemplate getSuperClass() {
         return this.superType;
@@ -310,12 +380,15 @@ public class ClassType implements JavaType {
 
     @Override
     public Stream<JavaType> getDeclarationForwardJavaTypes() {
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> templateTypes = getTemplateArguments().stream()
+                .map(ClassTemplateArgument::getExtendBounds)
+                .flatMap(Collection::stream);
         final Stream<com.github.nahratzah.jser_plus_plus.model.Type> fieldTypes = getFields().stream()
                 .map(field -> field.getVarType());
         final Stream<com.github.nahratzah.jser_plus_plus.model.Type> memberTypes = getClassMembers().stream()
                 .flatMap(member -> member.getDeclarationTypes());
 
-        return Stream.of(fieldTypes, memberTypes)
+        return Stream.of(templateTypes, fieldTypes, memberTypes)
                 .flatMap(Function.identity())
                 .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
                 .filter(c -> !(c instanceof PrimitiveType));

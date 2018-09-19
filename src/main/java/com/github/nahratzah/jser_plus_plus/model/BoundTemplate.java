@@ -6,6 +6,7 @@ import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singleton;
 import java.util.List;
+import java.util.Map;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -26,6 +27,15 @@ public interface BoundTemplate extends Type {
      * @return List of parameter names that are not bound.
      */
     public Set<String> getUnresolvedTemplateNames();
+
+    /**
+     * Rebind unbound template argument names.
+     *
+     * @param bindings Mapping of name to bound type.
+     * @return A copy of this bound template, where each occurance of unresolved
+     * template variabe in bindings has been replaced with its mapping.
+     */
+    public BoundTemplate rebind(Map<String, BoundTemplate> bindings);
 
     /**
      * Visit specializations.
@@ -162,13 +172,20 @@ public interface BoundTemplate extends Type {
         }
 
         @Override
+        public Stream<JavaType> getAllJavaTypes() {
+            return Stream.empty();
+        }
+
+        @Override
         public Set<String> getUnresolvedTemplateNames() {
             return singleton(name);
         }
 
         @Override
-        public Stream<JavaType> getAllJavaTypes() {
-            return Stream.empty();
+        public BoundTemplate rebind(Map<String, BoundTemplate> bindings) {
+            final BoundTemplate replacement = bindings.get(getName());
+            if (replacement != null) return replacement;
+            return new VarBinding(getName());
         }
 
         /**
@@ -233,6 +250,14 @@ public interface BoundTemplate extends Type {
                     .map(BoundTemplate::getUnresolvedTemplateNames)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toSet());
+        }
+
+        @Override
+        public BoundTemplate rebind(Map<String, BoundTemplate> bindings) {
+            final List<BoundTemplate> newBindings = getBindings().stream()
+                    .map(binding -> binding.rebind(bindings))
+                    .collect(Collectors.toList());
+            return new ClassBinding(getType(), newBindings);
         }
 
         /**
@@ -305,6 +330,11 @@ public interface BoundTemplate extends Type {
             return type.getUnresolvedTemplateNames();
         }
 
+        @Override
+        public BoundTemplate rebind(Map<String, BoundTemplate> bindings) {
+            return new ArrayBinding(getType().rebind(bindings), getExtents());
+        }
+
         /**
          * Visit specialization.
          *
@@ -370,6 +400,17 @@ public interface BoundTemplate extends Type {
                     .map(BoundTemplate::getUnresolvedTemplateNames)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toSet());
+        }
+
+        @Override
+        public BoundTemplate rebind(Map<String, BoundTemplate> bindings) {
+            final List<BoundTemplate> newSuperTypes = getSuperTypes().stream()
+                    .map(type -> type.rebind(bindings))
+                    .collect(Collectors.toList());
+            final List<BoundTemplate> newExtendTypes = getExtendTypes().stream()
+                    .map(type -> type.rebind(bindings))
+                    .collect(Collectors.toList());
+            return new Any(newSuperTypes, newExtendTypes);
         }
 
         /**

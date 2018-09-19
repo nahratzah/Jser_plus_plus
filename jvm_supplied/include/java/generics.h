@@ -62,7 +62,7 @@ template<typename T>
 constexpr bool is_compact_generic_v = is_compact_generic<T>::value;
 
 template<typename X, typename Y>
-using is_satisfied_by = typename is_satisfied_by_<typename X::type, typename Y::type>::type;
+using is_satisfied_by = typename is_satisfied_by_<X, Y>::type;
 
 template<typename X, typename Y>
 constexpr bool is_satisfied_by_v = is_satisfied_by<X, Y>::value;
@@ -319,6 +319,20 @@ struct is_generic_<java::G::pack_t<G...>> {
   using type = std::true_type;
 };
 
+
+// Comparison with array.
+template<typename X, typename Y>
+struct is_satisfied_by_<X*, Y> {
+  static_assert(is_generic_v<Y>);
+
+  using type = std::false_type;
+};
+
+// Comparison with array.
+template<typename X, typename Y>
+struct is_satisfied_by_<X*, Y*>
+: is_satisfied_by_<X, Y>
+{};
 
 // Comparison with argument pack on the left.
 template<typename... X, typename Y>
