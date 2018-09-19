@@ -333,18 +333,23 @@ public class ClassType implements JavaType {
                 .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
 
         final Stream<String> fieldIncludes;
+        final Stream<String> memberIncludes;
         if (publicOnly) {
             fieldIncludes = getFields().stream()
                     .filter(field -> field.isGetterFn() || field.isSetterFn())
                     .map(field -> field.getVarType())
                     .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
+            memberIncludes = getClassMembers().stream()
+                    .flatMap(member -> member.getDeclarationIncludes());
         } else {
             fieldIncludes = getFields().stream()
                     .flatMap(field -> Stream.of(field.getType(), field.getVarType()))
                     .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
+            memberIncludes = getClassMembers().stream()
+                    .flatMap(member -> member.getImplementationIncludes());
         }
 
-        return Stream.of(parentTypes, fieldIncludes)
+        return Stream.of(parentTypes, fieldIncludes, memberIncludes)
                 .flatMap(Function.identity());
     }
 

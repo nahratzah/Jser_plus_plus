@@ -73,7 +73,7 @@ classes:
             char16_t>;
 
         conversion_type conversion;
-        return ::cycle_ptr::make_cycle<stream_string>(conversion.from_bytes(v.data(), v.data() + v.size()));
+        return ::cycle_ptr::make_cycle<stream_string>(conversion.from_bytes(value.data(), value.data() + value.size()));
       includes:
         declaration:
         - java/serialization/encdec.h

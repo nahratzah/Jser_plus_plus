@@ -96,8 +96,9 @@ $if (model.classMembers)$
   $ model.classMembers
     : {m | $m.visibility$: $function(
                 name=m.name,
-                doImplement=true,
+                doImplement=false,
                 return=m.returnType,
+                containingClass=model.className,
                 body=m.body,
                 argumentNames=m.argumentNames,
                 argumentTypes=m.argumentTypes,
@@ -170,6 +171,19 @@ $endif$
 $model.className$::~$model.className$() noexcept = default;
 
 $model.enumValues:{ kv | $classEnumConstantMethod(model, kv, true)$}; separator = "\n"$
+
+$ model.classMembers
+  : {m | $function(
+              name=m.name,
+              doImplement=true,
+              return=m.returnType,
+              containingClass=model.className,
+              body=m.body,
+              argumentNames=m.argumentNames,
+              argumentTypes=m.argumentTypes,
+              initializers=m.initializers
+            )$}
+  ; anchor, separator = "\n\n"$
 >>
 
 

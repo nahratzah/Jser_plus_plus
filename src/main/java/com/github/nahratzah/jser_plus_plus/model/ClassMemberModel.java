@@ -41,6 +41,21 @@ public interface ClassMemberModel {
      */
     public Stream<Type> getImplementationTypes();
 
+    /**
+     * Get includes required to make the declaration of the class-member work.
+     *
+     * @return Includes.
+     */
+    public Stream<String> getDeclarationIncludes();
+
+    /**
+     * Get includes required to make the implementation of the class-member
+     * work.
+     *
+     * @return
+     */
+    public Stream<String> getImplementationIncludes();
+
     public <T> T visit(Visitor<T> visitor);
 
     /**
@@ -108,6 +123,16 @@ public interface ClassMemberModel {
         public Stream<Type> getImplementationTypes() {
             // XXX
             return getDeclarationTypes();
+        }
+
+        @Override
+        public Stream<String> getDeclarationIncludes() {
+            return getIncludes().getDeclarationIncludes().stream();
+        }
+
+        @Override
+        public Stream<String> getImplementationIncludes() {
+            return getIncludes().getImplementationIncludes().stream();
         }
 
         public ST getBody() {
@@ -215,6 +240,16 @@ public interface ClassMemberModel {
             return Stream.empty();
         }
 
+        @Override
+        public Stream<String> getDeclarationIncludes() {
+            return getIncludes().getDeclarationIncludes().stream();
+        }
+
+        @Override
+        public Stream<String> getImplementationIncludes() {
+            return getIncludes().getImplementationIncludes().stream();
+        }
+
         public ST getBody() {
             if (constructor.getBody() == null)
                 return null;
@@ -269,6 +304,16 @@ public interface ClassMemberModel {
         @Override
         public Stream<Type> getImplementationTypes() {
             return Stream.empty();
+        }
+
+        @Override
+        public Stream<String> getDeclarationIncludes() {
+            return getIncludes().getDeclarationIncludes().stream();
+        }
+
+        @Override
+        public Stream<String> getImplementationIncludes() {
+            return getIncludes().getImplementationIncludes().stream();
         }
 
         public String getBody() {
