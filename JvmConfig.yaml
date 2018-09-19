@@ -61,4 +61,26 @@ classes:
             - string_view
       initializers:
         value: s.data(), s.size()
+    - type: method
+      name: do_encode_
+      visibility: private
+      return:
+        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_string>
+      body: |
+        using namespace ::java::serialization::stream;
+        using conversion_type = ::std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>,
+            char16_t>;
+
+        conversion_type conversion;
+        return ::cycle_ptr::make_cycle<stream_string>(conversion.from_bytes(v.data(), v.data() + v.size()));
+      includes:
+        declaration:
+        - java/serialization/encdec.h
+        - cycle_ptr/cycle_ptr.h
+        implementation:
+        - java/serialization/encdec.h
+        - cycle_ptr/cycle_ptr.h
+        - locale
+        - codecvt
   java.lang.Class<Type>:

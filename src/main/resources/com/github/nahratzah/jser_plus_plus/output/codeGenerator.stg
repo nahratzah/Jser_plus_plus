@@ -41,10 +41,6 @@ $if (model.fields)$
   // field accessors
   $model.fields:{f|$fieldAccessors(model, f, false)$}; anchor, separator = "\n"$
 $endif$
-
-#if 0
-  $model.classMembers: {m | $m$$"\n"$$if (m.body)$$m.body$$endif$}; anchor, separator = "\n\n"$
-#endif
 };
 $if (model.enum)$
 
@@ -98,7 +94,7 @@ $if (model.classMembers)$
 
   // methods
   $ model.classMembers
-    : {m | $function(
+    : {m | $m.visibility$: $function(
                 name=m.name,
                 doImplement=true,
                 return=m.returnType,
@@ -186,6 +182,7 @@ $f.name$
 
 fieldAccessors(model, f, doImplement) ::= <%
 $if (f.getterFn)$$fieldGetter(model, f, doImplement)$$endif$
+$if (f.getterFn && f.setterFn)$$"\n"$$endif$
 $if (f.setterFn)$$fieldSetter(model, f, doImplement)$$endif$
 %>
 

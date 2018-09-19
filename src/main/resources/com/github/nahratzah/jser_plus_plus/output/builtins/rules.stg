@@ -26,33 +26,51 @@ function(name,
          noexcept=false,
          const=false,
          initializers=[]
-         ) ::= <<
-$if (!doImplement && docString)$$renderDocString(docString)$$endif$
-$if (doImplement)$$templateLine(containingClassTemplateArguments)$$endif$
-$templateLine(templateArguments)$
-$if (!doImplement && static)$static $endif$$\\$
-$if (!doImplement && virtual)$virtual $endif$$\\$
-$if (inline)$$inline$ $endif$$\\$
-$if (return)$auto $endif$$\\$
-$if (doImplement && containingClass)$$containingClass$$templateArgs(containingClassTemplateArgumentsImpl)$::$endif$$\\$
-$name$$functionArguments(argumentTypes, argumentNames)$$\\$
-$if (const)$ const$endif$$\\$
-$if (noexcept)$ $noexcept$$endif$$\\$
-$if (return)$$"\n"$-> $return; wrap = "\n    ", format="style=type, class=return"$$endif$$\\$
-$if (!doImplement)$$\\$
-;
-$else$$\\$
-$if (initializers)$
-: $ initializers
-    : {initializer | $initializer.key$($initializer.value$)}
-    ; anchor, separator = ",\n"
-  $
-$else$$\\$
-$" "$$\\$
+         ) ::= <%
+$if (!doImplement && docString)$$renderDocString(docString)$$"\n"$$endif$
+$if (doImplement)$$templateLine(containingClassTemplateArguments)$$"\n"$$endif$
+$if (templateArguments)$$templateLine(templateArguments)$$"\n"$$endif$
+$if (!doImplement && static)$static $endif$
+$if (!doImplement && virtual)$virtual $endif$
+$if (inline)$$inline$ $endif$
+
+$if (return)$auto $endif$
+$if (doImplement && containingClass)$$containingClass$$templateArgs(containingClassTemplateArgumentsImpl)$::$endif$
+$name$
+$functionArguments(argumentTypes, argumentNames)$
+$if (const)$ const$endif$
+$if (noexcept)$ $noexcept; anchor$$endif$
+
+$if (return)$
+  $"\n"$
+  -> $return; wrap = "\n    ", format="style=type, class=return"$
 $endif$
+
+$if (!doImplement)$
+  ;
+$else$
+  $if (initializers)$
+    $"\n"$
+    : $ initializers
+        : {initializer | $initializer.key$($initializer.value$)}
+        ; anchor, separator = ",\n"
+      $
+    $"\n"$
+  $else$
+    $" "$
+  $endif$
+  $functionBody(body)$
+$endif$
+%>
+
+
+functionBody(body) ::= <<
+$if (body)$$\\$
 {
   $body; anchor$
-}
+}$\\$
+$else$$\\$
+{}$\\$
 $endif$
 >>
 
