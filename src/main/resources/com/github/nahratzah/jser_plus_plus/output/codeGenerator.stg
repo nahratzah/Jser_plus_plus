@@ -41,6 +41,8 @@ $if (model.fields)$
   // field accessors
   $model.fields:{f|$fieldAccessors(model, f, false)$}; anchor, separator = "\n"$
 $endif$
+
+  $accessorClassMembers(model, false); anchor$
 };
 $if (model.enum)$
 
@@ -121,17 +123,37 @@ $endif$
 >>
 
 
-accessorImpl(models) ::= <<
+accessorImpl(model) ::= <<
 $if (model.enum)$
 $model.enumValues:{kv | $accessorEnumConstantMethod(model, kv, true)$}; anchor, separator = "\n"$
 $endif$
 
 $model.fields:{f|$fieldAccessors(model, f, true)$}; separator = "\n"$
+
+$accessorClassMembers(model, true)$
 >>
 
 
 accessorImplSrc(model) ::= <<
 $if (model.enum)$$accessorEnumToString(model, true)$$endif$
+>>
+
+
+accessorClassMembers(model, doImplement) ::= <<
+$ model.classMembers
+  : {m | $if (m.publicMethod)$$function(
+              name=m.name,
+              doImplement=doImplement,
+              return=m.returnType,
+              body={return $if (m.returnType.unresolvedTemplateNames)$::java::cast<$boundTemplateType(m.returnType, "style=type, class=return")$>($endif$this->template ref_<$erasedType(model)$>().$m.name$($m.argumentNames:{name | ::std::move($name$)}; anchor, wrap, separator = ", "$)$if (m.returnType.unresolvedTemplateNames)$)$endif$;},
+              argumentNames=m.argumentNames,
+              argumentTypes=m.argumentTypes,
+              containingClass="_accessor",
+              containingClassTemplateArguments=["Base_", model.templateArgumentNames],
+              containingClassTemplateArgumentsImpl=["Base_", tagType(model), model.templateArgumentNames],
+              inline="JSER_INLINE"
+            )$$endif$}
+  ; anchor, separator = "\n\n"$
 >>
 
 

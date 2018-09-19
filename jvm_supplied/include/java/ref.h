@@ -380,7 +380,7 @@ class basic_ref final
 
  public:
   JSER_INLINE basic_ref() = default;
-  explicit JSER_INLINE constexpr basic_ref(std::nullptr_t) : basic_ref() {}
+  JSER_INLINE constexpr basic_ref(std::nullptr_t) : basic_ref() {}
 
   JSER_INLINE basic_ref(const basic_ref&)
       noexcept(std::is_nothrow_copy_constructible_v<ptr_type>) = default;

@@ -84,3 +84,10 @@ classes:
         - locale
         - codecvt
   java.lang.Class<Type>:
+    members:
+    - type: method
+      name: syntheticTestDummy
+      return:
+        java: java.lang.Class<Type[]>
+      body: |
+        return nullptr;

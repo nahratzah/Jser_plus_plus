@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.stringtemplate.v4.ST;
@@ -55,6 +56,15 @@ public interface ClassMemberModel {
      * @return
      */
     public Stream<String> getImplementationIncludes();
+
+    /**
+     * Test if this class member is a public method.
+     *
+     * @return True if the class member is a public method.
+     */
+    public default boolean isPublicMethod() {
+        return false;
+    }
 
     public <T> T visit(Visitor<T> visitor);
 
@@ -127,12 +137,25 @@ public interface ClassMemberModel {
 
         @Override
         public Stream<String> getDeclarationIncludes() {
-            return getIncludes().getDeclarationIncludes().stream();
+            return Stream.of(
+                    getIncludes().getDeclarationIncludes().stream(),
+                    getArgumentTypes().stream().flatMap(at -> at.getIncludes(true)),
+                    getReturnType().getIncludes(true))
+                    .flatMap(Function.identity());
         }
 
         @Override
         public Stream<String> getImplementationIncludes() {
-            return getIncludes().getImplementationIncludes().stream();
+            return Stream.of(
+                    getIncludes().getImplementationIncludes().stream(),
+                    getArgumentTypes().stream().flatMap(at -> at.getIncludes(false)),
+                    getReturnType().getIncludes(false))
+                    .flatMap(Function.identity());
+        }
+
+        @Override
+        public boolean isPublicMethod() {
+            return getVisibility() == Visibility.PUBLIC;
         }
 
         public ST getBody() {
@@ -242,12 +265,18 @@ public interface ClassMemberModel {
 
         @Override
         public Stream<String> getDeclarationIncludes() {
-            return getIncludes().getDeclarationIncludes().stream();
+            return Stream.of(
+                    getIncludes().getDeclarationIncludes().stream(),
+                    getArgumentTypes().stream().flatMap(at -> at.getIncludes(true)))
+                    .flatMap(Function.identity());
         }
 
         @Override
         public Stream<String> getImplementationIncludes() {
-            return getIncludes().getImplementationIncludes().stream();
+            return Stream.of(
+                    getIncludes().getImplementationIncludes().stream(),
+                    getArgumentTypes().stream().flatMap(at -> at.getIncludes(false)))
+                    .flatMap(Function.identity());
         }
 
         public ST getBody() {
