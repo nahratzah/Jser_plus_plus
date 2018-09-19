@@ -374,6 +374,13 @@ struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, jav
   using type = std::true_type;
 };
 
+// Everything extends java.lang.Object.
+// Ambiguity case.
+template<typename YTag, typename... Y>
+struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::super_t<YTag, Y...>> {
+  using type = std::true_type;
+};
+
 // G::is only works if tags match on both sides (non-matching case).
 // Example: List<CharSequence> is not satisfied by List<String>, nor List<Object>
 template<typename XTag, typename... X, typename YTag, typename... Y>
