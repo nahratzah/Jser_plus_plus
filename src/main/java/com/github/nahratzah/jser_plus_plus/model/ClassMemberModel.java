@@ -13,6 +13,7 @@ import static java.util.Collections.unmodifiableList;
 import java.util.List;
 import static java.util.Objects.requireNonNull;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.stringtemplate.v4.ST;
 
 /**
@@ -22,6 +23,20 @@ import org.stringtemplate.v4.ST;
  */
 public interface ClassMemberModel {
     public Visibility getVisibility();
+
+    /**
+     * Get all java types that are required to declare the class member.
+     *
+     * @return All java types for the class member declaration.
+     */
+    public Stream<Type> getDeclarationTypes();
+
+    /**
+     * Get all java types that are required to implement the class member.
+     *
+     * @return All java types for the class member implementation.
+     */
+    public Stream<Type> getImplementationTypes();
 
     public <T> T visit(Visitor<T> visitor);
 
@@ -81,6 +96,17 @@ public interface ClassMemberModel {
             return method.getIncludes();
         }
 
+        @Override
+        public Stream<Type> getDeclarationTypes() {
+            return Stream.concat(Stream.of(getReturnType()), getArgumentTypes().stream());
+        }
+
+        @Override
+        public Stream<Type> getImplementationTypes() {
+            // XXX
+            return getDeclarationTypes();
+        }
+
         public ST getBody() {
             return new ST(StCtx.BUILTINS, method.getBody())
                     .add("cdef", cdef)
@@ -137,6 +163,16 @@ public interface ClassMemberModel {
             return constructor.getIncludes();
         }
 
+        @Override
+        public Stream<Type> getDeclarationTypes() {
+            return Stream.empty();
+        }
+
+        @Override
+        public Stream<Type> getImplementationTypes() {
+            return Stream.empty();
+        }
+
         public String getBody() {
             return constructor.getBody();
         }
@@ -169,6 +205,16 @@ public interface ClassMemberModel {
 
         public Includes getIncludes() {
             return destructor.getIncludes();
+        }
+
+        @Override
+        public Stream<Type> getDeclarationTypes() {
+            return Stream.empty();
+        }
+
+        @Override
+        public Stream<Type> getImplementationTypes() {
+            return Stream.empty();
         }
 
         public String getBody() {

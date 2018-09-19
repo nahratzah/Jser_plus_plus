@@ -7,6 +7,7 @@ import com.github.nahratzah.jser_plus_plus.config.Config;
 import com.github.nahratzah.jser_plus_plus.config.class_members.Constructor;
 import com.github.nahratzah.jser_plus_plus.config.class_members.Destructor;
 import com.github.nahratzah.jser_plus_plus.config.class_members.Method;
+import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.java.ReflectUtil;
 import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
@@ -279,13 +280,17 @@ public class ClassType implements JavaType {
 
     @Override
     public Stream<JavaType> getForwardDeclarationJavaTypes() {
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> superTypes = Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull),
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> superTypes = Stream.concat(
+                Stream.of(getSuperClass()).filter(Objects::nonNull),
                 getInterfaces().stream());
         final Stream<com.github.nahratzah.jser_plus_plus.model.Type> publicFields = getFields().stream()
                 .filter(field -> field.isGetterFn() || field.isSetterFn())
                 .map(field -> field.getVarType());
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> memberTypes = getClassMembers().stream()
+                .filter(member -> member.getVisibility() == Visibility.PUBLIC)
+                .flatMap(member -> member.getDeclarationTypes());
 
-        return Stream.of(superTypes, publicFields)
+        return Stream.of(superTypes, publicFields, memberTypes)
                 .flatMap(Function.identity())
                 .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
                 .filter(c -> !(c instanceof PrimitiveType));
@@ -293,7 +298,8 @@ public class ClassType implements JavaType {
 
     @Override
     public Stream<JavaType> getDeclarationCompleteJavaTypes() {
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> superTypes = Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull),
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> superTypes = Stream.concat(
+                Stream.of(getSuperClass()).filter(Objects::nonNull),
                 getInterfaces().stream());
 
         return Stream.of(superTypes)
@@ -306,8 +312,10 @@ public class ClassType implements JavaType {
     public Stream<JavaType> getDeclarationForwardJavaTypes() {
         final Stream<com.github.nahratzah.jser_plus_plus.model.Type> fieldTypes = getFields().stream()
                 .map(field -> field.getVarType());
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> memberTypes = getClassMembers().stream()
+                .flatMap(member -> member.getDeclarationTypes());
 
-        return Stream.of(fieldTypes)
+        return Stream.of(fieldTypes, memberTypes)
                 .flatMap(Function.identity())
                 .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
                 .filter(c -> !(c instanceof PrimitiveType));
@@ -319,8 +327,10 @@ public class ClassType implements JavaType {
                 getInterfaces().stream());
         final Stream<com.github.nahratzah.jser_plus_plus.model.Type> fieldTypes = getFields().stream()
                 .flatMap(field -> Stream.of(field.getType(), field.getVarType()));
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> memberTypes = getClassMembers().stream()
+                .flatMap(member -> member.getImplementationTypes());
 
-        return Stream.of(superTypes, fieldTypes)
+        return Stream.of(superTypes, fieldTypes, memberTypes)
                 .flatMap(Function.identity())
                 .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
                 .filter(c -> !(c instanceof PrimitiveType));
