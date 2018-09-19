@@ -402,11 +402,13 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
 
         @Override
         public String apply(BoundTemplate.Any b) {
+            final BoundTemplate.Visitor<String> typeRenderer = Style.TYPE.apply(new Config(Style.TYPE));
+
             final Stream<String> extendStream = b.getExtendTypes().stream()
-                    .map(type -> type.visit(raw))
+                    .map(type -> type.visit(typeRenderer))
                     .map(typeStr -> "::java::G::extends<" + typeStr + ">");
             final Stream<String> superStream = b.getSuperTypes().stream()
-                    .map(type -> type.visit(raw))
+                    .map(type -> type.visit(typeRenderer))
                     .map(typeStr -> "::java::G::super<" + typeStr + ">");
             final String type = "::java::G::pack"
                     + Stream.concat(extendStream, superStream).collect(Collectors.joining(", ", "<", ">"));
