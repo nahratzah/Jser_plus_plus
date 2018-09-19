@@ -236,7 +236,7 @@ $if (strip([model.superClass, model.interfaces]))$
     : {t|$classInheritTemplateClassRenderer(t.type)$}
     ; anchor, separator = ",\n"
   $
-$elseif (!model.isInterface)$
+$elseif (!model.interface)$
 $! Special consideration for java.lang.Object !$
 : $["public ::cycle_ptr::cycle_base", "public virtual ::java::object_intf"]; anchor, separator = ",\n"$
 $else$
