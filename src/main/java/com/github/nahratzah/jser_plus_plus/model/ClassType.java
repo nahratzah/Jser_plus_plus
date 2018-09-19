@@ -141,8 +141,8 @@ public class ClassType implements JavaType {
                     Type reflectType;
                     Field reflectField;
                     try {
-                        reflectField = this.c.getField(name);
-                        if (Objects.equals(reflectField.getType().getName(), type.getName())) {
+                        reflectField = this.c.getDeclaredField(name);
+                        if (Objects.equals(reflectField.getType(), type)) {
                             reflectType = reflectField.getGenericType();
                         } else {
                             reflectType = null;
