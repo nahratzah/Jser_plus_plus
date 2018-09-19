@@ -157,7 +157,7 @@ case enum_t::$v.remappedName$:
 
 classImpl(model) ::= <<
 $if (!model.enum)$
-$model.className$::$model.className$() = default;
+$model.className$::$model.className$() {}
 $model.className$::$model.className$(const $model.className$&) = default;
 $model.className$::$model.className$($model.className$&&) = default;
 $endif$
