@@ -65,6 +65,14 @@ public class CfgField {
         this.type = type;
     }
 
+    public String getDefault() {
+        return defaultInit;
+    }
+
+    public void setDefault(String defaultInit) {
+        this.defaultInit = defaultInit;
+    }
+
     @JsonProperty("getter")
     private Boolean getterFn;
     @JsonProperty("setter")
@@ -79,4 +87,6 @@ public class CfgField {
     private String docString = null;
     @JsonProperty(value = "type", required = true)
     private CfgType type;
+    @JsonProperty(value = "default")
+    private String defaultInit;
 }

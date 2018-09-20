@@ -2,9 +2,13 @@ package com.github.nahratzah.jser_plus_plus.model;
 
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import com.github.nahratzah.jser_plus_plus.input.Context;
+import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import static java.util.Objects.requireNonNull;
+import org.stringtemplate.v4.ST;
 
 /**
  * Models a field.
@@ -206,6 +210,19 @@ public class FieldType {
     }
 
     /**
+     * Get the default initializer for this field. May be null.
+     *
+     * @return The default initializer.
+     */
+    public String getDefault() {
+        return defaultInit;
+    }
+
+    public void setDefault(String defaultInit) {
+        this.defaultInit = defaultInit;
+    }
+
+    /**
      * Prerender the types.
      *
      * @param ctx Context for type lookups.
@@ -217,6 +234,13 @@ public class FieldType {
             type = type.prerender(ctx, renderArgs, variables);
         if (varType != null)
             varType = varType.prerender(ctx, renderArgs, variables);
+
+        if (defaultInit != null) {
+            final Collection<Type> newDeclTypes = new HashSet<>(); // XXX use
+            final ST stringTemplate = new ST(StCtx.contextGroup(ctx, variables, newDeclTypes::add), defaultInit);
+            renderArgs.forEach(stringTemplate::add);
+            defaultInit = stringTemplate.render(Locale.ROOT);
+        }
     }
 
     @Override
@@ -235,4 +259,5 @@ public class FieldType {
     private boolean finalVar = false;
     private boolean constVar = false;
     private String docString = null;
+    private String defaultInit = null;
 }

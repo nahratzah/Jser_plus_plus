@@ -225,6 +225,7 @@ field(f) ::= <%
 $boundTemplateType(f.fieldType, {style=type, class=field, $if (f.final)$final$endif$})$
 $" "$
 $f.name$
+$if (f.default)${ $f.default; anchor$ }$endif$
 %>
 
 
