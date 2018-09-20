@@ -49,9 +49,9 @@ $if (return)$
   -> $return; wrap = "\n    ", format="style=type, class=return"$
 $endif$
 
-$if (override)$ override$endif$
-$if (final)$ final$endif$
-$if (pureVirtual)$ = 0$endif$
+$if (!doImplement && override)$ override$endif$
+$if (!doImplement && final)$ final$endif$
+$if (!doImplement && pureVirtual)$ = 0$endif$
 
 $if (!doImplement)$
   ;
