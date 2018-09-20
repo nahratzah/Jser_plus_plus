@@ -89,8 +89,8 @@ $endif$
  public:
   $if (!model.enum)$
   $model.className$();
-  $model.className$(const $model.className$&);
-  $model.className$($model.className$&&);
+  $model.className$(const $model.className$&) = delete;
+  $model.className$($model.className$&&) = delete;
   JSER_INLINE $model.className$& operator=(const $model.className$&) = default;
   JSER_INLINE $model.className$& operator=($model.className$&&) = default;
   $endif$
@@ -163,8 +163,6 @@ case enum_t::$v.remappedName$:
 classImpl(model) ::= <<
 $if (!model.enum)$
 $model.className$::$model.className$() {}
-$model.className$::$model.className$(const $model.className$&) = default;
-$model.className$::$model.className$($model.className$&&) = default;
 $endif$
 $model.className$::~$model.className$() noexcept = default;
 
