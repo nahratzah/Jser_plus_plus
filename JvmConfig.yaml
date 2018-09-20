@@ -114,6 +114,7 @@ classes:
     fields:
       value:
         const: true
+        default: "false"
     members:
     - type: constructor
       arguments:
@@ -159,6 +160,7 @@ classes:
     fields:
       value:
         const: true
+        default: 0
     members:
     - type: constructor
       arguments:
@@ -174,6 +176,7 @@ classes:
     fields:
       value:
         const: true
+        default: 0
     members:
     - type: constructor
       arguments:
@@ -213,6 +216,7 @@ classes:
     fields:
       value:
         const: true
+        default: 0
     members:
     - type: constructor
       arguments:
@@ -252,6 +256,7 @@ classes:
     fields:
       value:
         const: true
+        default: 0
     members:
     - type: constructor
       arguments:
@@ -291,6 +296,7 @@ classes:
     fields:
       value:
         const: true
+        default: 0
     members:
     - type: constructor
       arguments:
@@ -322,6 +328,7 @@ classes:
     fields:
       value:
         const: true
+        default: 0
     members:
     - type: constructor
       arguments:
@@ -361,6 +368,7 @@ classes:
     fields:
       value:
         const: true
+        default: 0
     members:
     - type: constructor
       arguments:
