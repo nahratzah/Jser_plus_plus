@@ -16,6 +16,7 @@ public class CxxTypeRenderer implements TypeAttributeRenderer {
     @Override
     public String toString(Type type, String formatString, Locale locale, boolean emitConst) {
         final CxxType cxxType = (CxxType) type;
+        if (cxxType.isPreRendered()) return cxxType.getTemplate();
         return (emitConst ? "const " : "")
                 + new ST(StCtx.BUILTINS, cxxType.getTemplate()).render(Locale.ROOT);
     }

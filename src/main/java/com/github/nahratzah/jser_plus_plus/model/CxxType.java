@@ -20,21 +20,24 @@ import org.stringtemplate.v4.ST;
  */
 public class CxxType implements Type {
     public CxxType(String template, Includes includes) {
-        this(template, includes, EMPTY_LIST);
+        this(template, includes, EMPTY_LIST, false);
     }
 
-    public CxxType(String template, Includes includes, Collection<? extends Type> declTypes) {
+    public CxxType(String template, Includes includes, Collection<? extends Type> declTypes, boolean preRendered) {
         this.template = requireNonNull(template);
         this.includes = requireNonNull(includes);
         this.declTypes = requireNonNull(declTypes);
+        this.preRendered = preRendered;
     }
 
     @Override
     public CxxType prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
+        if (preRendered) return this;
+
         final Collection<Type> newDeclTypes = new HashSet<>(declTypes);
         final ST stringTemplate = new ST(StCtx.contextGroup(ctx, variables, newDeclTypes::add), getTemplate());
         renderArgs.forEach(stringTemplate::add);
-        return new CxxType(stringTemplate.render(Locale.ROOT), includes, newDeclTypes);
+        return new CxxType(stringTemplate.render(Locale.ROOT), includes, newDeclTypes, true);
     }
 
     @Override
@@ -56,7 +59,12 @@ public class CxxType implements Type {
         return template;
     }
 
+    public boolean isPreRendered() {
+        return preRendered;
+    }
+
     private final String template;
     private final Includes includes;
     private final Collection<? extends Type> declTypes;
+    private final boolean preRendered;
 }
