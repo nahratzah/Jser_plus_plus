@@ -95,18 +95,7 @@ $endif$
 $if (model.classMembers)$
 
   // methods
-  $ model.classMembers
-    : {m | $m.visibility$: $function(
-                name=m.name,
-                doImplement=false,
-                return=m.returnType,
-                containingClass=model.className,
-                body=m.body,
-                argumentNames=m.argumentNames,
-                argumentTypes=m.argumentTypes,
-                initializers=m.initializers
-              )$}
-    ; anchor, separator = "\n\n"$
+  $ classMembers(model, false); anchor$
 $endif$
 $if(model.fields)$
 
@@ -136,24 +125,6 @@ $accessorClassMembers(model, true)$
 
 accessorImplSrc(model) ::= <<
 $if (model.enum)$$accessorEnumToString(model, true)$$endif$
->>
-
-
-accessorClassMembers(model, doImplement) ::= <<
-$ model.classMembers
-  : {m | $if (m.publicMethod)$$function(
-              name=m.name,
-              doImplement=doImplement,
-              return=m.returnType,
-              body={return $if (m.returnType.unresolvedTemplateNames)$::java::cast<$boundTemplateType(m.returnType, "style=type, class=return")$>($endif$this->template ref_<$erasedType(model)$>().$m.name$($m.argumentNames:{name | ::std::move($name$)}; anchor, wrap, separator = ", "$)$if (m.returnType.unresolvedTemplateNames)$)$endif$;},
-              argumentNames=m.argumentNames,
-              argumentTypes=m.argumentTypes,
-              containingClass="_accessor",
-              containingClassTemplateArguments=["Base_", model.templateArgumentNames],
-              containingClassTemplateArgumentsImpl=["Base_", tagType(model), model.templateArgumentNames],
-              inline="JSER_INLINE"
-            )$$endif$}
-  ; anchor, separator = "\n\n"$
 >>
 
 
@@ -194,17 +165,50 @@ $model.className$::~$model.className$() noexcept = default;
 
 $model.enumValues:{ kv | $classEnumConstantMethod(model, kv, true)$}; separator = "\n"$
 
+$ classMembers(model, true)$
+>>
+
+
+classMembers(model, doImplement) ::= <<
 $ model.classMembers
-  : {m | $function(
+  : {m | $if (!doImplement)$$m.visibility$:$" "$$endif$$\\$
+         $function(
               name=m.name,
-              doImplement=true,
+              doImplement=doImplement,
               return=m.returnType,
               containingClass=model.className,
               body=m.body,
               argumentNames=m.argumentNames,
               argumentTypes=m.argumentTypes,
-              initializers=m.initializers
+              initializers=m.initializers,
+              virtual=m.virtual,
+              pureVirtual=m.pureVirtual,
+              override=m.override,
+              inline=m.inline,
+              const=m.const,
+              static=m.static,
+              noexcept=m.noexcept
             )$}
+  ; separator = "\n\n"$
+>>
+
+
+accessorClassMembers(model, doImplement) ::= <<
+$ model.classMembers
+  : {m | $if (m.publicMethod)$$function(
+              name=m.name,
+              doImplement=doImplement,
+              return=m.returnType,
+              body={return $if (m.returnType.unresolvedTemplateNames)$::java::cast<$boundTemplateType(m.returnType, "style=type, class=return")$>($endif$this->template ref_<$erasedType(model)$>().$m.name$($m.argumentNames:{name | ::std::move($name$)}; anchor, wrap, separator = ", "$)$if (m.returnType.unresolvedTemplateNames)$)$endif$;},
+              argumentNames=m.argumentNames,
+              argumentTypes=m.argumentTypes,
+              containingClass="_accessor",
+              containingClassTemplateArguments=["Base_", model.templateArgumentNames],
+              containingClassTemplateArgumentsImpl=["Base_", tagType(model), model.templateArgumentNames],
+              inline="JSER_INLINE",
+              const=m.const,
+              noexcept=m.noexcept
+            )$$endif$}
   ; anchor, separator = "\n\n"$
 >>
 

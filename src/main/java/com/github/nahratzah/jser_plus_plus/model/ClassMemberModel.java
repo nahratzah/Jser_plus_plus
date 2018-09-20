@@ -9,12 +9,15 @@ import com.github.nahratzah.jser_plus_plus.input.Context;
 import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.util.ArrayList;
+import java.util.Collection;
 import static java.util.Collections.unmodifiableList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -81,13 +84,10 @@ public interface ClassMemberModel {
         public T apply(ClassDestructor destructor);
     }
 
-    public static class ClassMethod implements ClassMemberModel {
-        public ClassMethod(Context ctx, ClassType cdef, Method method) {
-            final List<String> variables = unmodifiableList(cdef.getTemplateArguments().stream()
-                    .map(ClassTemplateArgument::getName)
-                    .collect(Collectors.toList()));
+    public static class ClassMethod extends AbstractClassMemberModel {
+        public ClassMethod(Context ctx, ClassType model, Method method) {
+            super(ctx, model);
 
-            this.cdef = requireNonNull(cdef);
             this.method = requireNonNull(method);
             this.returnType = typeFromCfgType(method.getReturnType(), ctx, variables);
 
@@ -102,6 +102,8 @@ public interface ClassMemberModel {
                 this.argumentNames = unmodifiableList(argumentNamesTmp);
                 this.argumentTypes = unmodifiableList(argumentTypesTmp);
             }
+
+            this.body = renderImpl(method.getBody());
         }
 
         public String getName() {
@@ -126,13 +128,18 @@ public interface ClassMemberModel {
 
         @Override
         public Stream<Type> getDeclarationTypes() {
-            return Stream.concat(Stream.of(getReturnType()), getArgumentTypes().stream());
+            return Stream.of(
+                    Stream.of(getReturnType()),
+                    getArgumentTypes().stream(),
+                    super.getDeclarationTypes())
+                    .flatMap(Function.identity());
         }
 
         @Override
         public Stream<Type> getImplementationTypes() {
-            // XXX
-            return getDeclarationTypes();
+            return Stream.concat(
+                    getDeclarationTypes(),
+                    super.getImplementationTypes());
         }
 
         @Override
@@ -158,14 +165,16 @@ public interface ClassMemberModel {
             return getVisibility() == Visibility.PUBLIC;
         }
 
-        public ST getBody() {
-            return new ST(StCtx.BUILTINS, method.getBody())
-                    .add("cdef", cdef)
-                    .add("method", this);
+        public String getBody() {
+            return body;
         }
 
         public boolean isVirtual() {
-            return method.isVirtual() || method.getBody() == null;
+            return method.isVirtual();
+        }
+
+        public boolean isPureVirtual() {
+            return isVirtual() && method.getBody() == null;
         }
 
         @Override
@@ -195,19 +204,16 @@ public interface ClassMemberModel {
         }
 
         private final Method method;
-        private final ClassType cdef;
         private final Type returnType;
         private final List<String> argumentNames;
         private final List<Type> argumentTypes;
+        private final String body;
     }
 
-    public static class ClassConstructor implements ClassMemberModel {
+    public static class ClassConstructor extends AbstractClassMemberModel {
         public ClassConstructor(Context ctx, ClassType cdef, Constructor constructor) {
-            final List<String> variables = unmodifiableList(cdef.getTemplateArguments().stream()
-                    .map(ClassTemplateArgument::getName)
-                    .collect(Collectors.toList()));
+            super(ctx, cdef);
 
-            this.cdef = requireNonNull(cdef);
             this.constructor = requireNonNull(constructor);
 
             {
@@ -235,6 +241,11 @@ public interface ClassMemberModel {
                         });
                 this.initializers = initializersTmp;
             }
+
+            if (constructor.getBody() == null)
+                this.body = null;
+            else
+                this.body = renderImpl(constructor.getBody());
         }
 
         public String getName() {
@@ -255,12 +266,17 @@ public interface ClassMemberModel {
 
         @Override
         public Stream<Type> getDeclarationTypes() {
-            return Stream.empty();
+            return Stream.of(
+                    getArgumentTypes().stream(),
+                    super.getDeclarationTypes())
+                    .flatMap(Function.identity());
         }
 
         @Override
         public Stream<Type> getImplementationTypes() {
-            return Stream.empty();
+            return Stream.concat(
+                    getDeclarationTypes(),
+                    super.getImplementationTypes());
         }
 
         @Override
@@ -279,12 +295,8 @@ public interface ClassMemberModel {
                     .flatMap(Function.identity());
         }
 
-        public ST getBody() {
-            if (constructor.getBody() == null)
-                return null;
-            return new ST(StCtx.BUILTINS, constructor.getBody())
-                    .add("cdef", cdef)
-                    .add("method", this);
+        public String getBody() {
+            return body;
         }
 
         public Set<Map.Entry<String, String>> getInitializers() {
@@ -310,15 +322,21 @@ public interface ClassMemberModel {
         }
 
         private final Constructor constructor;
-        private final ClassType cdef;
         private final List<String> argumentNames;
         private final List<Type> argumentTypes;
         private final LinkedHashMap<String, String> initializers;
+        private final String body;
     }
 
-    public static class ClassDestructor implements ClassMemberModel {
+    public static class ClassDestructor extends AbstractClassMemberModel {
         public ClassDestructor(Context ctx, ClassType cdef, Destructor destructor) {
+            super(ctx, cdef);
             this.destructor = requireNonNull(destructor);
+
+            if (destructor.getBody() == null)
+                this.body = null;
+            else
+                this.body = renderImpl(destructor.getBody());
         }
 
         public Includes getIncludes() {
@@ -346,7 +364,19 @@ public interface ClassMemberModel {
         }
 
         public String getBody() {
-            return destructor.getBody();
+            return body;
+        }
+
+        public boolean isVirtual() {
+            return true;
+        }
+
+        public boolean isPureVirtual() {
+            return cdef.isAbstract() || cdef.isInterface();
+        }
+
+        public boolean isOverride() {
+            return true;
         }
 
         @Override
@@ -367,5 +397,49 @@ public interface ClassMemberModel {
         }
 
         private final Destructor destructor;
+        private final String body;
     }
+}
+
+abstract class AbstractClassMemberModel implements ClassMemberModel {
+    public AbstractClassMemberModel(Context ctx, ClassType cdef) {
+        this.cdef = requireNonNull(cdef);
+        this.variables = unmodifiableList(cdef.getTemplateArguments().stream()
+                .map(ClassTemplateArgument::getName)
+                .collect(Collectors.toList()));
+
+        final BiFunction<String, Collection<Type>, String> basicRenderer = (text, collection) -> {
+            return new ST(StCtx.contextGroup(ctx, variables, collection::add), text)
+                    .add("model", cdef)
+                    .render(Locale.ROOT);
+        };
+
+        this.declRenderer = (text) -> basicRenderer.apply(text, this.declarationTypes);
+        this.implRenderer = (text) -> basicRenderer.apply(text, this.implementationTypes);
+    }
+
+    protected final String renderDecl(String text) {
+        return declRenderer.apply(text);
+    }
+
+    protected final String renderImpl(String text) {
+        return implRenderer.apply(text);
+    }
+
+    @Override
+    public Stream<Type> getDeclarationTypes() {
+        return declarationTypes.stream();
+    }
+
+    @Override
+    public Stream<Type> getImplementationTypes() {
+        return implementationTypes.stream();
+    }
+
+    protected final ClassType cdef;
+    protected final List<String> variables;
+    private final List<Type> declarationTypes = new ArrayList<>();
+    private final List<Type> implementationTypes = new ArrayList<>();
+    private final Function<String, String> declRenderer;
+    private final Function<String, String> implRenderer;
 }

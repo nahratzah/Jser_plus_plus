@@ -22,6 +22,8 @@ function(name,
          templateArguments=[],
          static=false,
          virtual=false,
+         pureVirtual=false,
+         override=false,
          inline=false,
          noexcept=false,
          const=false,
@@ -45,6 +47,9 @@ $if (return)$
   $"\n"$
   -> $return; wrap = "\n    ", format="style=type, class=return"$
 $endif$
+
+$if (override)$ override$endif$
+$if (pureVirtual)$ = 0$endif$
 
 $if (!doImplement)$
   ;
