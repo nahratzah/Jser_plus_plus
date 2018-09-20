@@ -176,7 +176,7 @@ classes:
       return:
         cxx: bool
       body: |
-        return data.empty();
+        return data_.empty();
     - type: method
       name: size
       override: true
