@@ -238,18 +238,22 @@ public class FieldType {
      * @param renderArgs Arguments to the renderer.
      * @param variables List of type variables in this context.
      */
-    public void prerender(Context ctx, Map<String, Object> renderArgs, Collection<String> variables) {
+    public void prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
         if (type != null)
             type = type.prerender(ctx, renderArgs, variables);
         if (varType != null)
             varType = varType.prerender(ctx, renderArgs, variables);
 
-        if (defaultInit != null) {
-            final Collection<Type> newDeclTypes = new HashSet<>(); // XXX use
-            final ST stringTemplate = new ST(StCtx.contextGroup(ctx, variables, newDeclTypes::add), defaultInit);
-            renderArgs.forEach(stringTemplate::add);
-            defaultInit = stringTemplate.render(Locale.ROOT);
-        }
+        defaultInit = prerender(defaultInit, ctx, renderArgs, variables);
+    }
+
+    private static String prerender(String text, Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
+        if (text == null) return null;
+
+        final Collection<Type> newDeclTypes = new HashSet<>(); // XXX use
+        final ST stringTemplate = new ST(StCtx.contextGroup(ctx, variables, newDeclTypes::add), text);
+        renderArgs.forEach(stringTemplate::add);
+        return stringTemplate.render(Locale.ROOT);
     }
 
     @Override
