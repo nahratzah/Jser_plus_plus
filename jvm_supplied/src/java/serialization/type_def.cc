@@ -12,14 +12,9 @@ auto get_non_serializable_class(std::u16string_view class_name)
       0);
 }
 
-auto cycle_handler::serializable_do_encode_0_(const java::_tags::java::io::Serializable::erased_type& s)
+auto cycle_handler::serializable_do_encode_(const java::_tags::java::io::Serializable::erased_type& s)
 -> cycle_ptr::cycle_gptr<const stream::stream_element> {
-  return s.do_encode_(java::_tags::java::io::Serializable());
-}
-
-auto cycle_handler::serializable_do_encode_1_(const java::_tags::java::io::Serializable::erased_type& s)
--> cycle_ptr::cycle_gptr<const stream::stream_element> {
-  return s.do_encode_(java::_tags::java::io::Serializable(), *this);
+  return s.do_encode_(*this);
 }
 
 

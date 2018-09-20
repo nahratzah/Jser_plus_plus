@@ -36,11 +36,18 @@ classes:
       virtual: true
       const: true
       return:
-        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_string>
+        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+      arguments:
+      - name: hander_
+        type:
+          cxx: ::java::serialization::cycle_handler&
       includes:
         declaration:
         - java/serialization/encdec.h
         - cycle_ptr/cycle_ptr.h
+        - java/serialization/type_def_fwd.h
+        implementation:
+        - java/serialization/type_def.h
       body: |
         return nullptr; // XXX erase body once rules take care of most things.
   java.lang.String:
@@ -82,7 +89,11 @@ classes:
       final: true
       const: true
       return:
-        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_string>
+        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+      arguments:
+      - name: hander_
+        type:
+          cxx: ::java::serialization::cycle_handler&
       body: |
         using namespace ::java::serialization::stream;
         using conversion_type = ::std::wstring_convert<
@@ -90,9 +101,13 @@ classes:
             char16_t>;
 
         conversion_type conversion;
+
+        // Note: No invocation of super.do_encode_,
+        // because strings are special case encoded.
         return ::cycle_ptr::make_cycle<stream_string>(conversion.from_bytes(value.data(), value.data() + value.size()));
       includes:
         declaration:
+        - java/serialization/type_def_fwd.h
         - java/serialization/encdec.h
         - cycle_ptr/cycle_ptr.h
         implementation:
@@ -100,6 +115,7 @@ classes:
         - cycle_ptr/cycle_ptr.h
         - locale
         - codecvt
+        - java/serialization/type_def.h
   java.lang.Class<Type>:
     members:
     - type: method
