@@ -171,7 +171,8 @@ $ classMembers(model, true)$
 
 classMembers(model, doImplement) ::= <<
 $ model.classMembers
-  : {m | $if (!doImplement)$$m.visibility$:$" "$$endif$$\\$
+  : {m | $if (!doImplement || !m.pureVirtual || m.destructorMethod)$$\\$
+         $if (!doImplement)$$m.visibility$:$" "$$endif$$\\$
          $function(
               name=m.name,
               doImplement=doImplement,
@@ -187,8 +188,10 @@ $ model.classMembers
               inline=m.inline,
               const=m.const,
               static=m.static,
-              noexcept=m.noexcept
-            )$}
+              noexcept=m.noexcept,
+              final=m.final
+            )$$\\$
+         $endif$}
   ; separator = "\n\n"$
 >>
 

@@ -69,6 +69,16 @@ public interface ClassMemberModel {
         return false;
     }
 
+    /**
+     * Test if this is a class destructor.
+     *
+     * @return Class destructors are always implemented, even if they are pure
+     * virtual.
+     */
+    public default boolean isDestructorMethod() {
+        return this instanceof ClassDestructor;
+    }
+
     public <T> T visit(Visitor<T> visitor);
 
     /**
@@ -103,7 +113,10 @@ public interface ClassMemberModel {
                 this.argumentTypes = unmodifiableList(argumentTypesTmp);
             }
 
-            this.body = renderImpl(method.getBody());
+            if (method.getBody() == null)
+                this.body = null;
+            else
+                this.body = renderImpl(method.getBody());
         }
 
         public String getName() {
@@ -180,6 +193,18 @@ public interface ClassMemberModel {
         @Override
         public Visibility getVisibility() {
             return method.getVisibility();
+        }
+
+        public boolean isOverride() {
+            return method.isOverride();
+        }
+
+        public boolean isConst() {
+            return method.isConst();
+        }
+
+        public boolean isFinal() {
+            return method.isFinal();
         }
 
         public String getDocString() {

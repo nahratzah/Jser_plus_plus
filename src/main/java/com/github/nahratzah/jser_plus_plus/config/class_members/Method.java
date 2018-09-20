@@ -27,6 +27,12 @@ public class Method implements ClassMember {
     private String body;
     @JsonProperty("virtual")
     private boolean virtual = false;
+    @JsonProperty("override")
+    private boolean override = false;
+    @JsonProperty("const")
+    private boolean constVar = false;
+    @JsonProperty("final")
+    private boolean finalVar = false;
     @JsonProperty("visibility")
     private Visibility visibility = Visibility.PUBLIC;
     @JsonProperty("doc_string")
@@ -115,6 +121,46 @@ public class Method implements ClassMember {
 
     public void setVirtual(boolean virtual) {
         this.virtual = virtual;
+    }
+
+    /**
+     * If set, the method is overriding another method.
+     *
+     * @return True if this method overrides a method from a super class or
+     * interface.
+     */
+    public boolean isOverride() {
+        return override;
+    }
+
+    public void setOverride(boolean override) {
+        this.override = override;
+    }
+
+    /**
+     * If set, the method is a const method.
+     *
+     * @return True if the method is a const method. False otherwise.
+     */
+    public boolean isConst() {
+        return constVar;
+    }
+
+    public void setConst(boolean constVar) {
+        this.constVar = constVar;
+    }
+
+    /**
+     * If set, the method is a final method.
+     *
+     * @return True if the method is final. False otherwise.
+     */
+    public boolean isFinal() {
+        return finalVar;
+    }
+
+    public void setFinal(boolean finalVar) {
+        this.finalVar = finalVar;
     }
 
     @Override

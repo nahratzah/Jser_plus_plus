@@ -29,6 +29,20 @@ scan:
   - javax.xml
 classes:
   java.io.Serializable:
+    members:
+    - type: method
+      name: do_encode_
+      visibility: private
+      virtual: true
+      const: true
+      return:
+        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_string>
+      includes:
+        declaration:
+        - java/serialization/encdec.h
+        - cycle_ptr/cycle_ptr.h
+      body: |
+        return nullptr; // XXX erase body once rules take care of most things.
   java.lang.String:
     var_type:
       cxx: ::std::string
@@ -64,6 +78,9 @@ classes:
     - type: method
       name: do_encode_
       visibility: private
+      override: true
+      final: true
+      const: true
       return:
         cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_string>
       body: |
