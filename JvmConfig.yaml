@@ -619,6 +619,24 @@ classes:
       override: true
       body: |
         data_.clear();
+    - type: method
+      name: begin
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.begin());
+    - type: method
+      name: end
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.end());
     fields:
       size:
         visibility: private
@@ -702,6 +720,24 @@ classes:
       override: true
       body: |
         data_.clear();
+    - type: method
+      name: begin
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.begin());
+    - type: method
+      name: end
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.end());
     fields:
       data_:
         visibility: private
