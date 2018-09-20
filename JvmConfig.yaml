@@ -519,9 +519,17 @@ classes:
     - type: method
       name: clear
       virtual: true
-      noexcept: true
   java.util.List<E>:
     members:
+    - type: method
+      name: push_front
+      virtual: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
     - type: method
       name: push_back
       virtual: true
@@ -531,6 +539,11 @@ classes:
       - name: e
         type:
           java: E
+    - type: method
+      name: pop_front
+      virtual: true
+      return:
+        java: E
     - type: method
       name: pop_back
       virtual: true
@@ -560,6 +573,18 @@ classes:
       body: |
         return data_.size();
     - type: method
+      name: push_front
+      override: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        data_.insert(data_.begin(), std::move(e));
+        return true;
+    - type: method
       name: push_back
       override: true
       return:
@@ -581,9 +606,17 @@ classes:
         data_.pop_back();
         return r;
     - type: method
+      name: pop_front
+      override: true
+      return:
+        java: E
+      body: |
+        $boundTemplateType(java.("E"), "style=type, class")$ r = std::move(data_.front());
+        data_.erase(data_.begin());
+        return r;
+    - type: method
       name: clear
       override: true
-      noexcept: true
       body: |
         data_.clear();
     fields:
@@ -597,5 +630,85 @@ classes:
           includes:
             declaration:
             - vector
+            - cycle_ptr/allocator.h
+        default: ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+  java.util.LinkedList<E>:
+    members:
+    - type: method
+      name: empty
+      override: true
+      const: true
+      noexcept: true
+      return:
+        cxx: bool
+      body: |
+        return data_.empty();
+    - type: method
+      name: size
+      override: true
+      const: true
+      noexcept: true
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return data_.size();
+    - type: method
+      name: push_front
+      override: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        data_.push_front(std::move(e));
+        return true;
+    - type: method
+      name: push_back
+      override: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        data_.push_back(std::move(e));
+        return true;
+    - type: method
+      name: pop_back
+      override: true
+      return:
+        java: E
+      body: |
+        $boundTemplateType(java.("E"), "style=type, class")$ r = std::move(data_.back());
+        data_.pop_back();
+        return r;
+    - type: method
+      name: pop_front
+      override: true
+      return:
+        java: E
+      body: |
+        $boundTemplateType(java.("E"), "style=type, class")$ r = std::move(data_.front());
+        data_.pop_front();
+        return r;
+    - type: method
+      name: clear
+      override: true
+      body: |
+        data_.clear();
+    fields:
+      data_:
+        visibility: private
+        type:
+          cxx: ::std::list<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>
+          includes:
+            declaration:
+            - list
             - cycle_ptr/allocator.h
         default: ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
