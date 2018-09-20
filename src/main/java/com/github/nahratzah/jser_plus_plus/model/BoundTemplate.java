@@ -504,9 +504,12 @@ class BoundTemplateParser {
 
     public BoundTemplateParser(Context ctx, Collection<String> variables) {
         this.ctx = requireNonNull(ctx);
-        VARIABLES_STARTS = startWith(variables.stream()
-                .map(Pattern::quote)
-                .collect(Collectors.joining("|", "(?:", ")")));
+        if (variables.isEmpty())
+            VARIABLES_STARTS = null;
+        else
+            VARIABLES_STARTS = startWith(variables.stream()
+                    .map(Pattern::quote)
+                    .collect(Collectors.joining("|", "(?:", ")")));
     }
 
     public BoundTemplate parse(CharSequence text) {
@@ -527,13 +530,13 @@ class BoundTemplateParser {
         eatWs_();
 
         final Matcher any = ANY_STARTS.matcher(s);
-        final Matcher var = VARIABLES_STARTS.matcher(s);
+        final Matcher var = (VARIABLES_STARTS == null ? null : VARIABLES_STARTS.matcher(s));
         final Matcher cls = CLASS_NAME_STARTS.matcher(s);
 
         if (any.matches()) {
             s = s.subSequence(any.end(), s.length());
             return parseAny_();
-        } else if (var.find()) {
+        } else if (var != null && var.find()) {
             final String varName = var.group();
             s = s.subSequence(var.end(), s.length());
             return new BoundTemplate.VarBinding(varName);
@@ -598,9 +601,9 @@ class BoundTemplateParser {
         eatWs_();
 
         for (;;) {
-            final Matcher variables = VARIABLES_STARTS.matcher(s);
+            final Matcher variables = (VARIABLES_STARTS == null ? null : VARIABLES_STARTS.matcher(s));
             final Matcher clsName = CLASS_NAME_STARTS.matcher(s);
-            if (variables.find()) {
+            if (variables != null && variables.find()) {
                 types.add(new BoundTemplate.VarBinding(variables.group()));
                 s = s.subSequence(variables.end(), s.length());
             } else if (clsName.find()) {
