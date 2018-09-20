@@ -1,5 +1,7 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
+import com.github.nahratzah.jser_plus_plus.config.CfgArgument;
+import com.github.nahratzah.jser_plus_plus.config.CfgType;
 import com.github.nahratzah.jser_plus_plus.config.Includes;
 import com.github.nahratzah.jser_plus_plus.config.class_members.Constructor;
 import com.github.nahratzah.jser_plus_plus.config.class_members.Destructor;
@@ -10,6 +12,7 @@ import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.util.ArrayList;
 import java.util.Collection;
+import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.unmodifiableList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -96,43 +99,13 @@ public interface ClassMemberModel {
 
     public static class ClassMethod extends AbstractClassMemberModel {
         public ClassMethod(Context ctx, ClassType model, Method method) {
-            super(ctx, model);
+            super(ctx, model, method.getReturnType(), method.getArguments(), method.getBody());
 
             this.method = requireNonNull(method);
-            this.returnType = typeFromCfgType(method.getReturnType(), ctx, variables);
-
-            {
-                final List<Type> argumentTypesTmp = new ArrayList<>();
-                final List<String> argumentNamesTmp = new ArrayList<>();
-                method.getArguments()
-                        .forEach(arg -> {
-                            argumentTypesTmp.add(typeFromCfgType(arg.getType(), ctx, variables));
-                            argumentNamesTmp.add(arg.getName());
-                        });
-                this.argumentNames = unmodifiableList(argumentNamesTmp);
-                this.argumentTypes = unmodifiableList(argumentTypesTmp);
-            }
-
-            if (method.getBody() == null)
-                this.body = null;
-            else
-                this.body = renderImpl(method.getBody());
         }
 
         public String getName() {
             return method.getName();
-        }
-
-        public Type getReturnType() {
-            return returnType;
-        }
-
-        public List<Type> getArgumentTypes() {
-            return argumentTypes;
-        }
-
-        public List<String> getArgumentNames() {
-            return argumentNames;
         }
 
         public Includes getIncludes() {
@@ -176,10 +149,6 @@ public interface ClassMemberModel {
         @Override
         public boolean isPublicMethod() {
             return getVisibility() == Visibility.PUBLIC;
-        }
-
-        public String getBody() {
-            return body;
         }
 
         public boolean isVirtual() {
@@ -252,60 +221,31 @@ public interface ClassMemberModel {
         }
 
         private final Method method;
-        private final Type returnType;
-        private final List<String> argumentNames;
-        private final List<Type> argumentTypes;
-        private final String body;
     }
 
     public static class ClassConstructor extends AbstractClassMemberModel {
         public ClassConstructor(Context ctx, ClassType cdef, Constructor constructor) {
-            super(ctx, cdef);
+            super(ctx, cdef, null, constructor.getArguments(), constructor.getBody());
 
             this.constructor = requireNonNull(constructor);
 
             {
-                final List<Type> argumentTypesTmp = new ArrayList<>();
-                final List<String> argumentNamesTmp = new ArrayList<>();
-                constructor.getArguments()
-                        .forEach(arg -> {
-                            argumentTypesTmp.add(typeFromCfgType(arg.getType(), ctx, variables));
-                            argumentNamesTmp.add(arg.getName());
-                        });
-                this.argumentNames = unmodifiableList(argumentNamesTmp);
-                this.argumentTypes = unmodifiableList(argumentTypesTmp);
-            }
-
-            {
                 final LinkedHashMap<String, String> initializersTmp = new LinkedHashMap<>();
                 if (constructor.getSuperInitializer() != null)
-                    initializersTmp.put(cdef.getSuperClass().getType().getClassName(), constructor.getSuperInitializer());
+                    initializersTmp.put(cdef.getSuperClass().getType().getClassName(), renderImpl(constructor.getSuperInitializer()));
                 cdef.getFields().stream()
                         .filter(field -> constructor.getInitializers().containsKey(field.getName()))
                         .forEachOrdered(field -> {
                             final String name = field.getName();
                             final String initializer = constructor.getInitializers().get(name);
-                            initializersTmp.put(name, initializer);
+                            initializersTmp.put(name, renderImpl(initializer));
                         });
                 this.initializers = initializersTmp;
             }
-
-            if (constructor.getBody() == null)
-                this.body = null;
-            else
-                this.body = renderImpl(constructor.getBody());
         }
 
         public String getName() {
             return cdef.getClassName();
-        }
-
-        public List<Type> getArgumentTypes() {
-            return argumentTypes;
-        }
-
-        public List<String> getArgumentNames() {
-            return argumentNames;
         }
 
         public Includes getIncludes() {
@@ -343,10 +283,6 @@ public interface ClassMemberModel {
                     .flatMap(Function.identity());
         }
 
-        public String getBody() {
-            return body;
-        }
-
         public Set<Map.Entry<String, String>> getInitializers() {
             return initializers.entrySet();
         }
@@ -370,21 +306,13 @@ public interface ClassMemberModel {
         }
 
         private final Constructor constructor;
-        private final List<String> argumentNames;
-        private final List<Type> argumentTypes;
         private final LinkedHashMap<String, String> initializers;
-        private final String body;
     }
 
     public static class ClassDestructor extends AbstractClassMemberModel {
         public ClassDestructor(Context ctx, ClassType cdef, Destructor destructor) {
-            super(ctx, cdef);
+            super(ctx, cdef, null, EMPTY_LIST, destructor.getBody());
             this.destructor = requireNonNull(destructor);
-
-            if (destructor.getBody() == null)
-                this.body = null;
-            else
-                this.body = renderImpl(destructor.getBody());
         }
 
         public Includes getIncludes() {
@@ -409,10 +337,6 @@ public interface ClassMemberModel {
         @Override
         public Stream<String> getImplementationIncludes() {
             return getIncludes().getImplementationIncludes().stream();
-        }
-
-        public String getBody() {
-            return body;
         }
 
         public boolean isVirtual() {
@@ -445,12 +369,11 @@ public interface ClassMemberModel {
         }
 
         private final Destructor destructor;
-        private final String body;
     }
 }
 
 abstract class AbstractClassMemberModel implements ClassMemberModel {
-    public AbstractClassMemberModel(Context ctx, ClassType cdef) {
+    public AbstractClassMemberModel(Context ctx, ClassType cdef, CfgType returnType, List<CfgArgument> arguments, String body) {
         this.cdef = requireNonNull(cdef);
         this.variables = unmodifiableList(cdef.getTemplateArguments().stream()
                 .map(ClassTemplateArgument::getName)
@@ -464,6 +387,36 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
 
         this.declRenderer = (text) -> basicRenderer.apply(text, this.declarationTypes);
         this.implRenderer = (text) -> basicRenderer.apply(text, this.implementationTypes);
+
+        this.returnType = prerender(returnType, ctx);
+
+        {
+            final List<Type> argumentTypesTmp = new ArrayList<>();
+            final List<String> argumentNamesTmp = new ArrayList<>();
+            arguments.forEach(arg -> {
+                argumentTypesTmp.add(prerender(arg.getType(), ctx));
+                argumentNamesTmp.add(arg.getName());
+            });
+            this.argumentNames = unmodifiableList(argumentNamesTmp);
+            this.argumentTypes = unmodifiableList(argumentTypesTmp);
+        }
+
+        if (body == null)
+            this.body = null;
+        else
+            this.body = renderImpl(body);
+    }
+
+    private Type prerender(CfgType cfgType, Context ctx) {
+        if (cfgType == null) return null;
+        final Type type = typeFromCfgType(cfgType, ctx, variables);
+
+        if (type instanceof CxxType) {
+            ((CxxType) type).setTemplate(
+                    renderDecl(((CxxType) type).getTemplate()));
+        }
+
+        return type;
     }
 
     protected final String renderDecl(String text) {
@@ -484,10 +437,30 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
         return implementationTypes.stream();
     }
 
+    public final Type getReturnType() {
+        return returnType;
+    }
+
+    public final List<Type> getArgumentTypes() {
+        return argumentTypes;
+    }
+
+    public final List<String> getArgumentNames() {
+        return argumentNames;
+    }
+
+    public final String getBody() {
+        return body;
+    }
+
     protected final ClassType cdef;
     protected final List<String> variables;
     private final List<Type> declarationTypes = new ArrayList<>();
     private final List<Type> implementationTypes = new ArrayList<>();
     private final Function<String, String> declRenderer;
     private final Function<String, String> implRenderer;
+    private final Type returnType;
+    private final List<String> argumentNames;
+    private final List<Type> argumentTypes;
+    private final String body;
 }

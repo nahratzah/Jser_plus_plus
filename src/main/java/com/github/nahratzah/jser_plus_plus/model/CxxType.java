@@ -34,6 +34,10 @@ public class CxxType implements Type {
         return template;
     }
 
-    private final String template;
+    public void setTemplate(String template) {
+        this.template = template;
+    }
+
+    private String template;
     private final Includes includes;
 }
