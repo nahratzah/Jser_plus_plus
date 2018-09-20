@@ -132,6 +132,13 @@ classes:
   java.util.Collection<E>:
     members:
     - type: method
+      name: empty
+      virtual: true
+      const: true
+      noexcept: true
+      return:
+        cxx: bool
+    - type: method
       name: size
       virtual: true
       const: true
@@ -141,8 +148,35 @@ classes:
         includes:
           declaration:
           - cstddef
+    - type: method
+      name: push_back
+      virtual: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
+    - type: method
+      name: pop_back
+      virtual: true
+      return:
+        java: E
+    - type: method
+      name: clear
+      virtual: true
+      noexcept: true
   java.util.ArrayList<E>:
     members:
+    - type: method
+      name: empty
+      override: true
+      const: true
+      noexcept: true
+      return:
+        cxx: bool
+      body: |
+        return data.empty();
     - type: method
       name: size
       override: true
@@ -155,6 +189,33 @@ classes:
           - cstddef
       body: |
         return data_.size();
+    - type: method
+      name: push_back
+      override: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        data_.push_back(std::move(e));
+        return true;
+    - type: method
+      name: pop_back
+      override: true
+      return:
+        java: E
+      body: |
+        $boundTemplateType(java.("E"), "style=type, class")$ r = std::move(data_.back());
+        data_.pop_back();
+        return r;
+    - type: method
+      name: clear
+      override: true
+      noexcept: true
+      body: |
+        data_.clear();
     fields:
       size:
         visibility: private
