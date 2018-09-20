@@ -28,6 +28,88 @@ scan:
   - javax.transaction
   - javax.xml
 classes:
+  java.lang.Number:
+    members:
+    - type: method
+      name: byteValue
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::byte_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        return static_cast<::java::byte_t>(longValue());
+      doc_string: |
+        \brief Retrieve the `byte` value.
+        \attention The returned value may be truncated.
+    - type: method
+      name: shortValue
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::short_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        return static_cast<::java::short_t>(longValue());
+      doc_string: |
+        \brief Retrieve the `short` value.
+        \attention The returned value may be truncated.
+    - type: method
+      name: intValue
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        return static_cast<::java::int_t>(longValue());
+      doc_string: |
+        \brief Retrieve the `int` value.
+        \attention The returned value may be truncated.
+    - type: method
+      name: longValue
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::long_t
+        includes:
+          declaration:
+          - java/primitives.h
+      doc_string: |
+        \brief Retrieve the `long` value.
+        \attention The returned value may be truncated.
+    - type: method
+      name: floatValue
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::float_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        return static_cast<::java::float_t>(doubleValue());
+      doc_string: |
+        \brief Retrieve the `float` value.
+        \attention The returned value may be truncated.
+    - type: method
+      name: doubleValue
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::double_t
+        includes:
+          declaration:
+          - java/primitives.h
+      doc_string: |
+        \brief Retrieve the `double` value.
+        \attention The returned value may be truncated.
   java.lang.Boolean:
     fields:
       value:
@@ -73,6 +155,30 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: byteValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::byte_t
+      body: |
+        return value;
+    - type: method
+      name: longValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::long_t
+      body: |
+        return value;
+    - type: method
+      name: doubleValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::double_t
+      body: |
+        return value;
   java.lang.Short:
     fields:
       value:
@@ -88,6 +194,30 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: shortValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::short_t
+      body: |
+        return value;
+    - type: method
+      name: longValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::long_t
+      body: |
+        return value;
+    - type: method
+      name: doubleValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::double_t
+      body: |
+        return value;
   java.lang.Integer:
     fields:
       value:
@@ -103,6 +233,30 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: intValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::int_t
+      body: |
+        return value;
+    - type: method
+      name: longValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::long_t
+      body: |
+        return value;
+    - type: method
+      name: doubleValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::double_t
+      body: |
+        return value;
   java.lang.Long:
     fields:
       value:
@@ -118,6 +272,22 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: longValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::long_t
+      body: |
+        return value;
+    - type: method
+      name: doubleValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::double_t
+      body: |
+        return value;
   java.lang.Float:
     fields:
       value:
@@ -133,6 +303,30 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: longValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::long_t
+      body: |
+        return value;
+    - type: method
+      name: floatValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::float_t
+      body: |
+        return value;
+    - type: method
+      name: doubleValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::double_t
+      body: |
+        return value;
   java.lang.Double:
     fields:
       value:
@@ -148,6 +342,22 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: longValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::long_t
+      body: |
+        return value;
+    - type: method
+      name: doubleValue
+      override: true
+      const: true
+      return:
+        cxx: ::java::double_t
+      body: |
+        return value;
   java.io.Serializable:
     friends:
     - cxx: ::java::serialization::cycle_handler
