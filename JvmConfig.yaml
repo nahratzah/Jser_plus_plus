@@ -29,6 +29,11 @@ scan:
   - javax.xml
 classes:
   java.io.Serializable:
+    friends:
+    - cxx: ::java::serialization::cycle_handler
+      includes:
+        declaration:
+        - java/serialization/type_def_fwd.h
     members:
     - type: method
       name: do_encode_

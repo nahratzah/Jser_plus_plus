@@ -63,6 +63,11 @@ $if (model.enum)$
   $model.className$& operator=($model.className$&&) = delete;
 
 $endif$
+$if (model.friends)$
+  $ model.friends
+    : {f| $if (f.unresolvedTemplateNames)$$templateLine(f.unresolvedTemplateNames)$$"\n"$$endif$friend $boundTemplateType(f, "style=erased")$;}$
+
+$endif$
 $if (model.templateArguments)$
  private:
   $ model.erasedTemplateArguments

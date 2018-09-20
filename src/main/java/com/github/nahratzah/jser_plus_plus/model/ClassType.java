@@ -78,6 +78,7 @@ public class ClassType implements JavaType {
         initSuperTypes(ctx, classCfg, argRename);
         initFields(ctx, classCfg, argRename, streamClass);
         initClassMembers(ctx, classCfg, argRename);
+        initFriendTypes(ctx, classCfg, argRename);
     }
 
     private void initTemplateArguments(Context ctx, ClassConfig classCfg, List<? extends TypeVariable<? extends Class<?>>> cTypeParameters, Map<String, String> argRename) {
@@ -232,6 +233,12 @@ public class ClassType implements JavaType {
                         }
                     });
                 })
+                .collect(Collectors.toList());
+    }
+
+    private void initFriendTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
+        this.friends = classCfg.getFriends().stream()
+                .map(cfgType -> typeFromCfgType(cfgType, ctx, argRename.values()))
                 .collect(Collectors.toList());
     }
 
@@ -449,6 +456,10 @@ public class ClassType implements JavaType {
     @Override
     public com.github.nahratzah.jser_plus_plus.model.Type getVarType() {
         return varType;
+    }
+
+    public List<com.github.nahratzah.jser_plus_plus.model.Type> getFriends() {
+        return friends;
     }
 
     /**
@@ -702,4 +713,8 @@ public class ClassType implements JavaType {
      * If null, then use this.
      */
     private com.github.nahratzah.jser_plus_plus.model.Type varType;
+    /**
+     * List of friend types.
+     */
+    private List<com.github.nahratzah.jser_plus_plus.model.Type> friends;
 }

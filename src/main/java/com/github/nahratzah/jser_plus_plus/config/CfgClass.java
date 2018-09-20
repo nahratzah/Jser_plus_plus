@@ -69,6 +69,19 @@ public class CfgClass {
         this.varType = varType;
     }
 
+    /**
+     * Retrieve all friend types.
+     *
+     * @return List of friend types.
+     */
+    public List<CfgType> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(List<CfgType> friends) {
+        this.friends = friends;
+    }
+
     @JsonProperty("final")
     private Boolean finalVar;
     @JsonProperty("fields")
@@ -77,4 +90,6 @@ public class CfgClass {
     private List<ClassMember> members = new ArrayList<>();
     @JsonProperty("var_type")
     private CfgType varType;
+    @JsonProperty("friends")
+    private List<CfgType> friends = new ArrayList<>();
 }

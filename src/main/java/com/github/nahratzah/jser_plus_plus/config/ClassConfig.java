@@ -1,6 +1,7 @@
 package com.github.nahratzah.jser_plus_plus.config;
 
 import static java.util.Collections.unmodifiableMap;
+import java.util.List;
 import java.util.Map;
 import static java.util.Objects.requireNonNull;
 import java.util.stream.Stream;
@@ -29,6 +30,10 @@ public class ClassConfig {
 
     public CfgType getVarType() {
         return cfgClass.getVarType();
+    }
+
+    public List<CfgType> getFriends() {
+        return cfgClass.getFriends();
     }
 
     private final CfgClass cfgClass;
