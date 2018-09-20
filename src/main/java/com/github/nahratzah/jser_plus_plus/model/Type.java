@@ -4,6 +4,7 @@ import com.github.nahratzah.jser_plus_plus.config.CfgType;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -13,6 +14,16 @@ import java.util.stream.Stream;
  * @author ariane
  */
 public interface Type {
+    /**
+     * Pre-render a type, allowing for auto detection of java types.
+     *
+     * @param ctx Lookup context for finding java types.
+     * @param renderArgs Map of items to supply as arguments to the renderer.
+     * @param variables List of type variables that are in scope.
+     * @return
+     */
+    public Type prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables);
+
     /**
      * Retrieve additional includes required to implement this type.
      *

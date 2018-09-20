@@ -1,5 +1,8 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
+import com.github.nahratzah.jser_plus_plus.input.Context;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -14,6 +17,11 @@ public class ConstType implements Type {
             this.type = ((ConstType) type).type;
         else
             this.type = type;
+    }
+
+    @Override
+    public ConstType prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
+        return new ConstType(type.prerender(ctx, renderArgs, variables));
     }
 
     public Type getType() {

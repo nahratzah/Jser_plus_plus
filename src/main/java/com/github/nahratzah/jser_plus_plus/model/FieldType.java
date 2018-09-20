@@ -1,6 +1,9 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
+import com.github.nahratzah.jser_plus_plus.input.Context;
+import java.util.Collection;
+import java.util.Map;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -200,6 +203,20 @@ public class FieldType {
 
     public void setDocString(String docString) {
         this.docString = docString;
+    }
+
+    /**
+     * Prerender the types.
+     *
+     * @param ctx Context for type lookups.
+     * @param renderArgs Arguments to the renderer.
+     * @param variables List of type variables in this context.
+     */
+    public void prerender(Context ctx, Map<String, Object> renderArgs, Collection<String> variables) {
+        if (type != null)
+            type = type.prerender(ctx, renderArgs, variables);
+        if (varType != null)
+            varType = varType.prerender(ctx, renderArgs, variables);
     }
 
     @Override

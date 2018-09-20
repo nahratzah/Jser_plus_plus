@@ -98,8 +98,10 @@ public class ClassType implements JavaType {
         if (classCfg.isFinal() != null)
             this.finalVar = classCfg.isFinal();
 
-        if (classCfg.getVarType() != null)
-            this.varType = typeFromCfgType(classCfg.getVarType(), ctx, argRename.values());
+        if (classCfg.getVarType() != null) {
+            this.varType = typeFromCfgType(classCfg.getVarType(), ctx, argRename.values())
+                    .prerender(ctx, singletonMap("model", this), argRename.values());
+        }
     }
 
     private void initSuperTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
@@ -209,6 +211,9 @@ public class ClassType implements JavaType {
                     if (fieldCfg.getType() != null)
                         iField.setType(typeFromCfgType(fieldCfg.getType(), ctx, argRename.values()));
                 })
+                .peek(iField -> {
+                    iField.prerender(ctx, singletonMap("model", this), getTemplateArgumentNames());
+                })
                 .collect(Collectors.toList());
     }
 
@@ -239,6 +244,7 @@ public class ClassType implements JavaType {
     private void initFriendTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
         this.friends = classCfg.getFriends().stream()
                 .map(cfgType -> typeFromCfgType(cfgType, ctx, argRename.values()))
+                .map(type -> type.prerender(ctx, singletonMap("model", this), argRename.values()))
                 .collect(Collectors.toList());
     }
 

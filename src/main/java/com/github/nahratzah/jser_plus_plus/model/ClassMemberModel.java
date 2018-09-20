@@ -13,6 +13,7 @@ import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.util.ArrayList;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -409,14 +410,8 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
 
     private Type prerender(CfgType cfgType, Context ctx) {
         if (cfgType == null) return null;
-        final Type type = typeFromCfgType(cfgType, ctx, variables);
-
-        if (type instanceof CxxType) {
-            ((CxxType) type).setTemplate(
-                    renderDecl(((CxxType) type).getTemplate()));
-        }
-
-        return type;
+        return typeFromCfgType(cfgType, ctx, variables)
+                .prerender(ctx, singletonMap("model", cdef), variables);
     }
 
     protected final String renderDecl(String text) {

@@ -21,6 +21,11 @@ import java.util.stream.Stream;
  * @author ariane
  */
 public interface BoundTemplate extends Type {
+    @Override
+    public default BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
+        return this;
+    }
+
     /**
      * Retrieve the list of parameter names that are not bound.
      *
