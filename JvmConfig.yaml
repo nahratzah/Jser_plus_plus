@@ -125,6 +125,36 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: "True"
+      return:
+        java: java.lang.Boolean
+      doc_string: |
+        \brief Models the `java.lang.Boolean.TRUE` constant.
+        \details This simply invokes the constructor for Boolean.
+        \bug This method should be static.
+      body: |
+        return $boundTemplateType(java.("java.lang.Boolean"), "style=type, class")$(
+            ::java::_direct(),
+            ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.lang.Boolean"), "style=erased")$>(true));
+      includes:
+        implementation:
+        - cycle_ptr/cycle_ptr.h
+    - type: method
+      name: "False"
+      return:
+        java: java.lang.Boolean
+      doc_string: |
+        \brief Models the `java.lang.Boolean.FALSE` constant.
+        \details This simply invokes the constructor for Boolean.
+        \bug This method should be static.
+      body: |
+        return $boundTemplateType(java.("java.lang.Boolean"), "style=type, class")$(
+            ::java::_direct(),
+            ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.lang.Boolean"), "style=erased")$>(false));
+      includes:
+        implementation:
+        - cycle_ptr/cycle_ptr.h
   java.lang.Character:
     fields:
       value:
