@@ -129,3 +129,42 @@ classes:
         java: java.lang.Class<Type[]>
       body: |
         return nullptr;
+  java.util.Collection<E>:
+    members:
+    - type: method
+      name: size
+      virtual: true
+      const: true
+      noexcept: true
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+  java.util.ArrayList<E>:
+    members:
+    - type: method
+      name: size
+      override: true
+      const: true
+      noexcept: true
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return data_.size();
+    fields:
+      size:
+        visibility: private
+        rename: xxx_implement_remove_
+      data_:
+        visibility: private
+        type:
+          cxx: ::std::vector<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>
+          includes:
+            declaration:
+            - vector
+            - cycle_ptr/allocator.h
+        default: ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
