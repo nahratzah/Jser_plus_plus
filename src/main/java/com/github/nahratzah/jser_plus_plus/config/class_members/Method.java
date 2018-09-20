@@ -33,6 +33,8 @@ public class Method implements ClassMember {
     private boolean constVar = false;
     @JsonProperty("final")
     private boolean finalVar = false;
+    @JsonProperty("noexcept")
+    private Object noexcept = Boolean.FALSE;
     @JsonProperty("visibility")
     private Visibility visibility = Visibility.PUBLIC;
     @JsonProperty("doc_string")
@@ -161,6 +163,24 @@ public class Method implements ClassMember {
 
     public void setFinal(boolean finalVar) {
         this.finalVar = finalVar;
+    }
+
+    /**
+     * Noexcept specification.
+     *
+     * This may either be a String, in which case it contains the noexcept
+     * predicate, or a boolean.
+     *
+     * @return The noexcept specification of the function, or null.
+     */
+    public Object getNoexcept() {
+        return noexcept;
+    }
+
+    public void setNoexcept(Object noexcept) {
+        if (noexcept != null && !(noexcept instanceof String) && !(noexcept instanceof Boolean))
+            throw new IllegalArgumentException("Expected string or boolean value.");
+        this.noexcept = noexcept;
     }
 
     @Override

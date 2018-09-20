@@ -207,6 +207,29 @@ public interface ClassMemberModel {
             return method.isFinal();
         }
 
+        /**
+         * Returns the noexcept specification.
+         *
+         * May return null.
+         *
+         * @return A {@link String string} or {@link ST template} with the
+         * noexcept specification.
+         * @throws IllegalStateException If the underlying method has a noexcept
+         * specification that is neither a string nor a boolean.
+         */
+        public Object getNoexcept() {
+            if (method.getNoexcept() == null) {
+                return null;
+            } else if (method.getNoexcept() instanceof String) {
+                return new ST("noexcept($noexcept; anchor$)", '$', '$')
+                        .add("noexcept", method.getNoexcept());
+            } else if (method.getNoexcept() instanceof Boolean) {
+                return ((Boolean) method.getNoexcept() ? "noexcept" : null);
+            } else {
+                throw new IllegalStateException("noexcept is required to be null, a string, or a boolean.");
+            }
+        }
+
         public String getDocString() {
             return method.getDocString();
         }
