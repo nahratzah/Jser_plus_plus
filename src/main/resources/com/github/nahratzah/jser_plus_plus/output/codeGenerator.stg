@@ -88,7 +88,7 @@ $endif$
 
  public:
   $if (!model.enum)$
-  $model.className$();
+  $if (!model.hasDefaultConstructor)$$model.className$() = default;$endif$
   $model.className$(const $model.className$&) = delete;
   $model.className$($model.className$&&) = delete;
   JSER_INLINE $model.className$& operator=(const $model.className$&) = default;
@@ -161,9 +161,6 @@ case enum_t::$v.remappedName$:
 
 
 classImpl(model) ::= <<
-$if (!model.enum)$
-$model.className$::$model.className$() {}
-$endif$
 $model.className$::~$model.className$() noexcept = default;
 
 $model.enumValues:{ kv | $classEnumConstantMethod(model, kv, true)$}; separator = "\n"$

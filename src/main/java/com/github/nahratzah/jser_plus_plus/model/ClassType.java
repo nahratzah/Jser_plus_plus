@@ -463,6 +463,16 @@ public class ClassType implements JavaType {
         return classMembers;
     }
 
+    /**
+     * Test if this class has a default constructor defined.
+     *
+     * @return True if the class has a default constructor defined.
+     */
+    public boolean getHasDefaultConstructor() {
+        return getClassMembers().stream()
+                .anyMatch(ClassMemberModel::isDefaultConstructor);
+    }
+
     @Override
     public com.github.nahratzah.jser_plus_plus.model.Type getVarType() {
         return varType;

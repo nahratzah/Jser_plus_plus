@@ -83,6 +83,15 @@ public interface ClassMemberModel {
         return this instanceof ClassDestructor;
     }
 
+    /**
+     * Test if this is the default constructor.
+     *
+     * @return True if this is the default constructor.
+     */
+    public default boolean isDefaultConstructor() {
+        return false;
+    }
+
     public <T> T visit(Visitor<T> visitor);
 
     /**
@@ -291,6 +300,11 @@ public interface ClassMemberModel {
         @Override
         public Visibility getVisibility() {
             return constructor.getVisibility();
+        }
+
+        @Override
+        public boolean isDefaultConstructor() {
+            return getArgumentTypes().isEmpty();
         }
 
         @Override
