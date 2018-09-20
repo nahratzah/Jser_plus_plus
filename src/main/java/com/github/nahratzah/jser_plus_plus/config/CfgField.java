@@ -73,6 +73,14 @@ public class CfgField {
         this.defaultInit = defaultInit;
     }
 
+    public String getRename() {
+        return rename;
+    }
+
+    public void setRename(String rename) {
+        this.rename = rename;
+    }
+
     @JsonProperty("getter")
     private Boolean getterFn;
     @JsonProperty("setter")
@@ -89,4 +97,6 @@ public class CfgField {
     private CfgType type;
     @JsonProperty(value = "default")
     private String defaultInit;
+    @JsonProperty(value = "rename")
+    private String rename;
 }

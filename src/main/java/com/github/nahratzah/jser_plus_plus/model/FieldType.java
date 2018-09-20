@@ -24,6 +24,15 @@ public class FieldType {
         this.name = requireNonNull(name);
         this.type = requireNonNull(type);
         this.encodeEnabled = this.decodeEnabled = enableSerialization;
+        this.serializationName = name;
+    }
+
+    public String getSerializationName() {
+        return serializationName;
+    }
+
+    public void setSerializationName(String serializationName) {
+        this.serializationName = serializationName;
     }
 
     public String getName() {
@@ -248,6 +257,7 @@ public class FieldType {
         return "FieldType{" + "name=" + name + ", type=" + type + ", varType=" + varType + ", encodeEnabled=" + encodeEnabled + ", decodeEnabled=" + decodeEnabled + '}';
     }
 
+    private String serializationName;
     private String name;
     private Type type;
     private Type varType;

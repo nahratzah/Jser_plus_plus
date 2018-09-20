@@ -212,6 +212,8 @@ public class ClassType implements JavaType {
                         iField.setType(typeFromCfgType(fieldCfg.getType(), ctx, argRename.values()));
                     if (fieldCfg.getDefault() != null)
                         iField.setDefault(fieldCfg.getDefault());
+                    if (fieldCfg.getRename() != null)
+                        iField.setName(fieldCfg.getRename());
                 })
                 .peek(iField -> {
                     iField.prerender(ctx, singletonMap("model", this), getTemplateArgumentNames());
