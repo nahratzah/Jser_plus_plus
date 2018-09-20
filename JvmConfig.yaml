@@ -28,6 +28,126 @@ scan:
   - javax.transaction
   - javax.xml
 classes:
+  java.lang.Boolean:
+    fields:
+      value:
+        const: true
+    members:
+    - type: constructor
+      arguments:
+      - name: v
+        type:
+          cxx: ::java::boolean_t
+          includes:
+            declaration:
+            - java/primitives.h
+      initializers:
+        value: v
+  java.lang.Character:
+    fields:
+      value:
+        const: true
+    members:
+    - type: constructor
+      arguments:
+      - name: v
+        type:
+          cxx: ::java::char_t
+          includes:
+            declaration:
+            - java/primitives.h
+      initializers:
+        value: v
+  java.lang.Byte:
+    fields:
+      value:
+        const: true
+    members:
+    - type: constructor
+      arguments:
+      - name: v
+        type:
+          cxx: ::java::byte_t
+          includes:
+            declaration:
+            - java/primitives.h
+      initializers:
+        value: v
+  java.lang.Short:
+    fields:
+      value:
+        const: true
+    members:
+    - type: constructor
+      arguments:
+      - name: v
+        type:
+          cxx: ::java::short_t
+          includes:
+            declaration:
+            - java/primitives.h
+      initializers:
+        value: v
+  java.lang.Integer:
+    fields:
+      value:
+        const: true
+    members:
+    - type: constructor
+      arguments:
+      - name: v
+        type:
+          cxx: ::java::int_t
+          includes:
+            declaration:
+            - java/primitives.h
+      initializers:
+        value: v
+  java.lang.Long:
+    fields:
+      value:
+        const: true
+    members:
+    - type: constructor
+      arguments:
+      - name: v
+        type:
+          cxx: ::java::long_t
+          includes:
+            declaration:
+            - java/primitives.h
+      initializers:
+        value: v
+  java.lang.Float:
+    fields:
+      value:
+        const: true
+    members:
+    - type: constructor
+      arguments:
+      - name: v
+        type:
+          cxx: ::java::float_t
+          includes:
+            declaration:
+            - java/primitives.h
+      initializers:
+        value: v
+  java.lang.Double:
+    fields:
+      value:
+        const: true
+    members:
+    - type: constructor
+      arguments:
+      - name: v
+        type:
+          cxx: ::java::double_t
+          includes:
+            declaration:
+            - java/primitives.h
+      initializers:
+        value: v
   java.io.Serializable:
     friends:
     - cxx: ::java::serialization::cycle_handler
