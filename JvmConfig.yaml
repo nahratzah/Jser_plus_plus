@@ -517,6 +517,12 @@ classes:
           declaration:
           - cstddef
     - type: method
+      name: clear
+      virtual: true
+      noexcept: true
+  java.util.List<E>:
+    members:
+    - type: method
       name: push_back
       virtual: true
       return:
@@ -530,10 +536,6 @@ classes:
       virtual: true
       return:
         java: E
-    - type: method
-      name: clear
-      virtual: true
-      noexcept: true
   java.util.ArrayList<E>:
     members:
     - type: method
