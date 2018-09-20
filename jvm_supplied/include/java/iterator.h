@@ -201,8 +201,8 @@ class forward_iterator<type_of_t<java::lang::Object>>::impl final
   }
 
   [[nodiscard]]
-  auto copy() -> impl* override {
-    return impl(*this);
+  auto copy() const -> impl* override {
+    return new impl(*this);
   }
 
  private:
@@ -232,8 +232,8 @@ class bidirectional_iterator<type_of_t<java::lang::Object>>::impl final
   }
 
   [[nodiscard]]
-  auto copy() -> impl* override {
-    return impl(*this);
+  auto copy() const -> impl* override {
+    return new impl(*this);
   }
 
  private:
