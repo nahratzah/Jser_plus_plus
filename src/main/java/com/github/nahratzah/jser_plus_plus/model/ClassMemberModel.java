@@ -162,7 +162,7 @@ public interface ClassMemberModel {
         }
 
         public boolean isVirtual() {
-            return method.isVirtual();
+            return method.isVirtual() || method.isOverride();
         }
 
         public boolean isPureVirtual() {
