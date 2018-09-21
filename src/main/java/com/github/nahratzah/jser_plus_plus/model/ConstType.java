@@ -24,6 +24,11 @@ public class ConstType implements Type {
         return new ConstType(type.prerender(ctx, renderArgs, variables));
     }
 
+    @Override
+    public Set<String> getUnresolvedTemplateNames() {
+        return type.getUnresolvedTemplateNames();
+    }
+
     public Type getType() {
         return type;
     }

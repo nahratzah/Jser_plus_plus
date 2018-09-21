@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.stringtemplate.v4.ST;
 
@@ -38,6 +39,16 @@ public class CxxType implements Type {
         final ST stringTemplate = new ST(StCtx.contextGroup(ctx, variables, newDeclTypes::add), getTemplate());
         renderArgs.forEach(stringTemplate::add);
         return new CxxType(stringTemplate.render(Locale.ROOT), includes, newDeclTypes, true);
+    }
+
+    @Override
+    public Set<String> getUnresolvedTemplateNames() {
+        if (!preRendered)
+            throw new IllegalStateException("Unresolved template names are only available on prerendered CxxType.");
+        return declTypes.stream()
+                .map(Type::getUnresolvedTemplateNames)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
     }
 
     @Override

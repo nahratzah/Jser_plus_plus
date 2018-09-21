@@ -25,6 +25,13 @@ public interface Type {
     public Type prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables);
 
     /**
+     * Retrieve the list of parameter names that are not bound.
+     *
+     * @return List of parameter names that are not bound.
+     */
+    public Set<String> getUnresolvedTemplateNames();
+
+    /**
      * Retrieve additional includes required to implement this type.
      *
      * @param publicOnly If set, only return includes required to satisfy

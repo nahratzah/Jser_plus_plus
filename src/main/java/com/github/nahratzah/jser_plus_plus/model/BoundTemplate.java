@@ -26,11 +26,7 @@ public interface BoundTemplate extends Type {
         return this;
     }
 
-    /**
-     * Retrieve the list of parameter names that are not bound.
-     *
-     * @return List of parameter names that are not bound.
-     */
+    @Override
     public Set<String> getUnresolvedTemplateNames();
 
     /**
