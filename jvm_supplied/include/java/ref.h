@@ -523,6 +523,37 @@ class basic_ref final
     return *this;
   }
 
+  ///\brief Cross type copy assignment.
+  template<template<class> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<::std::remove_const_t<Type>, ::std::remove_const_t<OType>>
+          && (::std::is_const_v<Type> || !::std::is_const_v<OType>)>>
+  JSER_INLINE basic_ref(const basic_ref<OPtrImpl, OType>& other) noexcept {
+    if constexpr(std::is_convertible_v<typename basic_ref<OPtrImpl, OType>::ptr_type, ptr_type>) {
+      // Use implicit cast if possible.
+      p_ = other.p_;
+    } else {
+      // Use explicit cast only if required.
+      p_ = std::dynamic_pointer_cast<erased_type>(other.p_);
+    }
+  }
+
+  ///\brief Cross type move assignment.
+  template<template<class> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<::std::remove_const_t<Type>, ::std::remove_const_t<OType>>
+          && (::std::is_const_v<Type> || !::std::is_const_v<OType>)>>
+  JSER_INLINE basic_ref(basic_ref<OPtrImpl, OType>&& other) noexcept {
+    if constexpr(std::is_convertible_v<typename basic_ref<OPtrImpl, OType>::ptr_type, ptr_type>) {
+      // Use implicit cast if possible.
+      p_ = std::move(other.p_);
+    } else {
+      // Use explicit cast only if required.
+      p_ = std::dynamic_pointer_cast<erased_type>(other.p_);
+      other.p_ = nullptr;
+    }
+  }
+
   /**
    * \brief Make this reference a null-reference.
    * \param np nullptr
