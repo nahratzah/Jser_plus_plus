@@ -646,7 +646,7 @@ template<typename Type>
 class forward_iterator {
  public:
   using difference_type = std::ptrdiff_t;
-  using value_type = type<Type>;
+  using value_type = var_ref<Type>;
   using pointer = value_type;
   using reference = value_type;
   using iterator_category = std::forward_iterator_tag;
@@ -657,7 +657,7 @@ class forward_iterator {
       typename = std::enable_if_t<
           std::is_convertible_v<
               decltype(*std::declval<Iterator>()),
-              type<Type>>
+              var_ref<Type>>
           && !java::type_traits::is_iterator_v<Iterator>>>
   explicit forward_iterator(Iterator&& iter)
   : iter_(std::forward<Iterator>(iter))
@@ -721,7 +721,7 @@ class forward_iterator {
     return forward_iterator(iter_++);
   }
 
-  auto operator*() const -> type<Type> {
+  auto operator*() const -> var_ref<Type> {
     return cast<var_ref<Type>>(*iter_);
   }
 
@@ -734,7 +734,7 @@ template<typename Type>
 class bidirectional_iterator {
  public:
   using difference_type = std::ptrdiff_t;
-  using value_type = type<Type>;
+  using value_type = var_ref<Type>;
   using pointer = value_type;
   using reference = value_type;
   using iterator_category = std::bidirectional_iterator_tag;
@@ -745,7 +745,7 @@ class bidirectional_iterator {
       typename = std::enable_if_t<
           std::is_convertible_v<
               decltype(*std::declval<Iterator>()),
-              type<Type>>
+              var_ref<Type>>
           && !java::type_traits::is_iterator_v<Iterator>>>
   explicit bidirectional_iterator(Iterator&& iter)
   : iter_(std::forward<Iterator>(iter))
@@ -806,7 +806,7 @@ class bidirectional_iterator {
     return bidirectional_iterator(iter_--);
   }
 
-  auto operator*() const -> type<Type> {
+  auto operator*() const -> var_ref<Type> {
     return cast<var_ref<Type>>(*iter_);
   }
 
