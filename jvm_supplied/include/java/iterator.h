@@ -72,6 +72,12 @@ namespace java {
 template<>
 class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
  public:
+  using difference_type = std::ptrdiff_t;
+  using value_type = const_ref<java::lang::Object>;
+  using pointer = value_type;
+  using reference = value_type;
+  using iterator_category = std::forward_iterator_tag;
+
   class interface {
    public:
     ///\brief Destructor.
@@ -187,6 +193,12 @@ class forward_iterator<type_of_t<java::lang::Object>> {
   friend forward_iterator<type_of_t<const_ref<java::lang::Object>>>;
 
  public:
+  using difference_type = std::ptrdiff_t;
+  using value_type = java::lang::Object;
+  using pointer = value_type;
+  using reference = value_type;
+  using iterator_category = std::forward_iterator_tag;
+
   class interface
   : public virtual forward_iterator<type_of_t<const_ref<java::lang::Object>>>::interface
   {
@@ -295,6 +307,12 @@ class forward_iterator<type_of_t<java::lang::Object>> {
 template<>
 class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>> {
  public:
+  using difference_type = std::ptrdiff_t;
+  using value_type = const_ref<java::lang::Object>;
+  using pointer = value_type;
+  using reference = value_type;
+  using iterator_category = std::bidirectional_iterator_tag;
+
   class interface
   : public virtual forward_iterator<type_of_t<const_ref<java::lang::Object>>>::interface
   {
@@ -405,6 +423,12 @@ class bidirectional_iterator<type_of_t<java::lang::Object>> {
   friend bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>;
 
  public:
+  using difference_type = std::ptrdiff_t;
+  using value_type = java::lang::Object;
+  using pointer = value_type;
+  using reference = value_type;
+  using iterator_category = std::bidirectional_iterator_tag;
+
   class interface
   : public virtual forward_iterator<type_of_t<java::lang::Object>>::interface,
     public virtual bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::interface
@@ -621,6 +645,12 @@ class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::impl fin
 template<typename Type>
 class forward_iterator {
  public:
+  using difference_type = std::ptrdiff_t;
+  using value_type = type<Type>;
+  using pointer = value_type;
+  using reference = value_type;
+  using iterator_category = std::forward_iterator_tag;
+
   constexpr forward_iterator() = default;
 
   template<typename Iterator,
@@ -703,6 +733,12 @@ class forward_iterator {
 template<typename Type>
 class bidirectional_iterator {
  public:
+  using difference_type = std::ptrdiff_t;
+  using value_type = type<Type>;
+  using pointer = value_type;
+  using reference = value_type;
+  using iterator_category = std::bidirectional_iterator_tag;
+
   constexpr bidirectional_iterator() = default;
 
   template<typename Iterator,
