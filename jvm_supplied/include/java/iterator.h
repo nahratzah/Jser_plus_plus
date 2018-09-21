@@ -48,6 +48,44 @@ template<typename Type>
 class bidirectional_iterator;
 
 
+template<typename T, typename Iterator, typename = void>
+struct retype_iterator_;
+
+template<typename T, template<typename> class Iterator, typename IteratorType>
+struct retype_iterator_<T, Iterator<IteratorType>,
+    std::enable_if_t<
+        ::java::type_traits::is_iterator_v<Iterator<IteratorType>>
+        && ::java::type_traits::is_generic_v<std::remove_const_t<T>>
+    >>
+{
+  using type = Iterator<T>;
+};
+
+/**
+ * \brief Cast iterator to different iterator.
+ * \details Casts X to its counterpart holding type of R,
+ * then performs implicit conversion from that to R.
+ *
+ * \attention This is unsafe: we cannot detect a bad cast until you dereference
+ * the returned iterator.
+ */
+template<typename R, typename X>
+auto cast(X&& x)
+-> std::enable_if_t<
+    ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
+    && ::java::type_traits::is_iterator_v<R>
+    && (std::is_const_v<type_of_t<typename R::value_type>>
+        || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+    && std::is_convertible_v<
+        typename retype_iterator_<type_of_t<typename R::value_type>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
+        R>,
+    R> {
+  using retyped_x = typename retype_iterator_<type_of_t<typename R::value_type>, std::remove_cv_t<std::remove_reference_t<X>>>::type;
+
+  return retyped_x(_cast(), std::forward<X>(x));
+}
+
+
 } /* namespace java */
 
 namespace java::type_traits {
@@ -71,6 +109,18 @@ namespace java {
 
 template<>
 class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
+  template<typename R, typename X>
+  friend auto cast(X&& x)
+  -> std::enable_if_t<
+      ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
+      && ::java::type_traits::is_iterator_v<R>
+      && (std::is_const_v<type_of_t<typename R::value_type>>
+          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && std::is_convertible_v<
+          typename retype_iterator_<type_of_t<typename R::value_type>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
+          R>,
+      R>;
+
   template<typename> friend class ::java::forward_iterator;
   template<typename> friend class ::java::bidirectional_iterator;
 
@@ -113,9 +163,27 @@ class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
     -> interface* = 0;
   };
 
+ private:
   template<typename Iterator>
   class impl;
 
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  forward_iterator([[maybe_unused]] _cast c, const forward_iterator<T>& i)
+  : forward_iterator(i)
+  {}
+
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  forward_iterator([[maybe_unused]] _cast c, forward_iterator<T>&& i) noexcept
+  : forward_iterator(std::move(i))
+  {}
+
+ public:
   constexpr forward_iterator() noexcept = default;
 
   template<typename Iterator, typename = std::enable_if_t<!::java::type_traits::is_iterator_v<Iterator>>>
@@ -213,6 +281,18 @@ class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
 
 template<>
 class forward_iterator<type_of_t<java::lang::Object>> {
+  template<typename R, typename X>
+  friend auto cast(X&& x)
+  -> std::enable_if_t<
+      ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
+      && ::java::type_traits::is_iterator_v<R>
+      && (std::is_const_v<type_of_t<typename R::value_type>>
+          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && std::is_convertible_v<
+          typename retype_iterator_<type_of_t<typename R::value_type>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
+          R>,
+      R>;
+
   template<typename> friend class ::java::forward_iterator;
   template<typename> friend class ::java::bidirectional_iterator;
 
@@ -247,9 +327,27 @@ class forward_iterator<type_of_t<java::lang::Object>> {
     -> interface* override = 0;
   };
 
+ private:
   template<typename Iterator>
   class impl;
 
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  forward_iterator([[maybe_unused]] _cast c, const forward_iterator<T>& i)
+  : forward_iterator(i)
+  {}
+
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  forward_iterator([[maybe_unused]] _cast c, forward_iterator<T>&& i) noexcept
+  : forward_iterator(std::move(i))
+  {}
+
+ public:
   constexpr forward_iterator() noexcept = default;
 
   template<typename Iterator, typename = std::enable_if_t<!::java::type_traits::is_iterator_v<Iterator>>>
@@ -344,6 +442,18 @@ class forward_iterator<type_of_t<java::lang::Object>> {
 
 template<>
 class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>> {
+  template<typename R, typename X>
+  friend auto cast(X&& x)
+  -> std::enable_if_t<
+      ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
+      && ::java::type_traits::is_iterator_v<R>
+      && (std::is_const_v<type_of_t<typename R::value_type>>
+          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && std::is_convertible_v<
+          typename retype_iterator_<type_of_t<typename R::value_type>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
+          R>,
+      R>;
+
   template<typename> friend class ::java::forward_iterator;
   template<typename> friend class ::java::bidirectional_iterator;
 
@@ -376,9 +486,27 @@ class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>> {
     -> interface* override = 0;
   };
 
+ private:
   template<typename Iterator>
   class impl;
 
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  bidirectional_iterator([[maybe_unused]] _cast c, const bidirectional_iterator<T>& i)
+  : bidirectional_iterator(i)
+  {}
+
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  bidirectional_iterator([[maybe_unused]] _cast c, bidirectional_iterator<T>&& i) noexcept
+  : bidirectional_iterator(std::move(i))
+  {}
+
+ public:
   constexpr bidirectional_iterator() noexcept = default;
 
   template<typename Iterator, typename = std::enable_if_t<!::java::type_traits::is_iterator_v<Iterator>>>
@@ -475,6 +603,18 @@ class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>> {
 
 template<>
 class bidirectional_iterator<type_of_t<java::lang::Object>> {
+  template<typename R, typename X>
+  friend auto cast(X&& x)
+  -> std::enable_if_t<
+      ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
+      && ::java::type_traits::is_iterator_v<R>
+      && (std::is_const_v<type_of_t<typename R::value_type>>
+          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && std::is_convertible_v<
+          typename retype_iterator_<type_of_t<typename R::value_type>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
+          R>,
+      R>;
+
   template<typename> friend class ::java::forward_iterator;
   template<typename> friend class ::java::bidirectional_iterator;
 
@@ -502,9 +642,27 @@ class bidirectional_iterator<type_of_t<java::lang::Object>> {
     -> interface* override = 0;
   };
 
+ private:
   template<typename Iterator>
   class impl;
 
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  bidirectional_iterator([[maybe_unused]] _cast c, const bidirectional_iterator<T>& i)
+  : bidirectional_iterator(i)
+  {}
+
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  bidirectional_iterator([[maybe_unused]] _cast c, bidirectional_iterator<T>&& i) noexcept
+  : bidirectional_iterator(std::move(i))
+  {}
+
+ public:
   constexpr bidirectional_iterator() noexcept = default;
 
   template<typename Iterator, typename = std::enable_if_t<!::java::type_traits::is_iterator_v<Iterator>>>
@@ -738,6 +896,21 @@ class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::impl fin
 
 template<typename Type>
 class forward_iterator {
+  template<typename R, typename X>
+  friend auto cast(X&& x)
+  -> std::enable_if_t<
+      ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
+      && ::java::type_traits::is_iterator_v<R>
+      && (std::is_const_v<type_of_t<typename R::value_type>>
+          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && std::is_convertible_v<
+          typename retype_iterator_<type_of_t<typename R::value_type>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
+          R>,
+      R>;
+
+  template<typename> friend class ::java::forward_iterator;
+  template<typename> friend class ::java::bidirectional_iterator;
+
  public:
   using difference_type = std::ptrdiff_t;
   using value_type = var_ref<Type>;
@@ -769,6 +942,22 @@ class forward_iterator {
 
   explicit forward_iterator(forward_iterator<type_of_t<obj_type>>&& iter) noexcept
   : iter_(std::move(iter))
+  {}
+
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  forward_iterator(_cast c, const forward_iterator<T>& i)
+  : iter_(c, i)
+  {}
+
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  forward_iterator(_cast c, forward_iterator<T>&& i) noexcept
+  : iter_(c, std::move(i))
   {}
 
  public:
@@ -830,6 +1019,21 @@ class forward_iterator {
 
 template<typename Type>
 class bidirectional_iterator {
+  template<typename R, typename X>
+  friend auto cast(X&& x)
+  -> std::enable_if_t<
+      ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
+      && ::java::type_traits::is_iterator_v<R>
+      && (std::is_const_v<type_of_t<typename R::value_type>>
+          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && std::is_convertible_v<
+          typename retype_iterator_<type_of_t<typename R::value_type>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
+          R>,
+      R>;
+
+  template<typename> friend class ::java::forward_iterator;
+  template<typename> friend class ::java::bidirectional_iterator;
+
  public:
   using difference_type = std::ptrdiff_t;
   using value_type = var_ref<Type>;
@@ -861,6 +1065,22 @@ class bidirectional_iterator {
 
   explicit bidirectional_iterator(bidirectional_iterator<type_of_t<obj_type>>&& iter) noexcept
   : iter_(std::move(iter))
+  {}
+
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  bidirectional_iterator(_cast c, const bidirectional_iterator<T>& i)
+  : iter_(c, i)
+  {}
+
+  template<typename T, typename = std::enable_if_t<
+      std::is_const_v<type_of_t<value_type>>
+      || !std::is_const_v<T>
+      >>
+  bidirectional_iterator(_cast c, bidirectional_iterator<T>&& i) noexcept
+  : iter_(c, std::move(i))
   {}
 
  public:
