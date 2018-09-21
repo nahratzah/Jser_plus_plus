@@ -71,6 +71,9 @@ namespace java {
 
 template<>
 class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
+  template<typename> friend class ::java::forward_iterator;
+  template<typename> friend class ::java::bidirectional_iterator;
+
  public:
   using difference_type = std::ptrdiff_t;
   using value_type = const_ref<java::lang::Object>;
@@ -94,6 +97,12 @@ class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
      * \returns Object.
      */
     virtual auto cderef() const -> const_ref<java::lang::Object> = 0;
+
+    /**
+     * \brief Compare for equality with other interface.
+     * \param y The other interface to test equality with. May be null.
+     */
+    virtual auto operator==(const interface* y) const noexcept -> bool = 0;
 
     /**
      * \brief Create a copy of this iterator.
@@ -153,6 +162,16 @@ class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
   : forward_iterator(forward_iterator<OtherType>(std::move(other)))
   {}
 
+  auto operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool;
+  auto operator==(const forward_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool;
+  auto operator==(const bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool;
+  auto operator==(const bidirectional_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool;
+
+  template<typename X>
+  auto operator==(const forward_iterator<X>& other) const noexcept -> bool;
+  template<typename X>
+  auto operator==(const bidirectional_iterator<X>& other) const noexcept -> bool;
+
   auto operator=(const forward_iterator& other) {
     if (!other.iter_ptr_) {
       iter_ptr_ = nullptr;
@@ -194,7 +213,8 @@ class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
 
 template<>
 class forward_iterator<type_of_t<java::lang::Object>> {
-  friend forward_iterator<type_of_t<const_ref<java::lang::Object>>>;
+  template<typename> friend class ::java::forward_iterator;
+  template<typename> friend class ::java::bidirectional_iterator;
 
  public:
   using difference_type = std::ptrdiff_t;
@@ -273,6 +293,16 @@ class forward_iterator<type_of_t<java::lang::Object>> {
   : forward_iterator(forward_iterator<OtherType>(std::move(other)))
   {}
 
+  auto operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool;
+  auto operator==(const forward_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool;
+  auto operator==(const bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool;
+  auto operator==(const bidirectional_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool;
+
+  template<typename X>
+  auto operator==(const forward_iterator<X>& other) const noexcept -> bool;
+  template<typename X>
+  auto operator==(const bidirectional_iterator<X>& other) const noexcept -> bool;
+
   auto operator=(const forward_iterator& other) {
     if (!other.iter_ptr_) {
       iter_ptr_ = nullptr;
@@ -314,6 +344,9 @@ class forward_iterator<type_of_t<java::lang::Object>> {
 
 template<>
 class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>> {
+  template<typename> friend class ::java::forward_iterator;
+  template<typename> friend class ::java::bidirectional_iterator;
+
  public:
   using difference_type = std::ptrdiff_t;
   using value_type = const_ref<java::lang::Object>;
@@ -380,6 +413,16 @@ class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>> {
   : bidirectional_iterator(std::move(other.iter_))
   {}
 
+  auto operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool;
+  auto operator==(const forward_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool;
+  auto operator==(const bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool;
+  auto operator==(const bidirectional_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool;
+
+  template<typename X>
+  auto operator==(const forward_iterator<X>& other) const noexcept -> bool;
+  template<typename X>
+  auto operator==(const bidirectional_iterator<X>& other) const noexcept -> bool;
+
   auto operator=(const bidirectional_iterator& other) {
     if (!other.iter_ptr_) {
       iter_ptr_ = nullptr;
@@ -432,7 +475,8 @@ class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>> {
 
 template<>
 class bidirectional_iterator<type_of_t<java::lang::Object>> {
-  friend bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>;
+  template<typename> friend class ::java::forward_iterator;
+  template<typename> friend class ::java::bidirectional_iterator;
 
  public:
   using difference_type = std::ptrdiff_t;
@@ -491,6 +535,16 @@ class bidirectional_iterator<type_of_t<java::lang::Object>> {
   bidirectional_iterator(bidirectional_iterator<OtherType>&& other) noexcept
   : bidirectional_iterator(std::move(other.iter_))
   {}
+
+  auto operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool;
+  auto operator==(const forward_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool;
+  auto operator==(const bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool;
+  auto operator==(const bidirectional_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool;
+
+  template<typename X>
+  auto operator==(const forward_iterator<X>& other) const noexcept -> bool;
+  template<typename X>
+  auto operator==(const bidirectional_iterator<X>& other) const noexcept -> bool;
 
   auto operator=(const bidirectional_iterator& other) {
     if (!other.iter_ptr_) {
@@ -559,6 +613,12 @@ class forward_iterator<type_of_t<java::lang::Object>>::impl final
     return *iter_;
   }
 
+  auto operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>::interface* y) const noexcept
+  -> bool override {
+    const impl* yy = dynamic_cast<const impl*>(y);
+    return yy != nullptr && iter_ == yy->iter_;
+  }
+
   [[nodiscard]]
   auto copy() const -> impl* override {
     return new impl(*this);
@@ -584,6 +644,12 @@ class forward_iterator<type_of_t<const_ref<java::lang::Object>>>::impl final
 
   auto cderef() const -> const_ref<java::lang::Object> override {
     return *iter_;
+  }
+
+  auto operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>::interface* y) const noexcept
+  -> bool override {
+    const impl* yy = dynamic_cast<const impl*>(y);
+    return yy != nullptr && iter_ == yy->iter_;
   }
 
   [[nodiscard]]
@@ -617,6 +683,12 @@ class bidirectional_iterator<type_of_t<java::lang::Object>>::impl final
     return *iter_;
   }
 
+  auto operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>::interface* y) const noexcept
+  -> bool override {
+    const impl* yy = dynamic_cast<const impl*>(y);
+    return yy != nullptr && iter_ == yy->iter_;
+  }
+
   [[nodiscard]]
   auto copy() const -> impl* override {
     return new impl(*this);
@@ -646,6 +718,12 @@ class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::impl fin
 
   auto cderef() const -> const_ref<java::lang::Object> override {
     return *iter_;
+  }
+
+  auto operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>::interface* y) const noexcept
+  -> bool override {
+    const impl* yy = dynamic_cast<const impl*>(y);
+    return yy != nullptr && iter_ == yy->iter_;
   }
 
   [[nodiscard]]
@@ -808,6 +886,12 @@ class bidirectional_iterator {
   : bidirectional_iterator(other.iter_)
   {}
 
+  template<typename Iterator>
+  auto operator==(const Iterator& other) const noexcept
+  -> std::enable_if_t<::java::type_traits::is_iterator_v<Iterator>, bool> {
+    return iter_ == other;
+  }
+
   auto operator++() -> bidirectional_iterator& {
     ++iter_;
     return *this;
@@ -852,11 +936,71 @@ inline forward_iterator<type_of_t<const_ref<java::lang::Object>>>::forward_itera
 : iter_ptr_(std::move(other.iter_ptr_))
 {}
 
+inline auto forward_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto forward_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const forward_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto forward_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto forward_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const bidirectional_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+template<typename X>
+inline auto forward_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const forward_iterator<X>& other) const noexcept -> bool {
+  return *this == other.iter_;
+}
+
+template<typename X>
+inline auto forward_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const bidirectional_iterator<X>& other) const noexcept -> bool {
+  return *this == other.iter_;
+}
+
 
 template<typename Iterator, typename>
 forward_iterator<type_of_t<java::lang::Object>>::forward_iterator(Iterator&& iter)
 : iter_ptr_(std::make_unique<impl<std::remove_cv_t<std::remove_reference_t<Iterator>>>>(std::forward<Iterator>(iter)))
 {}
+
+inline auto forward_iterator<type_of_t<java::lang::Object>>::operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto forward_iterator<type_of_t<java::lang::Object>>::operator==(const forward_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto forward_iterator<type_of_t<java::lang::Object>>::operator==(const bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto forward_iterator<type_of_t<java::lang::Object>>::operator==(const bidirectional_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+template<typename X>
+inline auto forward_iterator<type_of_t<java::lang::Object>>::operator==(const forward_iterator<X>& other) const noexcept -> bool {
+  return *this == other.iter_;
+}
+
+template<typename X>
+inline auto forward_iterator<type_of_t<java::lang::Object>>::operator==(const bidirectional_iterator<X>& other) const noexcept -> bool {
+  return *this == other.iter_;
+}
 
 
 template<typename Iterator, typename>
@@ -872,11 +1016,92 @@ inline bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::bidirec
 : iter_ptr_(std::move(other.iter_ptr_))
 {}
 
+inline auto bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const forward_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const bidirectional_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+template<typename X>
+inline auto bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const forward_iterator<X>& other) const noexcept -> bool {
+  return *this == other.iter_;
+}
+
+template<typename X>
+inline auto bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::operator==(const bidirectional_iterator<X>& other) const noexcept -> bool {
+  return *this == other.iter_;
+}
+
 
 template<typename Iterator, typename>
 bidirectional_iterator<type_of_t<java::lang::Object>>::bidirectional_iterator(Iterator&& iter)
 : iter_ptr_(std::make_unique<impl<std::remove_cv_t<std::remove_reference_t<Iterator>>>>(std::forward<Iterator>(iter)))
 {}
+
+inline auto bidirectional_iterator<type_of_t<java::lang::Object>>::operator==(const forward_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto bidirectional_iterator<type_of_t<java::lang::Object>>::operator==(const forward_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto bidirectional_iterator<type_of_t<java::lang::Object>>::operator==(const bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+inline auto bidirectional_iterator<type_of_t<java::lang::Object>>::operator==(const bidirectional_iterator<type_of_t<java::lang::Object>>& other) const noexcept -> bool {
+  if (iter_ptr_ == nullptr) return other.iter_ptr_ == nullptr;
+  return *iter_ptr_ == other.iter_ptr_.get();
+}
+
+template<typename X>
+inline auto bidirectional_iterator<type_of_t<java::lang::Object>>::operator==(const forward_iterator<X>& other) const noexcept -> bool {
+  return *this == other.iter_;
+}
+
+template<typename X>
+inline auto bidirectional_iterator<type_of_t<java::lang::Object>>::operator==(const bidirectional_iterator<X>& other) const noexcept -> bool {
+  return *this == other.iter_;
+}
+
+
+template<typename X, typename Y>
+inline auto operator!=(const forward_iterator<X>& x, const forward_iterator<Y>& y) noexcept -> bool {
+  return !(x == y);
+}
+
+template<typename X, typename Y>
+inline auto operator!=(const forward_iterator<X>& x, const bidirectional_iterator<Y>& y) noexcept -> bool {
+  return !(x == y);
+}
+
+template<typename X, typename Y>
+inline auto operator!=(const bidirectional_iterator<X>& x, const forward_iterator<Y>& y) noexcept -> bool {
+  return !(x == y);
+}
+
+template<typename X, typename Y>
+inline auto operator!=(const bidirectional_iterator<X>& x, const bidirectional_iterator<Y>& y) noexcept -> bool {
+  return !(x == y);
+}
 
 
 } /* namespace java */
