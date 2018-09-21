@@ -135,6 +135,18 @@ class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
   : forward_iterator(std::move(other.iter_))
   {}
 
+  template<typename OtherType, typename =
+      std::enable_if_t<std::is_convertible_v<forward_iterator<OtherType>, forward_iterator>>>
+  forward_iterator(const bidirectional_iterator<OtherType>& other)
+  : forward_iterator(forward_iterator<OtherType>(other))
+  {}
+
+  template<typename OtherType, typename =
+      std::enable_if_t<std::is_convertible_v<forward_iterator<OtherType>, forward_iterator>>>
+  forward_iterator(bidirectional_iterator<OtherType>&& other) noexcept
+  : forward_iterator(forward_iterator<OtherType>(std::move(other)))
+  {}
+
   auto operator=(const forward_iterator& other) {
     if (!other.iter_ptr_) {
       iter_ptr_ = nullptr;
@@ -231,6 +243,18 @@ class forward_iterator<type_of_t<java::lang::Object>> {
       && !std::is_const_v<OtherType>>>
   forward_iterator(forward_iterator<OtherType>&& other) noexcept
   : forward_iterator(std::move(other.iter_))
+  {}
+
+  template<typename OtherType, typename =
+      std::enable_if_t<std::is_convertible_v<forward_iterator<OtherType>, forward_iterator>>>
+  forward_iterator(const bidirectional_iterator<OtherType>& other)
+  : forward_iterator(forward_iterator<OtherType>(other))
+  {}
+
+  template<typename OtherType, typename =
+      std::enable_if_t<std::is_convertible_v<forward_iterator<OtherType>, forward_iterator>>>
+  forward_iterator(bidirectional_iterator<OtherType>&& other) noexcept
+  : forward_iterator(forward_iterator<OtherType>(std::move(other)))
   {}
 
   auto operator=(const forward_iterator& other) {
@@ -644,6 +668,18 @@ class forward_iterator {
       >>
   forward_iterator(forward_iterator<OtherType>&& other) noexcept
   : forward_iterator(other.iter_)
+  {}
+
+  template<typename OtherType, typename =
+      std::enable_if_t<std::is_convertible_v<forward_iterator<OtherType>, forward_iterator>>>
+  forward_iterator(const bidirectional_iterator<OtherType>& other)
+  : forward_iterator(forward_iterator<OtherType>(other))
+  {}
+
+  template<typename OtherType, typename =
+      std::enable_if_t<std::is_convertible_v<forward_iterator<OtherType>, forward_iterator>>>
+  forward_iterator(bidirectional_iterator<OtherType>&& other) noexcept
+  : forward_iterator(forward_iterator<OtherType>(std::move(other)))
   {}
 
   auto operator++() -> forward_iterator& {
