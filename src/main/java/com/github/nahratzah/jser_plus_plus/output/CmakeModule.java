@@ -98,6 +98,10 @@ public class CmakeModule implements Closeable {
 
     public void write(Writer out) throws IOException {
         out
+                .append("cmake_minimum_required(VERSION 3.11)\n")
+                .append('\n')
+                .append("option(BUILD_SHARED_LIBS \"Build shared libraries\" ON)\n")
+                .append('\n')
                 .append("find_package(cycle_ptr)\n");
         for (String pkg
                      : extraPackages.stream().sorted().collect(Collectors.toList()))
