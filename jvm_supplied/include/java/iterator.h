@@ -183,6 +183,10 @@ class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
     return iter_ptr_->cderef();
   }
 
+  auto operator->() const -> const_ref<java::lang::Object> {
+    return iter_ptr_->cderef();
+  }
+
  private:
   std::unique_ptr<interface> iter_ptr_;
 };
@@ -296,6 +300,10 @@ class forward_iterator<type_of_t<java::lang::Object>> {
   }
 
   auto operator*() const -> java::lang::Object {
+    return iter_ptr_->deref();
+  }
+
+  auto operator->() const -> java::lang::Object {
     return iter_ptr_->deref();
   }
 
@@ -413,6 +421,10 @@ class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>> {
     return iter_ptr_->cderef();
   }
 
+  auto operator->() const -> const_ref<java::lang::Object> {
+    return iter_ptr_->cderef();
+  }
+
  private:
   std::unique_ptr<interface> iter_ptr_;
 };
@@ -518,6 +530,10 @@ class bidirectional_iterator<type_of_t<java::lang::Object>> {
   }
 
   auto operator*() const -> java::lang::Object {
+    return iter_ptr_->deref();
+  }
+
+  auto operator->() const -> java::lang::Object {
     return iter_ptr_->deref();
   }
 
@@ -725,6 +741,10 @@ class forward_iterator {
     return cast<var_ref<Type>>(*iter_);
   }
 
+  auto operator->() const -> var_ref<Type> {
+    return cast<var_ref<Type>>(*iter_);
+  }
+
  private:
   forward_iterator<type_of_t<obj_type>> iter_;
 };
@@ -807,6 +827,10 @@ class bidirectional_iterator {
   }
 
   auto operator*() const -> var_ref<Type> {
+    return cast<var_ref<Type>>(*iter_);
+  }
+
+  auto operator->() const -> var_ref<Type> {
     return cast<var_ref<Type>>(*iter_);
   }
 
