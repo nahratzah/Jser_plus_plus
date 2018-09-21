@@ -17,6 +17,86 @@ class bidirectional_iterator;
 
 
 template<>
+class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
+ public:
+  class interface {
+   public:
+    ///\brief Destructor.
+    virtual ~interface() noexcept = 0;
+
+    /**
+     * \brief Prefix operator++.
+     * \details Increments this.
+     */
+    virtual auto operator++() -> void = 0;
+
+    /**
+     * \brief Dereference operation.
+     * \returns Object.
+     */
+    virtual auto cderef() const -> const_ref<java::lang::Object> = 0;
+
+    /**
+     * \brief Create a copy of this iterator.
+     * \returns Copy of this.
+     */
+    [[nodiscard]]
+    virtual auto copy() const
+    -> interface* = 0;
+  };
+
+  template<typename Iterator>
+  class impl;
+
+  constexpr forward_iterator() noexcept = default;
+
+  template<typename Iterator>
+  explicit forward_iterator(Iterator&& iter);
+
+  forward_iterator(const forward_iterator& other)
+  : iter_ptr_(other.iter_ptr_ ? other.iter_ptr_->copy() : nullptr)
+  {}
+
+  forward_iterator(forward_iterator&& other) noexcept
+  : iter_ptr_(std::move(other.iter_ptr_))
+  {}
+
+  auto operator=(const forward_iterator& other) {
+    if (!other.iter_ptr_) {
+      iter_ptr_ = nullptr;
+    } else {
+      auto new_iter_ptr = std::unique_ptr<interface>(other.iter_ptr_->copy());
+      iter_ptr_ = std::move(new_iter_ptr);
+    }
+    return *this;
+  }
+
+  auto operator=(forward_iterator& other) noexcept {
+    iter_ptr_ = std::move(other.iter_ptr_);
+    return *this;
+  }
+
+  auto operator++() -> forward_iterator& {
+    ++*iter_ptr_;
+    return *this;
+  }
+
+  auto operator++(int) -> forward_iterator {
+    auto copy = *this;
+    ++*this;
+    return copy;
+  }
+
+  auto operator*() const -> const_ref<java::lang::Object> {
+    return iter_ptr_->cderef();
+  }
+
+ private:
+  std::unique_ptr<interface> iter_ptr_;
+};
+
+
+template<>
 class forward_iterator<type_of_t<java::lang::Object>> {
  public:
   class interface {
@@ -97,51 +177,47 @@ class forward_iterator<type_of_t<java::lang::Object>> {
 
 
 template<>
-class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
+class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>> {
  public:
-  class interface {
+  class interface
+  : public forward_iterator<type_of_t<const_ref<java::lang::Object>>>::interface
+  {
    public:
     ///\brief Destructor.
     virtual ~interface() noexcept = 0;
 
     /**
-     * \brief Prefix operator++.
-     * \details Increments this.
+     * \brief Prefix operator--
+     * \details Decrements this.
      */
-    virtual auto operator++() -> void = 0;
-
-    /**
-     * \brief Dereference operation.
-     * \returns Object.
-     */
-    virtual auto deref() const -> const_ref<java::lang::Object> = 0;
+    virtual auto operator--() -> void = 0;
 
     /**
      * \brief Create a copy of this iterator.
      * \returns Copy of this.
      */
     [[nodiscard]]
-    virtual auto copy() const
-    -> interface* = 0;
+    auto copy() const
+    -> interface* override = 0;
   };
 
   template<typename Iterator>
   class impl;
 
-  constexpr forward_iterator() noexcept = default;
+  constexpr bidirectional_iterator() noexcept = default;
 
   template<typename Iterator>
-  explicit forward_iterator(Iterator&& iter);
+  explicit bidirectional_iterator(Iterator&& iter);
 
-  forward_iterator(const forward_iterator& other)
+  bidirectional_iterator(const bidirectional_iterator& other)
   : iter_ptr_(other.iter_ptr_ ? other.iter_ptr_->copy() : nullptr)
   {}
 
-  forward_iterator(forward_iterator&& other) noexcept
+  bidirectional_iterator(bidirectional_iterator&& other) noexcept
   : iter_ptr_(std::move(other.iter_ptr_))
   {}
 
-  auto operator=(const forward_iterator& other) {
+  auto operator=(const bidirectional_iterator& other) {
     if (!other.iter_ptr_) {
       iter_ptr_ = nullptr;
     } else {
@@ -151,24 +227,35 @@ class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
     return *this;
   }
 
-  auto operator=(forward_iterator& other) noexcept {
+  auto operator=(bidirectional_iterator& other) noexcept {
     iter_ptr_ = std::move(other.iter_ptr_);
     return *this;
   }
 
-  auto operator++() -> forward_iterator& {
+  auto operator++() -> bidirectional_iterator& {
     ++*iter_ptr_;
     return *this;
   }
 
-  auto operator++(int) -> forward_iterator {
+  auto operator++(int) -> bidirectional_iterator {
     auto copy = *this;
     ++*this;
     return copy;
   }
 
+  auto operator--() -> bidirectional_iterator& {
+    --*iter_ptr_;
+    return *this;
+  }
+
+  auto operator--(int) -> bidirectional_iterator {
+    auto copy = *this;
+    --*this;
+    return copy;
+  }
+
   auto operator*() const -> const_ref<java::lang::Object> {
-    return iter_ptr_->deref();
+    return iter_ptr_->cderef();
   }
 
  private:
@@ -263,93 +350,6 @@ class bidirectional_iterator<type_of_t<java::lang::Object>> {
 };
 
 
-template<>
-class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>> {
- public:
-  class interface
-  : public forward_iterator<type_of_t<const_ref<java::lang::Object>>>::interface
-  {
-   public:
-    ///\brief Destructor.
-    virtual ~interface() noexcept = 0;
-
-    /**
-     * \brief Prefix operator--
-     * \details Decrements this.
-     */
-    virtual auto operator--() -> void = 0;
-
-    /**
-     * \brief Create a copy of this iterator.
-     * \returns Copy of this.
-     */
-    [[nodiscard]]
-    auto copy() const
-    -> interface* override = 0;
-  };
-
-  template<typename Iterator>
-  class impl;
-
-  constexpr bidirectional_iterator() noexcept = default;
-
-  template<typename Iterator>
-  explicit bidirectional_iterator(Iterator&& iter);
-
-  bidirectional_iterator(const bidirectional_iterator& other)
-  : iter_ptr_(other.iter_ptr_ ? other.iter_ptr_->copy() : nullptr)
-  {}
-
-  bidirectional_iterator(bidirectional_iterator&& other) noexcept
-  : iter_ptr_(std::move(other.iter_ptr_))
-  {}
-
-  auto operator=(const bidirectional_iterator& other) {
-    if (!other.iter_ptr_) {
-      iter_ptr_ = nullptr;
-    } else {
-      auto new_iter_ptr = std::unique_ptr<interface>(other.iter_ptr_->copy());
-      iter_ptr_ = std::move(new_iter_ptr);
-    }
-    return *this;
-  }
-
-  auto operator=(bidirectional_iterator& other) noexcept {
-    iter_ptr_ = std::move(other.iter_ptr_);
-    return *this;
-  }
-
-  auto operator++() -> bidirectional_iterator& {
-    ++*iter_ptr_;
-    return *this;
-  }
-
-  auto operator++(int) -> bidirectional_iterator {
-    auto copy = *this;
-    ++*this;
-    return copy;
-  }
-
-  auto operator--() -> bidirectional_iterator& {
-    --*iter_ptr_;
-    return *this;
-  }
-
-  auto operator--(int) -> bidirectional_iterator {
-    auto copy = *this;
-    --*this;
-    return copy;
-  }
-
-  auto operator*() const -> const_ref<java::lang::Object> {
-    return iter_ptr_->deref();
-  }
-
- private:
-  std::unique_ptr<interface> iter_ptr_;
-};
-
-
 template<typename Iterator>
 class forward_iterator<type_of_t<java::lang::Object>>::impl final
 : public interface
@@ -390,7 +390,7 @@ class forward_iterator<type_of_t<const_ref<java::lang::Object>>>::impl final
     ++iter_;
   }
 
-  auto deref() const -> const_ref<java::lang::Object> override {
+  auto cderef() const -> const_ref<java::lang::Object> override {
     return *iter_;
   }
 
@@ -452,7 +452,7 @@ class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>>::impl fin
     --iter_;
   }
 
-  auto deref() const -> const_ref<java::lang::Object> override {
+  auto cderef() const -> const_ref<java::lang::Object> override {
     return *iter_;
   }
 
