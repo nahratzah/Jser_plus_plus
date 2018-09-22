@@ -82,6 +82,9 @@ public final class CxxType implements Type {
 
     @Override
     public int hashCode() {
+        if (this.preRendered == null)
+            throw new IllegalStateException("Must prerender prior to hashing.");
+
         int hash = 7;
         hash = 83 * hash + Objects.hashCode(this.preRendered);
         return hash;
@@ -89,6 +92,9 @@ public final class CxxType implements Type {
 
     @Override
     public boolean equals(Object obj) {
+        if (this.preRendered == null)
+            throw new IllegalStateException("Must prerender prior to hashing.");
+
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
