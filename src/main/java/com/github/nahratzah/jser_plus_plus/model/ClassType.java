@@ -60,7 +60,7 @@ public class ClassType implements JavaType {
 
     @Override
     public void init(Context ctx, Config cfg) {
-        LOG.log(Level.INFO, "Initializing {0}", c);
+        LOG.log(Level.FINE, "Initializing {0}", c);
         final ClassConfig classCfg = cfg.getConfigForClass(c);
 
         final List<? extends TypeVariable<? extends Class<?>>> cTypeParameters = getAllTypeParameters(this.c);
@@ -68,7 +68,7 @@ public class ClassType implements JavaType {
         final Map<String, String> argRename = unmodifiableMap(cfg.getTemplateArguments(c.getName())
                 .map(cfgParameters -> buildRenameMap(cTypeParameters, cfgParameters))
                 .orElseGet(() -> buildRenameMap(cTypeParameters)));
-        LOG.log(Level.INFO, "Rename map for {0} = {1}", new Object[]{c, argRename});
+        LOG.log(Level.FINE, "Rename map for {0} = {1}", new Object[]{c, argRename});
 
         final ObjectStreamClass streamClass = ObjectStreamClass.lookupAny(this.c);
 
