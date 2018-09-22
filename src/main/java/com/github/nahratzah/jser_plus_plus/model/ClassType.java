@@ -524,7 +524,7 @@ public class ClassType implements JavaType {
                     return parentType.allMethods.stream()
                             .map(selector -> selector.rebind(bindingMap));
                 })
-                .peek(selector -> LOG.log(Level.INFO, "{0}: importing parent method {1}", new Object[]{getName(), selector}))
+                .peek(selector -> LOG.log(Level.FINE, "{0}: importing parent method {1}", new Object[]{getName(), selector}))
                 .map(selector -> new SimpleMapEntry<>(selector.rebind(erasedBindings), selector))
                 .collect(Collectors.groupingBy(
                         selector -> selector.getValue().getDeclaringClass(),
@@ -613,12 +613,10 @@ public class ClassType implements JavaType {
                 .flatMap(parentTemplate -> parentTemplate.getType().redeclareMethods(ctx, parentTemplate.getBindingsMap()))
                 .filter(override -> !myMethods.containsKey(override))
                 .peek(override -> {
-                    LOG.log(Level.INFO, "class {0} needs to redeclare `{1} -> {2}` as `{3} -> {4}`", new Object[]{
+                    LOG.log(Level.FINE, "class {0} needs to redeclare `{1}` as `{2}`", new Object[]{
                         getName(),
                         override.getUnderlyingMethod().getOverrideSelector(ctx).get(),
-                        override.getUnderlyingMethod().getOverrideSelector(ctx).get().getReturnType(),
-                        override,
-                        override.getReturnType()});
+                        override});
                 })
                 .collect(Collectors.toMap(ClassMemberModel.OverrideSelector::getUnderlyingMethod, Function.identity()));
 
@@ -636,16 +634,25 @@ public class ClassType implements JavaType {
                     .filter(((Predicate<ClassMemberModel.OverrideSelector>) myMethods::containsKey).negate())
                     .filter(((Predicate<ClassMemberModel.OverrideSelector>) new HashSet<>(redeclareMethods.values())::contains).negate())
                     .collect(Collectors.groupingBy(Function.identity()));
+            final Map<ClassMemberModel.OverrideSelector, Map<com.github.nahratzah.jser_plus_plus.model.Type, List<ClassMemberModel.OverrideSelector>>> ambiguities = new HashMap<>();
             allKeptParentMethodsTmp.forEach((key, methods) -> {
                 final Map<com.github.nahratzah.jser_plus_plus.model.Type, List<ClassMemberModel.OverrideSelector>> returnTypeMap = methods.stream()
                         .collect(Collectors.groupingBy(method -> method.getReturnType()));
-                if (returnTypeMap.size() != 1) {
-                    returnTypeMap.forEach((returnType, methodsWithReturnType) -> {
-                        LOG.log(Level.WARNING, "{0} has ambiguous methods from super type, returning {1}: {2}", new Object[]{getName(), returnType, methodsWithReturnType});
-                    });
-                    throw new IllegalStateException("Ambiguous methods from super types.");
-                }
+                if (returnTypeMap.size() != 1)
+                    ambiguities.put(key, returnTypeMap);
             });
+
+            // Report on all ambiguities and then throw an error.
+            if (!ambiguities.isEmpty()) {
+                ambiguities.forEach((key, returnTypeMap) -> {
+                    LOG.log(Level.SEVERE, "{0} has ambiguous methods from super type, with return types {1}: {2}", new Object[]{
+                        getName(),
+                        returnTypeMap.keySet(),
+                        returnTypeMap.values().stream().flatMap(Collection::stream).collect(Collectors.toList())});
+                });
+
+                throw new IllegalStateException("Ambiguous methods from super types.");
+            }
 
             allKeptParentMethods = allKeptParentMethodsTmp.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
         }
