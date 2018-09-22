@@ -57,13 +57,13 @@ public class FieldType {
         Type result = (varType != null ? varType : getType());
 
         if (result instanceof BoundTemplate.ClassBinding) {
-            final Type varTypeOfResult = ((BoundTemplate.ClassBinding) result).getType().getVarType();
+            final Type varTypeOfResult = ((BoundTemplate.ClassBinding<?>) result).getType().getVarType();
             if (varTypeOfResult != null) result = varTypeOfResult;
         }
 
         if (isConst()
                 && !(result instanceof CxxType)
-                && !(result instanceof BoundTemplate.ClassBinding && ((BoundTemplate.ClassBinding) result).getType() instanceof PrimitiveType)) {
+                && !(result instanceof BoundTemplate.ClassBinding && ((BoundTemplate.ClassBinding<?>) result).getType() instanceof PrimitiveType)) {
             result = new ConstType(result);
         }
 

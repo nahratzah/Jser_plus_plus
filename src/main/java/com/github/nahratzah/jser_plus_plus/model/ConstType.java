@@ -67,5 +67,10 @@ public final class ConstType implements Type {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "const " + type;
+    }
+
     private Type type;
 }

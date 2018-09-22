@@ -79,12 +79,12 @@ public enum PrimitiveType implements JavaType {
     }
 
     @Override
-    public BoundTemplate.ClassBinding getSuperClass() {
+    public BoundTemplate.ClassBinding<? extends ClassType> getSuperClass() {
         return null;
     }
 
     @Override
-    public Collection<BoundTemplate.ClassBinding> getInterfaces() {
+    public Collection<BoundTemplate.ClassBinding<? extends ClassType>> getInterfaces() {
         return EMPTY_LIST;
     }
 

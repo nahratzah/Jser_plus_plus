@@ -29,6 +29,7 @@ import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,6 +42,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -333,12 +335,12 @@ public class ClassType implements JavaType {
     }
 
     @Override
-    public BoundTemplate.ClassBinding getSuperClass() {
+    public BoundTemplate.ClassBinding<? extends ClassType> getSuperClass() {
         return this.superType;
     }
 
     @Override
-    public Collection<BoundTemplate.ClassBinding> getInterfaces() {
+    public Collection<BoundTemplate.ClassBinding<? extends ClassType>> getInterfaces() {
         return unmodifiableCollection(this.interfaceTypes);
     }
 
@@ -482,6 +484,191 @@ public class ClassType implements JavaType {
         return friends;
     }
 
+    @Override
+    public synchronized void postProcess(Context ctx) {
+        if (postProcessingDone) return;
+        postProcessingDone = true;
+
+        // All parents.
+        final List<BoundTemplate.ClassBinding<? extends ClassType>> parentModels = Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull), getInterfaces().stream())
+                .collect(Collectors.toList());
+
+        // Ensure parent types have all had their post processing phase completed.
+        parentModels.stream()
+                .map(BoundTemplate.ClassBinding::getType)
+                .forEach(parentType -> parentType.postProcess(ctx));
+
+        // All methods from parents that have been superseded.
+        final Set<ResolvedMethod> parentResolvedMethods = parentModels.stream()
+                .flatMap(parentTemplate -> {
+                    final ClassType parentType = parentTemplate.getType();
+                    return parentType.allResolvedMethods.stream();
+                })
+                .collect(Collectors.toSet());
+        final Predicate<ClassMemberModel.OverrideSelector> isParentResolvedMethod = (selector) -> parentResolvedMethods.contains(new ResolvedMethod(selector));
+
+        // Figure out erased bindings for our type.
+        final Map<String, BoundTemplate> erasedBindings = getErasedTemplateArguments().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> BoundTemplate.MultiType.maybeMakeMultiType(entry.getValue())));
+
+        // All parent models, but with their template arguments bound, such that our erased types are propagated.
+        final List<BoundTemplate.ClassBinding<? extends ClassType>> erasedParentModels = parentModels.stream()
+                .map(parentTemplate -> parentTemplate.rebind(erasedBindings))
+                .collect(Collectors.toList());
+
+        // All locally declared member functions,
+        // mapped to the methods they override.
+        final Map<ClassMemberModel.OverrideSelector, List<ClassMemberModel.OverrideSelector>> myMethods;
+        {
+            final List<ClassMemberModel.OverrideSelector> myMethodsTmp = getClassMembers().stream()
+                    .map(classMemberModel -> classMemberModel.getOverrideSelector(ctx))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .map(ClassMemberModel.OverrideSelector::getErasedMethod)
+                    .collect(Collectors.toList());
+            try {
+                myMethods = myMethodsTmp.stream()
+                        .collect(Collectors.toMap(Function.identity(), x -> new ArrayList<>()));
+            } catch (IllegalStateException ex) {
+                // Figure out all methods that cause collision and report them, then terminate with an exception.
+                myMethodsTmp.stream()
+                        .collect(Collectors.groupingBy(Function.identity()))
+                        .values().stream()
+                        .filter(methods -> methods.size() != 1)
+                        .forEach(methods -> LOG.log(Level.SEVERE, "Colliding methods in {0}: {1}", new Object[]{getName(), methods}));
+                throw new IllegalStateException("Method collision detected!", ex);
+            }
+
+            erasedParentModels.stream()
+                    // Rebind and retrieve the parent methods, to the binding map (which now holds out erased bindings).
+                    .flatMap(parentTemplate -> {
+                        final ClassType parentType = parentTemplate.getType();
+                        return parentType.allMethods.stream()
+                                .map(parentMethod -> parentMethod.rebind(parentTemplate.getBindingsMap()));
+                    })
+                    // Keep the ones that match prototypes in our class.
+                    .filter(myMethods::containsKey)
+                    // Add them to the mapping of overrides.
+                    .forEach(parentMethod -> myMethods.get(parentMethod).add(parentMethod));
+        }
+
+        myMethods.entrySet().stream()
+                .filter(entry -> !entry.getValue().isEmpty())
+                .forEach(entry -> {
+                    final List<String> parentSelectorsStr = entry.getValue().stream()
+                            .map(parentSelector -> parentSelector.getDeclaringClass().getName() + ": " + parentSelector + " -> " + parentSelector.getReturnType())
+                            .collect(Collectors.toList());
+                    LOG.log(Level.INFO, "class {0} declares method `{1} -> {2}` overriding: {3}", new Object[]{
+                        getName(),
+                        entry.getKey(),
+                        entry.getKey().getReturnType(),
+                        parentSelectorsStr});
+                });
+
+        // Fill out the resolved methods.
+        allResolvedMethods = myMethods.values().stream()
+                .flatMap(Collection::stream)
+                .map(ResolvedMethod::new)
+                .collect(Collectors.toSet());
+
+        // Figure out which methods need to be re-declared so that we can invoke them with the appropriate rebound types.
+        final Map<ClassMemberModel.ClassMethod, ClassMemberModel.OverrideSelector> redeclareMethods = erasedParentModels.stream()
+                .flatMap(parentTemplate -> parentTemplate.getType().redeclareMethods(ctx, parentTemplate.getBindingsMap()))
+                .filter(override -> !myMethods.containsKey(override))
+                .peek(override -> {
+                    LOG.log(Level.INFO, "class {0} needs to redeclare `{1} -> {2}` as `{3} -> {4}`", new Object[]{
+                        getName(),
+                        override.getUnderlyingMethod().getOverrideSelector(ctx).get(),
+                        override.getUnderlyingMethod().getOverrideSelector(ctx).get().getReturnType(),
+                        override,
+                        override.getReturnType()});
+                })
+                .collect(Collectors.toMap(ClassMemberModel.OverrideSelector::getUnderlyingMethod, Function.identity()));
+
+        // Figure out which other methods are available on the parent.
+        // Only methods that are not re-declared and not overriden are here.
+        final List<ClassMemberModel.OverrideSelector> allKeptParentMethods;
+        {
+            final Map<ClassMemberModel.OverrideSelector, List<ClassMemberModel.OverrideSelector>> allKeptParentMethodsTmp = erasedParentModels.stream()
+                    .flatMap(erasedParentTemplate -> {
+                        final ClassType parentModel = erasedParentTemplate.getType();
+                        return parentModel.allMethods.stream()
+                                .filter(isParentResolvedMethod.negate())
+                                .map(overrideSelector -> overrideSelector.rebind(erasedParentTemplate.getBindingsMap()));
+                    })
+                    .filter(((Predicate<ClassMemberModel.OverrideSelector>) myMethods::containsKey).negate())
+                    .filter(((Predicate<ClassMemberModel.OverrideSelector>) new HashSet<>(redeclareMethods.values())::contains).negate())
+                    .collect(Collectors.groupingBy(Function.identity()));
+            allKeptParentMethodsTmp.forEach((key, methods) -> {
+                final Map<com.github.nahratzah.jser_plus_plus.model.Type, List<ClassMemberModel.OverrideSelector>> returnTypeMap = methods.stream()
+                        .collect(Collectors.groupingBy(method -> method.getReturnType()));
+                if (returnTypeMap.size() != 1) {
+                    returnTypeMap.forEach((returnType, methodsWithReturnType) -> {
+                        methodsWithReturnType.forEach(methodWithReturnType -> {
+                            LOG.log(Level.WARNING, "{0} has ambiguous methods from super type: {1}: {2} -> {3}", new Object[]{
+                                getName(),
+                                methodWithReturnType.getDeclaringClass().getName(),
+                                methodWithReturnType, returnType});
+                        });
+                    });
+//                    throw new IllegalStateException("Ambiguous methods from super types.");
+                }
+            });
+
+            allKeptParentMethods = allKeptParentMethodsTmp.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
+        }
+
+        allMethods = Stream.of(allKeptParentMethods, redeclareMethods.values(), myMethods.keySet())
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+
+        System.out.println("========================================================");
+        System.out.println(getName());
+        System.out.println("--------------------------------------------------------");
+        System.out.println("all methods:");
+        allMethods.forEach(m -> System.out.println("  " + m.getDeclaringType() + ": " + m + " -> " + m.getReturnType()));
+        System.out.println("all suppressed methods:");
+        allResolvedMethods.forEach(m -> System.out.println("  " + m.getSelector().getDeclaringType() + ": " + m.getSelector() + " -> " + m.getSelector().getReturnType()));
+        System.out.println("--------------------------------------------------------");
+
+//        throw new UnsupportedOperationException("XXX implement class post processing");
+    }
+
+    /**
+     * Retrieve members which need to be re-declared due to template type
+     * bindings.
+     *
+     * @param ctx Type lookup context.
+     * @param variablesMap Template variables that this class is bound to.
+     * @return Collection of
+     * {@link ClassMemberModel.OverrideSelector override selectors} for methods
+     * which had their arguments or return type change due to template
+     * specializations.
+     */
+    public Stream<ClassMemberModel.OverrideSelector> redeclareMethods(Context ctx, Map<String, ? extends BoundTemplate> variablesMap) {
+        final EnumSet<Visibility> visibilitySet = EnumSet.of(Visibility.PROTECTED, Visibility.PUBLIC);
+
+        return getClassMembers().stream()
+                .filter(member -> visibilitySet.contains(member.getVisibility()))
+                .map(member -> member.getOverrideSelector(ctx))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(overrideSelector -> overrideSelector.rebind(variablesMap))
+                .filter(ClassMemberModel.OverrideSelector::hasAlteredTypes);
+    }
+
+    /**
+     * Retrieve all inherited and local virtual methods.
+     *
+     * @return List of all methods in this class that can be overriden.
+     */
+    public List<ClassMemberModel.OverrideSelector> getAllMethods() {
+        if (!postProcessingDone)
+            throw new IllegalStateException("Must have completed post processing stage.");
+
+        throw new UnsupportedOperationException("XXX implement this");
+    }
+
     /**
      * Build a simple identity map for the given type variables.
      *
@@ -543,7 +730,7 @@ public class ClassType implements JavaType {
             final List<BoundTemplate> cArgs = Stream.generate(BoundTemplate.Any::new)
                     .limit(cVar.getNumTemplateArguments())
                     .collect(Collectors.toList());
-            return new BoundTemplate.ClassBinding(cVar, cArgs);
+            return new BoundTemplate.ClassBinding<>(cVar, cArgs);
         }
 
         @Override
@@ -579,7 +766,7 @@ public class ClassType implements JavaType {
                     if (var.isArray())
                         return new BoundTemplate.ArrayBinding(apply(var.getComponentType()), 1);
 
-                    return new BoundTemplate.ClassBinding(ctx.resolveClass(var), cArgs);
+                    return new BoundTemplate.ClassBinding<>(ctx.resolveClass(var), cArgs);
                 }
 
                 @Override
@@ -622,76 +809,116 @@ public class ClassType implements JavaType {
     /**
      * Type visitor that resolves a parent type to a bound template.
      */
-    private static class ParentTypeVisitor implements ReflectUtil.Visitor<BoundTemplate.ClassBinding> {
+    private static class ParentTypeVisitor implements ReflectUtil.Visitor<BoundTemplate.ClassBinding<ClassType>> {
         public ParentTypeVisitor(Context ctx, Map<? super String, ? extends String> argRename) {
             this.ctx = requireNonNull(ctx);
             this.argRename = requireNonNull(argRename);
         }
 
         @Override
-        public BoundTemplate.ClassBinding apply(Class<?> var) {
+        public BoundTemplate.ClassBinding<ClassType> apply(Class<?> var) {
             if (var.isArray())
                 throw new IllegalStateException("Parent type can not be an array.");
 
-            return new BoundTemplate.ClassBinding(ctx.resolveClass(var), EMPTY_LIST);
+            return new BoundTemplate.ClassBinding<>(ctx.resolveClass(var), EMPTY_LIST);
         }
 
         @Override
-        public BoundTemplate.ClassBinding apply(TypeVariable<?> var) {
+        public BoundTemplate.ClassBinding<ClassType> apply(TypeVariable<?> var) {
             throw new IllegalStateException("Parent type can not be a generics variable.");
         }
 
         @Override
-        public BoundTemplate.ClassBinding apply(GenericArrayType var) {
+        public BoundTemplate.ClassBinding<ClassType> apply(GenericArrayType var) {
             throw new IllegalStateException("Parent type can not be an array.");
         }
 
         @Override
-        public BoundTemplate.ClassBinding apply(WildcardType var) {
+        public BoundTemplate.ClassBinding<ClassType> apply(WildcardType var) {
             throw new IllegalStateException("Parent type can not be a wildcard.");
         }
 
         @Override
-        public BoundTemplate.ClassBinding apply(ParameterizedType var) {
+        public BoundTemplate.ClassBinding<ClassType> apply(ParameterizedType var) {
             final BoundsMapping boundsMapping = new BoundsMapping(ctx, argRename);
 
             final List<BoundTemplate> cArgs = Arrays.stream(var.getActualTypeArguments())
                     .map(x -> ReflectUtil.visitType(x, boundsMapping))
                     .collect(Collectors.toList());
 
-            return (BoundTemplate.ClassBinding) ReflectUtil.visitType(var.getRawType(), new ReflectUtil.Visitor<BoundTemplate>() {
+            return ReflectUtil.visitType(var.getRawType(), new ReflectUtil.Visitor<BoundTemplate.ClassBinding<ClassType>>() {
                 @Override
-                public BoundTemplate apply(Class<?> var) {
-                    if (var.isArray())
-                        return new BoundTemplate.ArrayBinding(apply(var.getComponentType()), 1);
-
-                    return new BoundTemplate.ClassBinding(ctx.resolveClass(var), cArgs);
+                public BoundTemplate.ClassBinding<ClassType> apply(Class<?> var) {
+                    final JavaType resolvedType = ctx.resolveClass(var);
+                    try {
+                        return new BoundTemplate.ClassBinding<>((ClassType) resolvedType, cArgs);
+                    } catch (ClassCastException ex) {
+                        throw new IllegalStateException("Class inherits from non-class type " + resolvedType);
+                    }
                 }
 
                 @Override
-                public BoundTemplate apply(TypeVariable<?> var) {
-                    throw new IllegalStateException("Template type can not be a generics variable.");
+                public BoundTemplate.ClassBinding<ClassType> apply(TypeVariable<?> var) {
+                    throw new IllegalStateException("Type variable is not a valid parent class.");
                 }
 
                 @Override
-                public BoundTemplate apply(GenericArrayType var) {
-                    return new BoundTemplate.ArrayBinding(ReflectUtil.visitType(var.getGenericComponentType(), this), 1);
+                public BoundTemplate.ClassBinding<ClassType> apply(GenericArrayType var) {
+                    throw new IllegalStateException("Array is not a valid parent class.");
                 }
 
                 @Override
-                public BoundTemplate apply(WildcardType var) {
-                    throw new IllegalStateException("Template type can not be a generics wildcard.");
+                public BoundTemplate.ClassBinding<ClassType> apply(WildcardType var) {
+                    throw new IllegalStateException("Wildcard is not a valid parent class.");
                 }
 
                 @Override
-                public BoundTemplate apply(ParameterizedType var) {
-                    throw new IllegalStateException("Template type can not be a template specialization.");
+                public BoundTemplate.ClassBinding<ClassType> apply(ParameterizedType var) {
+                    throw new IllegalStateException("Bound template type is not a valid base for a template.");
                 }
             });
         }
 
         private final Context ctx;
         private final Map<? super String, ? extends String> argRename;
+    }
+
+    private static class ResolvedMethod {
+        public ResolvedMethod(ClassMemberModel.OverrideSelector selector) {
+            this.selector = requireNonNull(selector);
+            this.declaringClass = requireNonNull(selector.getDeclaringClass());
+        }
+
+        public ClassType getDeclaringClass() {
+            return declaringClass;
+        }
+
+        public ClassMemberModel.OverrideSelector getSelector() {
+            return selector;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 5;
+            hash = 71 * hash + Objects.hashCode(this.declaringClass);
+            hash = 71 * hash + Objects.hashCode(this.selector);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            final ResolvedMethod other = (ResolvedMethod) obj;
+            if (!Objects.equals(this.declaringClass, other.declaringClass))
+                return false;
+            if (!Objects.equals(this.selector, other.selector)) return false;
+            return true;
+        }
+
+        private final ClassType declaringClass;
+        private final ClassMemberModel.OverrideSelector selector;
     }
 
     /**
@@ -706,11 +933,11 @@ public class ClassType implements JavaType {
      * Super type of this class. May be null, in which case this type has no
      * super class.
      */
-    private BoundTemplate.ClassBinding superType;
+    private BoundTemplate.ClassBinding<? extends ClassType> superType;
     /**
      * List of interfaces used by this class.
      */
-    private List<BoundTemplate.ClassBinding> interfaceTypes;
+    private List<BoundTemplate.ClassBinding<? extends ClassType>> interfaceTypes;
     /**
      * The serial version UID of the class.
      */
@@ -737,4 +964,26 @@ public class ClassType implements JavaType {
      * List of friend types.
      */
     private List<com.github.nahratzah.jser_plus_plus.model.Type> friends;
+    /**
+     * Marker to prevent us from post processing twice.
+     */
+    private boolean postProcessingDone = false;
+    /**
+     * All methods of this class.
+     *
+     * Filled in by
+     * {@link #postProcess(com.github.nahratzah.jser_plus_plus.input.Context) post processing}
+     * logic.
+     */
+    private List<ClassMemberModel.OverrideSelector> allMethods;
+    /**
+     * All methods that have been resolved by this class. Those methods are
+     * inherited from the {@link #getSuperClass() super class} and
+     * {@link #getInterfaces() interfaces}, but have been overriden.
+     *
+     * Filled in by
+     * {@link #postProcess(com.github.nahratzah.jser_plus_plus.input.Context) post processing}
+     * logic.
+     */
+    private Set<ResolvedMethod> allResolvedMethods;
 }

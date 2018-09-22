@@ -300,7 +300,7 @@ public class CodeGenerator {
                         }
 
                         @Override
-                        public Stream<JavaType> apply(BoundTemplate.ClassBinding b) {
+                        public Stream<JavaType> apply(BoundTemplate.ClassBinding<?> b) {
                             return Stream.of(b.getType());
                         }
 
@@ -312,6 +312,12 @@ public class CodeGenerator {
                         @Override
                         public Stream<JavaType> apply(BoundTemplate.Any b) {
                             return Stream.empty();
+                        }
+
+                        @Override
+                        public Stream<JavaType> apply(BoundTemplate.MultiType b) {
+                            return b.getTypes().stream()
+                                    .flatMap(template -> template.visit(this));
                         }
                     });
                 })

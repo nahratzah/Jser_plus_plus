@@ -103,6 +103,11 @@ public final class CxxType implements Type {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return (preRendered != null ? preRendered : template);
+    }
+
     private final transient String template;
     private final transient Includes includes;
     private final transient Collection<? extends Type> declTypes;

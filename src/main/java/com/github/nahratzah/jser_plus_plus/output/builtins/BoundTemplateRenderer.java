@@ -274,7 +274,7 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
         }
 
         @Override
-        public String apply(BoundTemplate.ClassBinding b) {
+        public String apply(BoundTemplate.ClassBinding<?> b) {
             return "::java::_tags"
                     + b.getType().getNamespace().stream().map(nsElem -> "::" + nsElem).collect(Collectors.joining())
                     + "::"
@@ -291,6 +291,11 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
             throw new UnsupportedOperationException("Unbound template variable can not be converted to tag.");
         }
 
+        @Override
+        public String apply(BoundTemplate.MultiType b) {
+            throw new UnsupportedOperationException("Template pack can not be converted to tag.");
+        }
+
         private final Config config;
     }
 
@@ -305,7 +310,7 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
         }
 
         @Override
-        public String apply(BoundTemplate.ClassBinding b) {
+        public String apply(BoundTemplate.ClassBinding<?> b) {
             return "::java::_erased"
                     + b.getType().getNamespace().stream().map(nsElem -> "::" + nsElem).collect(Collectors.joining())
                     + "::"
@@ -320,6 +325,11 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
         @Override
         public String apply(BoundTemplate.Any b) {
             throw new UnsupportedOperationException("Unbound template variable can not be converted to erased type.");
+        }
+
+        @Override
+        public String apply(BoundTemplate.MultiType b) {
+            throw new UnsupportedOperationException("Template pack can not be converted to erased type.");
         }
 
         private final Config config;
@@ -348,7 +358,7 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
         }
 
         @Override
-        public String apply(BoundTemplate.ClassBinding b) {
+        public String apply(BoundTemplate.ClassBinding<?> b) {
             final String clsType = b.getType().getNamespace().stream().map(nsElem -> "::" + nsElem).collect(Collectors.joining())
                     + "::"
                     + b.getType().getClassName();
@@ -378,8 +388,8 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
         @Override
         public String apply(BoundTemplate.ArrayBinding b) {
             final String elementType;
-            if (b.getType() instanceof BoundTemplate.ClassBinding && ((BoundTemplate.ClassBinding) b.getType()).getType() instanceof PrimitiveType) {
-                final PrimitiveType primitiveType = (PrimitiveType) ((BoundTemplate.ClassBinding) b.getType()).getType();
+            if (b.getType() instanceof BoundTemplate.ClassBinding && ((BoundTemplate.ClassBinding<?>) b.getType()).getType() instanceof PrimitiveType) {
+                final PrimitiveType primitiveType = (PrimitiveType) ((BoundTemplate.ClassBinding<?>) b.getType()).getType();
                 elementType = Stream.concat(primitiveType.getNamespace().stream(), Stream.of(primitiveType.getClassName()))
                         .map(nameElem -> "::" + nameElem)
                         .collect(Collectors.joining());
@@ -416,7 +426,27 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
             if (config.classType != null)
                 return config.classType.apply("::java::type<" + type + ">", config);
             if (config.accessorType)
-                throw new IllegalArgumentException("Unbound typres do not have accessors.");
+                throw new IllegalArgumentException("Unbound types do not have accessors.");
+            return type;
+        }
+
+        @Override
+        public String apply(BoundTemplate.MultiType b) {
+            if (b.getTypes().size() == 1)
+                return b.getTypes().iterator().next().visit(this);
+
+            final BoundTemplate.Visitor<String> typeRenderer = Style.TYPE.apply(new Config(Style.TYPE));
+
+            final String type = "::java::G::pack"
+                    + b.getTypes().stream()
+                            .map(t -> t.visit(typeRenderer))
+                            .map(typeStr -> "::java::G::is<" + typeStr + ">")
+                            .collect(Collectors.joining(", ", "<", ">"));
+
+            if (config.classType != null)
+                return config.classType.apply("::java::type<" + type + ">", config);
+            if (config.accessorType)
+                throw new IllegalArgumentException("Multi types do not have accessors.");
             return type;
         }
 

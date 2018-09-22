@@ -15,6 +15,7 @@ import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -247,7 +248,6 @@ public interface ClassMemberModel {
 
         @Override
         public Optional<OverrideSelector> getOverrideSelector(Context ctx) {
-            if (!isVirtual()) return Optional.empty();
             return Optional.of(new OverrideSelector(ctx, this));
         }
 
@@ -424,12 +424,78 @@ public interface ClassMemberModel {
      */
     public static class OverrideSelector {
         public OverrideSelector(Context ctx, ClassMethod method) {
-            requireNonNull(ctx);
+            this.ctx = requireNonNull(ctx);
             this.method = requireNonNull(method);
-            this.variablesMap = makeVariablesMap_(method.getDeclaringClass().getTemplateArgumentNames());
+            this.variablesMap = makeVariablesMap_(requireNonNull(method).getDeclaringClass().getTemplateArgumentNames());
             this.arguments = requireNonNull(method.getArgumentTypes()).stream()
-                    .map(type -> type.prerender(ctx, singletonMap("model", requireNonNull(method.getDeclaringClass())), variablesMap))
+                    .map(type -> type.prerender(this.ctx, singletonMap("model", requireNonNull(this.method.getDeclaringClass())), this.variablesMap))
                     .collect(Collectors.toList());
+            this.returnType = method.getReturnType()
+                    .prerender(this.ctx, singletonMap("model", this.method.getDeclaringClass()), this.variablesMap);
+        }
+
+        private OverrideSelector(OverrideSelector parent, Map<String, ? extends BoundTemplate> variablesMap) {
+            this.ctx = requireNonNull(parent.ctx);
+            this.method = requireNonNull(parent.method);
+            this.variablesMap = requireNonNull(variablesMap);
+            this.arguments = parent.arguments.stream()
+                    .map(type -> type.prerender(this.ctx, singletonMap("model", requireNonNull(this.method.getDeclaringClass())), this.variablesMap))
+                    .collect(Collectors.toList());
+            this.returnType = parent.returnType
+                    .prerender(this.ctx, singletonMap("model", this.method.getDeclaringClass()), this.variablesMap);
+        }
+
+        public OverrideSelector rebind(Map<String, ? extends BoundTemplate> rebindMap) {
+            final Map<String, BoundTemplate> newVariablesMap = new HashMap<>(variablesMap);
+            newVariablesMap.putAll(rebindMap);
+            return new OverrideSelector(this, newVariablesMap);
+        }
+
+        /**
+         * Retrieve the method with erasure applied.
+         *
+         * @return The underlying method with type erasure applied.
+         */
+        public OverrideSelector getErasedMethod() {
+            final OverrideSelector erasedBaseCase = method.getOverrideSelector(ctx).orElseThrow(IllegalStateException::new);
+            final BoundTemplate.ClassBinding<ClassType> erasedBaseClassType = new BoundTemplate.ClassBinding<>(
+                    erasedBaseCase.getDeclaringClass(),
+                    erasedBaseCase.getDeclaringClass().getErasedTemplateArguments().stream()
+                            .map(Map.Entry::getValue)
+                            .map(BoundTemplate.MultiType::maybeMakeMultiType)
+                            .collect(Collectors.toList()));
+            return erasedBaseCase.rebind(erasedBaseClassType.getBindingsMap());
+        }
+
+        /**
+         * Test if the method had its arguments altered.
+         *
+         * @return True of the override has altered arguments, relative to the
+         * erased base type.
+         */
+        public boolean hasChangedArguments() {
+            return !Objects.equals(arguments, getErasedMethod().arguments);
+        }
+
+        /**
+         * Test if the method had its return type altered.
+         *
+         * @return True if the override has an altered return type, relative to
+         * the erased base type.
+         */
+        public boolean hasChangedReturnType() {
+            return !Objects.equals(returnType, getErasedMethod().returnType);
+        }
+
+        /**
+         * Test if any of the types of this method was changed from the original
+         * method.
+         *
+         * @return True if any of the types of this method was changed, relative
+         * to the base type.
+         */
+        public boolean hasAlteredTypes() {
+            return hasChangedReturnType() || hasChangedArguments();
         }
 
         /**
@@ -466,6 +532,15 @@ public interface ClassMemberModel {
         }
 
         /**
+         * Return type of the method.
+         *
+         * @return The return type of the method.
+         */
+        public Type getReturnType() {
+            return returnType;
+        }
+
+        /**
          * Retrieve the declaring class of the method.
          *
          * @return Declaring class of the method.
@@ -484,8 +559,18 @@ public interface ClassMemberModel {
             final List<BoundTemplate> rawClassArguments = declaringClass.getTemplateArgumentNames().stream()
                     .map(BoundTemplate.VarBinding::new)
                     .collect(Collectors.toList());
-            return new BoundTemplate.ClassBinding(declaringClass, rawClassArguments)
+            return new BoundTemplate.ClassBinding<>(declaringClass, rawClassArguments)
                     .rebind(variablesMap);
+        }
+
+        /**
+         * Retrieve the method from which this
+         * {@link OverrideSelector override selector} derives.
+         *
+         * @return The underlying method.
+         */
+        public ClassMethod getUnderlyingMethod() {
+            return method;
         }
 
         @Override
@@ -525,9 +610,11 @@ public interface ClassMemberModel {
                     .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
         }
 
+        private final transient Context ctx;
         private final transient Map<String, ? extends BoundTemplate> variablesMap;
         private final transient ClassMethod method;
         private final List<Type> arguments;
+        private final Type returnType;
     }
 }
 

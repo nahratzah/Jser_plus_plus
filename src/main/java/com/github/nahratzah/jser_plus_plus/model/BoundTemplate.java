@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singleton;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             }
 
             @Override
-            public String apply(ClassBinding b) {
+            public String apply(ClassBinding<?> b) {
                 return "templateClass";
             }
 
@@ -80,6 +81,11 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             @Override
             public String apply(Any b) {
                 return "templateAny";
+            }
+
+            @Override
+            public String apply(MultiType b) {
+                return "templateMulti";
             }
         });
     }
@@ -93,7 +99,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             }
 
             @Override
-            public Stream<String> apply(ClassBinding b) {
+            public Stream<String> apply(ClassBinding<?> b) {
                 return Stream.concat(
                         b.getType().getIncludes(),
                         b.getBindings().stream().flatMap(t -> t.visit(this)));
@@ -110,6 +116,12 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             public Stream<String> apply(Any b) {
                 return Stream.concat(b.getExtendTypes().stream(), b.getSuperTypes().stream())
                         .flatMap(t -> t.visit(this));
+            }
+
+            @Override
+            public Stream<String> apply(MultiType b) {
+                return b.getTypes().stream()
+                        .flatMap(type -> type.visit(this));
             }
         };
 
@@ -129,7 +141,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             }
 
             @Override
-            public Boolean apply(ClassBinding b) {
+            public Boolean apply(ClassBinding<?> b) {
                 return b.getType() instanceof PrimitiveType;
             }
 
@@ -140,6 +152,11 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
 
             @Override
             public Boolean apply(Any b) {
+                return false;
+            }
+
+            @Override
+            public Boolean apply(MultiType b) {
                 return false;
             }
         });
@@ -153,11 +170,13 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
     public static interface Visitor<T> {
         public T apply(VarBinding b);
 
-        public T apply(ClassBinding b);
+        public T apply(ClassBinding<?> b);
 
         public T apply(ArrayBinding b);
 
         public T apply(Any b);
+
+        public T apply(MultiType b);
     }
 
     /**
@@ -250,30 +269,33 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
 
     /**
      * Binding to a class.
+     *
+     * @param <T> The type of {@link JavaType} held by this
+     * {@link ClassBinding}.
      */
-    public static final class ClassBinding implements BoundTemplate {
+    public static final class ClassBinding<T extends JavaType> implements BoundTemplate {
         public ClassBinding() {
         }
 
-        public ClassBinding(JavaType type, List<BoundTemplate> bindings) {
+        public ClassBinding(T type, List<BoundTemplate> bindings) {
             this.type = type;
             this.bindings = bindings;
         }
 
         @Override
-        public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
+        public ClassBinding<T> prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
             final List<BoundTemplate> rebound = bindings.stream()
                     .map(binding -> binding.prerender(ctx, renderArgs, variables))
                     .collect(Collectors.toList());
             if (Objects.equals(bindings, rebound)) return this;
-            return new ClassBinding(type, rebound);
+            return new ClassBinding<>(type, rebound);
         }
 
-        public JavaType getType() {
+        public T getType() {
             return type;
         }
 
-        public void setType(JavaType type) {
+        public void setType(T type) {
             this.type = type;
         }
 
@@ -283,6 +305,27 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
 
         public void setBindings(List<BoundTemplate> bindings) {
             this.bindings = bindings;
+        }
+
+        /**
+         * Retrieve a mapping between the types in the class and its bound
+         * arguments.
+         *
+         * @return Mapping from class-template-name to
+         * {@link BoundTemplate bound type}.
+         */
+        public Map<String, BoundTemplate> getBindingsMap() {
+            final Map<String, BoundTemplate> bindingsMap = new HashMap<>();
+
+            final Iterator<String> nameIter = getType().getTemplateArgumentNames().iterator();
+            final Iterator<BoundTemplate> typeIter = getBindings().iterator();
+            while (nameIter.hasNext() && typeIter.hasNext())
+                bindingsMap.put(nameIter.next(), typeIter.next());
+
+            if (nameIter.hasNext() || typeIter.hasNext())
+                throw new IllegalStateException("Mismatch between accepted and supplied template arguments for " + this);
+
+            return bindingsMap;
         }
 
         @Override
@@ -301,11 +344,11 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         }
 
         @Override
-        public BoundTemplate rebind(Map<String, ? extends BoundTemplate> bindings) {
+        public ClassBinding<T> rebind(Map<String, ? extends BoundTemplate> bindings) {
             final List<BoundTemplate> newBindings = getBindings().stream()
                     .map(binding -> binding.rebind(bindings))
                     .collect(Collectors.toList());
-            return new ClassBinding(getType(), newBindings);
+            return new ClassBinding<>(getType(), newBindings);
         }
 
         /**
@@ -334,7 +377,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             if (this == obj) return true;
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
-            final ClassBinding other = (ClassBinding) obj;
+            final ClassBinding<?> other = (ClassBinding<?>) obj;
             if (!Objects.equals(this.type, other.type)) return false;
             if (!Objects.equals(this.bindings, other.bindings)) return false;
             return true;
@@ -347,9 +390,9 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
 
             int cmp = 0;
             if (cmp == 0)
-                cmp = type.getName().compareTo(((ClassBinding) o).type.getName());
+                cmp = type.getName().compareTo(((ClassBinding<?>) o).type.getName());
             if (cmp == 0)
-                BoundTemplateUtil.compareCollections(bindings, ((ClassBinding) o).bindings);
+                BoundTemplateUtil.compareCollections(bindings, ((ClassBinding<?>) o).bindings);
             return cmp;
         }
 
@@ -363,7 +406,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             return type.getName() + bindingsStr;
         }
 
-        private JavaType type;
+        private T type;
         private List<BoundTemplate> bindings;
     }
 
@@ -417,7 +460,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         }
 
         @Override
-        public BoundTemplate rebind(Map<String, ? extends BoundTemplate> bindings) {
+        public ArrayBinding rebind(Map<String, ? extends BoundTemplate> bindings) {
             return new ArrayBinding(getType().rebind(bindings), getExtents());
         }
 
@@ -533,7 +576,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         }
 
         @Override
-        public BoundTemplate rebind(Map<String, ? extends BoundTemplate> bindings) {
+        public Any rebind(Map<String, ? extends BoundTemplate> bindings) {
             final List<BoundTemplate> newSuperTypes = getSuperTypes().stream()
                     .map(type -> type.rebind(bindings))
                     .collect(Collectors.toList());
@@ -619,6 +662,109 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
 
         private SortedSet<BoundTemplate> superTypes;
         private SortedSet<BoundTemplate> extendTypes;
+    }
+
+    public static final class MultiType implements BoundTemplate {
+        public static BoundTemplate maybeMakeMultiType(Collection<? extends BoundTemplate> types) {
+            if (types.size() == 1) return types.iterator().next();
+            return new MultiType(types);
+        }
+
+        public MultiType() {
+            this(EMPTY_LIST);
+        }
+
+        public MultiType(Collection<? extends BoundTemplate> types) {
+            this.types = new TreeSet<>(requireNonNull(types));
+        }
+
+        public Set<BoundTemplate> getTypes() {
+            return types;
+        }
+
+        public void setTypes(Collection<? extends BoundTemplate> types) {
+            this.types = new TreeSet<>(requireNonNull(types));
+        }
+
+        @Override
+        public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
+            final Set<BoundTemplate> prerenderedTypes = types.stream()
+                    .map(template -> template.prerender(ctx, renderArgs, variables))
+                    .collect(Collectors.toSet());
+            if (Objects.equals(types, prerenderedTypes)) return this;
+            return new MultiType(prerenderedTypes);
+        }
+
+        @Override
+        public Stream<JavaType> getAllJavaTypes() {
+            return types.stream()
+                    .flatMap(Type::getAllJavaTypes);
+        }
+
+        @Override
+        public Set<String> getUnresolvedTemplateNames() {
+            return types.stream()
+                    .map(BoundTemplate::getUnresolvedTemplateNames)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public MultiType rebind(Map<String, ? extends BoundTemplate> bindings) {
+            return new MultiType(types.stream()
+                    .map(type -> type.rebind(bindings))
+                    .collect(Collectors.toList()));
+        }
+
+        /**
+         * Visit specialization.
+         *
+         * @param <T> Return type of the visitor.
+         * @param v Visitor to apply.
+         * @return Result of
+         * {@link Visitor#apply(com.github.nahratzah.jser_plus_plus.config.cplusplus.BoundTemplate.Any) visitor.apply(this)}.
+         */
+        @Override
+        public <T> T visit(Visitor<T> v) {
+            return v.apply(this);
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 47 * hash + Objects.hashCode(this.types);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            final MultiType other = (MultiType) obj;
+            if (!Objects.equals(this.types, other.types)) return false;
+            return true;
+        }
+
+        @Override
+        public int compareTo(BoundTemplate o) {
+            if (!getClass().isInstance(o))
+                return getClass().getName().compareTo(o.getClass().getName());
+
+            int cmp = 0;
+            if (cmp == 0)
+                cmp = BoundTemplateUtil.compareCollections(types, ((MultiType) o).types);
+            return cmp;
+        }
+
+        @Override
+        public String toString() {
+            return types.stream()
+                    .map(Object::toString)
+                    .collect(Collectors.joining(" & ", "[", "]"));
+        }
+
+        private Set<BoundTemplate> types;
     }
 
     public static BoundTemplate fromString(String text, Context ctx, Map<String, ? extends BoundTemplate> variables) {
@@ -735,7 +881,7 @@ class BoundTemplateParser {
         } else if (cls.find()) {
             final JavaType type = ctx.resolveClass(cls.group().replaceAll("\\s", ""));
             s = s.subSequence(cls.end(), s.length());
-            return new BoundTemplate.ClassBinding(type, maybeParseTemplate_());
+            return new BoundTemplate.ClassBinding<>(type, maybeParseTemplate_());
         } else {
             throw new IllegalArgumentException("Expected variable, class, or wildcard.");
         }
@@ -802,7 +948,7 @@ class BoundTemplateParser {
                 s = s.subSequence(varName.end(), s.length());
             } else if (clsName.find()) {
                 final JavaType cls = ctx.resolveClass(clsName.group().replaceAll("\\s", ""));
-                types.add(new BoundTemplate.ClassBinding(cls, maybeParseTemplate_()));
+                types.add(new BoundTemplate.ClassBinding<>(cls, maybeParseTemplate_()));
             } else {
                 throw new IllegalArgumentException("Expected variable or type.");
             }
