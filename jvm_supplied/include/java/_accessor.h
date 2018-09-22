@@ -80,7 +80,7 @@ inline auto find_tag_(const java::_accessor<Base, Tag, Arguments...>& accessor) 
 }
 
 // Specialization of the find_tag_, if the \p Tag is not present.
-template<typename Tag, typename Base, typename OtherTag, typename... Arguments>
+template<typename Tag>
 inline auto find_tag_(...) noexcept
 -> void {
 }
