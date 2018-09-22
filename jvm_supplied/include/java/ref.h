@@ -3,6 +3,7 @@
 
 #include <cycle_ptr/cycle_ptr.h>
 #include <java/generics.h>
+#include <cassert>
 
 namespace java {
 
@@ -114,8 +115,9 @@ class Object;
 template<typename ErasedRef>
 class _accessor_base {
  protected:
-  constexpr JSER_INLINE _accessor_base(ErasedRef& ref) noexcept : ref__(ref) {}
+  constexpr JSER_INLINE _accessor_base(ErasedRef& ref) noexcept : ref__(&ref) {}
 
+  _accessor_base() = default;
   JSER_INLINE _accessor_base(const _accessor_base&) = default;
   JSER_INLINE _accessor_base(_accessor_base&&) = default;
   _accessor_base& operator=(const _accessor_base&) = delete;
@@ -133,10 +135,11 @@ class _accessor_base {
    */
   template<typename ErasedType>
   JSER_INLINE auto ref_() const -> const ErasedType& {
+    assert(ref__ != nullptr);
     if constexpr(std::is_convertible_v<ErasedRef*, ErasedType*>) {
-      return ref__;
+      return *ref__;
     } else {
-      return dynamic_cast<const ErasedType&>(ref__);
+      return dynamic_cast<const ErasedType&>(*ref__);
     }
   }
 
@@ -151,15 +154,16 @@ class _accessor_base {
    */
   template<typename ErasedType>
   JSER_INLINE auto ref_() -> ErasedType& {
+    assert(ref__ != nullptr);
     if constexpr(std::is_convertible_v<ErasedRef*, ErasedType*>) {
-      return ref__;
+      return *ref__;
     } else {
-      return dynamic_cast<ErasedType&>(ref__);
+      return dynamic_cast<ErasedType&>(*ref__);
     }
   }
 
  private:
-  ErasedRef& ref__;
+  ErasedRef*const ref__ = nullptr;
 };
 
 template<typename Base, typename T>
@@ -264,6 +268,8 @@ template<typename T>
 class _accessor_proxy final
 : private _basic_ref_inheritance<T>::accessor_type
 {
+  template<template<typename> class, typename> friend class ::java::basic_ref;
+
  private:
   explicit JSER_INLINE _accessor_proxy(typename _basic_ref_inheritance<T>::erased_type& ref) noexcept
   : _basic_ref_inheritance<T>::base_type(ref)
