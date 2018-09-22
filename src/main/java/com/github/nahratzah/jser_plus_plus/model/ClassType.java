@@ -883,16 +883,36 @@ public class ClassType implements JavaType {
         private final Map<? super String, ? extends String> argRename;
     }
 
+    /**
+     * Models a method that has been overriden and replaced by a more-derived
+     * class or interface.
+     *
+     * This is used to suppress the same method, when diamond inheritance would
+     * otherwise re-introduce it.
+     */
     private static class ResolvedMethod {
         public ResolvedMethod(ClassMemberModel.OverrideSelector selector) {
-            this.selector = requireNonNull(selector);
+            requireNonNull(selector);
+            this.selector = requireNonNull(selector.getErasedMethod());
             this.declaringClass = requireNonNull(selector.getDeclaringClass());
         }
 
+        /**
+         * Retrieve the class on which this method appeared.
+         *
+         * @return The class declaring this method.
+         */
         public ClassType getDeclaringClass() {
             return declaringClass;
         }
 
+        /**
+         * Get the type-erased selector of the method.
+         *
+         * The erasure is based on the declaring class, only.
+         *
+         * @return The method selector.
+         */
         public ClassMemberModel.OverrideSelector getSelector() {
             return selector;
         }

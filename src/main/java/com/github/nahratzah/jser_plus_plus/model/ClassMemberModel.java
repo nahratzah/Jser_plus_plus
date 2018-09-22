@@ -15,7 +15,6 @@ import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -426,29 +425,41 @@ public interface ClassMemberModel {
         public OverrideSelector(Context ctx, ClassMethod method) {
             this.ctx = requireNonNull(ctx);
             this.method = requireNonNull(method);
-            this.variablesMap = makeVariablesMap_(requireNonNull(method).getDeclaringClass().getTemplateArgumentNames());
+            this.declaringType = new BoundTemplate.ClassBinding<>(
+                    method.getDeclaringClass(),
+                    method.getDeclaringClass().getTemplateArgumentNames().stream()
+                            .map(BoundTemplate.VarBinding::new)
+                            .collect(Collectors.toList()));
             this.arguments = requireNonNull(method.getArgumentTypes()).stream()
-                    .map(type -> type.prerender(this.ctx, singletonMap("model", requireNonNull(this.method.getDeclaringClass())), this.variablesMap))
+                    .map(type -> {
+                        return type.prerender(
+                                this.ctx,
+                                singletonMap("model", requireNonNull(this.declaringType.getType())),
+                                this.declaringType.getBindingsMap());
+                    })
                     .collect(Collectors.toList());
             this.returnType = method.getReturnType()
-                    .prerender(this.ctx, singletonMap("model", this.method.getDeclaringClass()), this.variablesMap);
+                    .prerender(this.ctx, singletonMap("model", this.declaringType.getType()), this.declaringType.getBindingsMap());
         }
 
-        private OverrideSelector(OverrideSelector parent, Map<String, ? extends BoundTemplate> variablesMap) {
+        private OverrideSelector(OverrideSelector parent, Map<String, ? extends BoundTemplate> rebindMap) {
             this.ctx = requireNonNull(parent.ctx);
             this.method = requireNonNull(parent.method);
-            this.variablesMap = requireNonNull(variablesMap);
-            this.arguments = parent.arguments.stream()
-                    .map(type -> type.prerender(this.ctx, singletonMap("model", requireNonNull(this.method.getDeclaringClass())), this.variablesMap))
+            this.declaringType = parent.declaringType.rebind(rebindMap);
+            this.arguments = requireNonNull(method.getArgumentTypes()).stream()
+                    .map(type -> {
+                        return type.prerender(
+                                this.ctx,
+                                singletonMap("model", requireNonNull(this.declaringType.getType())),
+                                this.declaringType.getBindingsMap());
+                    })
                     .collect(Collectors.toList());
-            this.returnType = parent.returnType
-                    .prerender(this.ctx, singletonMap("model", this.method.getDeclaringClass()), this.variablesMap);
+            this.returnType = method.getReturnType()
+                    .prerender(this.ctx, singletonMap("model", this.declaringType.getType()), this.declaringType.getBindingsMap());
         }
 
         public OverrideSelector rebind(Map<String, ? extends BoundTemplate> rebindMap) {
-            final Map<String, BoundTemplate> newVariablesMap = new HashMap<>(variablesMap);
-            newVariablesMap.putAll(rebindMap);
-            return new OverrideSelector(this, newVariablesMap);
+            return new OverrideSelector(this, rebindMap);
         }
 
         /**
@@ -546,7 +557,7 @@ public interface ClassMemberModel {
          * @return Declaring class of the method.
          */
         public ClassType getDeclaringClass() {
-            return method.getDeclaringClass();
+            return getDeclaringType().getType();
         }
 
         /**
@@ -554,13 +565,8 @@ public interface ClassMemberModel {
          *
          * @return Declaring class with any variable substitutions applied.
          */
-        public BoundTemplate getDeclaringType() {
-            final ClassType declaringClass = method.getDeclaringClass();
-            final List<BoundTemplate> rawClassArguments = declaringClass.getTemplateArgumentNames().stream()
-                    .map(BoundTemplate.VarBinding::new)
-                    .collect(Collectors.toList());
-            return new BoundTemplate.ClassBinding<>(declaringClass, rawClassArguments)
-                    .rebind(variablesMap);
+        public BoundTemplate.ClassBinding<ClassType> getDeclaringType() {
+            return declaringType;
         }
 
         /**
@@ -605,16 +611,11 @@ public interface ClassMemberModel {
                     + (isConst() ? " const" : "");
         }
 
-        private static Map<String, BoundTemplate.VarBinding> makeVariablesMap_(Collection<String> variables) {
-            return variables.stream()
-                    .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
-        }
-
-        private final transient Context ctx;
-        private final transient Map<String, ? extends BoundTemplate> variablesMap;
-        private final transient ClassMethod method;
-        private final List<Type> arguments;
-        private final Type returnType;
+        private final Context ctx; // Not significant for equality.
+        private final BoundTemplate.ClassBinding<ClassType> declaringType; //Not significant for equality.
+        private final ClassMethod method; // Not significant for equality.
+        private final List<Type> arguments; // Significant for equality.
+        private final Type returnType; // Significant for equality.
     }
 }
 
