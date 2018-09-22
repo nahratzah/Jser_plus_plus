@@ -19,7 +19,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import static java.util.Objects.requireNonNull;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -90,6 +92,17 @@ public interface ClassMemberModel {
      */
     public default boolean isDefaultConstructor() {
         return false;
+    }
+
+    /**
+     * Retrieve the {@link OverrideSelector override selector} for this class
+     * member.
+     *
+     * @return An optional that contains the override selector, if the class
+     * member is a method.
+     */
+    public default Optional<OverrideSelector> getOverrideSelector() {
+        return Optional.empty();
     }
 
     public <T> T visit(Visitor<T> visitor);
@@ -216,6 +229,11 @@ public interface ClassMemberModel {
         @Override
         public <T> T visit(Visitor<T> visitor) {
             return visitor.apply(this);
+        }
+
+        @Override
+        public Optional<OverrideSelector> getOverrideSelector() {
+            return Optional.of(new OverrideSelector(this));
         }
 
         @Override
@@ -385,6 +403,89 @@ public interface ClassMemberModel {
 
         private final Destructor destructor;
     }
+
+    /**
+     * The significant portion of a method for override comparisons.
+     */
+    public static class OverrideSelector {
+        public OverrideSelector(ClassMethod method) {
+            this(
+                    method.cdef,
+                    method.getName(),
+                    method.isConst(),
+                    method.getArgumentTypes());
+        }
+
+        public OverrideSelector(ClassType declaringClass, String name, boolean constVar, List<Type> arguments) {
+            this(declaringClass, name, constVar, arguments, declaringClass.getTemplateArgumentNames());
+        }
+
+        public OverrideSelector(ClassType declaringClass, String name, boolean constVar, List<Type> arguments, Collection<String> variables) {
+            this(declaringClass, name, constVar, arguments, makeVariablesMap_(variables));
+        }
+
+        public OverrideSelector(ClassType declaringClass, String name, boolean constVar, List<Type> arguments, Map<String, ? extends BoundTemplate> variablesMap) {
+            this.declaringClass = declaringClass;
+            this.name = requireNonNull(name);
+            this.constVar = requireNonNull(constVar);
+            this.variablesMap = requireNonNull(variablesMap);
+            this.arguments = requireNonNull(arguments);
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public boolean isConst() {
+            return constVar;
+        }
+
+        public List<Type> getArguments() {
+            return unmodifiableList(arguments);
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 97 * hash + Objects.hashCode(this.name);
+            hash = 97 * hash + (this.constVar ? 1 : 0);
+            hash = 97 * hash + Objects.hashCode(this.arguments);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            final OverrideSelector other = (OverrideSelector) obj;
+            if (this.constVar != other.constVar) return false;
+            if (!Objects.equals(this.name, other.name)) return false;
+            if (!Objects.equals(this.arguments, other.arguments)) return false;
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "auto "
+                    + name
+                    + arguments.stream()
+                            .map(Object::toString)
+                            .collect(Collectors.joining(", ", "(", ")"))
+                    + (constVar ? " const" : "");
+        }
+
+        private static Map<String, BoundTemplate.VarBinding> makeVariablesMap_(Collection<String> variables) {
+            return variables.stream()
+                    .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
+        }
+
+        private final String name;
+        private final boolean constVar;
+        private final List<Type> arguments;
+        private final transient Map<String, ? extends BoundTemplate> variablesMap;
+        private final transient ClassType declaringClass;
+    }
 }
 
 abstract class AbstractClassMemberModel implements ClassMemberModel {
@@ -423,6 +524,15 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
             this.body = null;
         else
             this.body = renderImpl(body);
+    }
+
+    /**
+     * Returns the declaring class of this class member.
+     *
+     * @return The declaring class of this class member.
+     */
+    public ClassType getDeclaringClass() {
+        return cdef;
     }
 
     private Type prerender(CfgType cfgType, Context ctx) {
