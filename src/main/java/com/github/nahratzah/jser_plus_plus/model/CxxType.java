@@ -83,7 +83,6 @@ public final class CxxType implements Type {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 83 * hash + Objects.hashCode(this.template);
         hash = 83 * hash + Objects.hashCode(this.preRendered);
         return hash;
     }
@@ -94,12 +93,11 @@ public final class CxxType implements Type {
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         final CxxType other = (CxxType) obj;
-        if (!Objects.equals(this.template, other.template)) return false;
         if (!Objects.equals(this.preRendered, other.preRendered)) return false;
         return true;
     }
 
-    private final String template;
+    private final transient String template;
     private final transient Includes includes;
     private final transient Collection<? extends Type> declTypes;
     private final String preRendered;
