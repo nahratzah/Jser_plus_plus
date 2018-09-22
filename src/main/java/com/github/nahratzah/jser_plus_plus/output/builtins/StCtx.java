@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -37,7 +37,7 @@ public class StCtx {
      * @return A STGroup that imports {@link #BUILTINS} and contains the 'java'
      * dictionary.
      */
-    public static final STGroup contextGroup(Context context, Collection<String> variables, Consumer<? super BoundTemplate> registry) {
+    public static final STGroup contextGroup(Context context, Map<String, ? extends BoundTemplate> variables, Consumer<? super BoundTemplate> registry) {
         final STGroup contextGroup = new STGroupString("<context>", "", '$', '$');
         contextGroup.defineDictionary(
                 "java",

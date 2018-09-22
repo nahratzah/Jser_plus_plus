@@ -32,7 +32,7 @@ public class CxxType implements Type {
     }
 
     @Override
-    public CxxType prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
+    public CxxType prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
         if (preRendered) return this;
 
         final Collection<Type> newDeclTypes = new HashSet<>(declTypes);

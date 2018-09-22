@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import static java.util.Objects.requireNonNull;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.stringtemplate.v4.ST;
 
 /**
@@ -247,7 +249,29 @@ public class FieldType {
         defaultInit = prerender(defaultInit, ctx, renderArgs, variables);
     }
 
+    /**
+     * Prerender the types.
+     *
+     * @param ctx Context for type lookups.
+     * @param renderArgs Arguments to the renderer.
+     * @param variables List of type variables in this context.
+     */
+    public void prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
+        if (type != null)
+            type = type.prerender(ctx, renderArgs, variables);
+        if (varType != null)
+            varType = varType.prerender(ctx, renderArgs, variables);
+
+        defaultInit = prerender(defaultInit, ctx, renderArgs, variables);
+    }
+
     private static String prerender(String text, Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
+        final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
+                .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
+        return prerender(text, ctx, renderArgs, variablesMap);
+    }
+
+    private static String prerender(String text, Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
         if (text == null) return null;
 
         final Collection<Type> newDeclTypes = new HashSet<>(); // XXX use

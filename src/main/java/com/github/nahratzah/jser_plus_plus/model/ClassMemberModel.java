@@ -395,7 +395,10 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
                 .collect(Collectors.toList()));
 
         final BiFunction<String, Collection<Type>, String> basicRenderer = (text, collection) -> {
-            return new ST(StCtx.contextGroup(ctx, variables, collection::add), text)
+            final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
+                    .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
+
+            return new ST(StCtx.contextGroup(ctx, variablesMap, collection::add), text)
                     .add("model", cdef)
                     .render(Locale.ROOT);
         };

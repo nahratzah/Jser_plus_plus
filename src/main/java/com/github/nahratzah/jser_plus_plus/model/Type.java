@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -19,10 +21,26 @@ public interface Type {
      *
      * @param ctx Lookup context for finding java types.
      * @param renderArgs Map of items to supply as arguments to the renderer.
-     * @param variables List of type variables that are in scope.
-     * @return
+     * @param variables List of type variables that are in scope. Variables are
+     * replaced with {@link BoundTemplate.VarBinding}.
+     * @return Copy of type, which is pre-rendererd.
      */
-    public Type prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables);
+    public default Type prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
+        final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
+                .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
+        return prerender(ctx, renderArgs, variablesMap);
+    }
+
+    /**
+     * Pre-render a type, allowing for auto detection of java types.
+     *
+     * @param ctx Lookup context for finding java types.
+     * @param renderArgs Map of items to supply as arguments to the renderer.
+     * @param variables List of type variables that are in scope, with their
+     * value.
+     * @return Copy of type, which is pre-rendererd.
+     */
+    public Type prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables);
 
     /**
      * Retrieve the list of parameter names that are not bound.
@@ -74,10 +92,13 @@ public interface Type {
         if (cfgType.getCxxType() == null && cfgType.getJavaType() == null)
             throw new NullPointerException("no types");
 
-        if (cfgType.getCxxType() != null)
+        if (cfgType.getCxxType() != null) {
             return new CxxType(cfgType.getCxxType(), cfgType.getIncludes());
-        else if (cfgType.getJavaType() != null)
-            return BoundTemplate.fromString(cfgType.getJavaType(), ctx, variables);
+        } else if (cfgType.getJavaType() != null) {
+            final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
+                    .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
+            return BoundTemplate.fromString(cfgType.getJavaType(), ctx, variablesMap);
+        }
 
         throw new IllegalStateException("may only specify one of \"cxx\" or \"java\" for return type");
     }

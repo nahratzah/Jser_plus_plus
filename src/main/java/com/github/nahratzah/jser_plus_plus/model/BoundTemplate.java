@@ -7,6 +7,7 @@ import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singleton;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -25,6 +26,9 @@ public interface BoundTemplate extends Type {
     public default BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
         return this;
     }
+
+    @Override
+    public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables);
 
     @Override
     public Set<String> getUnresolvedTemplateNames();
@@ -164,6 +168,12 @@ public interface BoundTemplate extends Type {
             this.name = name;
         }
 
+        @Override
+        public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
+            final BoundTemplate mapped = variables.get(name);
+            return (mapped != null ? mapped : this);
+        }
+
         public String getName() {
             return name;
         }
@@ -220,6 +230,15 @@ public interface BoundTemplate extends Type {
         public ClassBinding(JavaType type, List<BoundTemplate> bindings) {
             this.type = type;
             this.bindings = bindings;
+        }
+
+        @Override
+        public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
+            final List<BoundTemplate> rebound = bindings.stream()
+                    .map(binding -> binding.prerender(ctx, renderArgs, variables))
+                    .collect(Collectors.toList());
+            if (Objects.equals(bindings, rebound)) return this;
+            return new ClassBinding(type, rebound);
         }
 
         public JavaType getType() {
@@ -305,6 +324,12 @@ public interface BoundTemplate extends Type {
             }
         }
 
+        @Override
+        public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
+            final BoundTemplate prerenderedType = type.prerender(ctx, renderArgs, variables);
+            return (prerenderedType == type ? this : new ArrayBinding(prerenderedType, extents));
+        }
+
         public BoundTemplate getType() {
             return type;
         }
@@ -371,6 +396,19 @@ public interface BoundTemplate extends Type {
         public Any(List<BoundTemplate> superTypes, List<BoundTemplate> extendTypes) {
             this.superTypes = requireNonNull(superTypes);
             this.extendTypes = requireNonNull(extendTypes);
+        }
+
+        @Override
+        public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
+            final List<BoundTemplate> newSuperTypes = superTypes.stream()
+                    .map(type -> type.prerender(ctx, renderArgs, variables))
+                    .collect(Collectors.toList());
+            final List<BoundTemplate> newExtendTypes = extendTypes.stream()
+                    .map(type -> type.prerender(ctx, renderArgs, variables))
+                    .collect(Collectors.toList());
+            if (Objects.equals(superTypes, newSuperTypes) && Objects.equals(extendTypes, newExtendTypes))
+                return this;
+            return new Any(newSuperTypes, newExtendTypes);
         }
 
         public List<BoundTemplate> getSuperTypes() {
@@ -458,7 +496,7 @@ public interface BoundTemplate extends Type {
         private List<BoundTemplate> extendTypes;
     }
 
-    public static BoundTemplate fromString(String text, Context ctx, Collection<String> variables) {
+    public static BoundTemplate fromString(String text, Context ctx, Map<String, ? extends BoundTemplate> variables) {
         return new BoundTemplateParser(ctx, variables).parse(text);
     }
 }
@@ -494,16 +532,21 @@ class BoundTemplateParser {
      */
     private final Context ctx;
     /**
+     * Mapping for variables.
+     */
+    final Map<String, ? extends BoundTemplate> variables;
+    /**
      * The string on which we are attempting to match.
      */
     private CharSequence s;
 
-    public BoundTemplateParser(Context ctx, Collection<String> variables) {
+    public BoundTemplateParser(Context ctx, Map<String, ? extends BoundTemplate> variables) {
         this.ctx = requireNonNull(ctx);
+        this.variables = variables;
         if (variables.isEmpty())
             VARIABLES_STARTS = null;
         else
-            VARIABLES_STARTS = startWith(variables.stream()
+            VARIABLES_STARTS = startWith(variables.keySet().stream()
                     .map(Pattern::quote)
                     .collect(Collectors.joining("|", "(?:", ")")));
     }
@@ -535,7 +578,7 @@ class BoundTemplateParser {
         } else if (var != null && var.find()) {
             final String varName = var.group();
             s = s.subSequence(var.end(), s.length());
-            return new BoundTemplate.VarBinding(varName);
+            return Objects.requireNonNull(variables.get(varName));
         } else if (cls.find()) {
             final JavaType type = ctx.resolveClass(cls.group().replaceAll("\\s", ""));
             s = s.subSequence(cls.end(), s.length());
@@ -597,11 +640,13 @@ class BoundTemplateParser {
         eatWs_();
 
         for (;;) {
-            final Matcher variables = (VARIABLES_STARTS == null ? null : VARIABLES_STARTS.matcher(s));
+            final Matcher varName = (VARIABLES_STARTS == null ? null : VARIABLES_STARTS.matcher(s));
             final Matcher clsName = CLASS_NAME_STARTS.matcher(s);
-            if (variables != null && variables.find()) {
-                types.add(new BoundTemplate.VarBinding(variables.group()));
-                s = s.subSequence(variables.end(), s.length());
+            if (s.length() >= 1 && s.charAt(0) == '(') {
+                types.add(parse_());
+            } else if (varName != null && varName.find()) {
+                types.add(Objects.requireNonNull(variables.get(varName.group())));
+                s = s.subSequence(varName.end(), s.length());
             } else if (clsName.find()) {
                 final JavaType cls = ctx.resolveClass(clsName.group().replaceAll("\\s", ""));
                 types.add(new BoundTemplate.ClassBinding(cls, maybeParseTemplate_()));
