@@ -35,6 +35,18 @@ import org.stringtemplate.v4.ST;
  * @author ariane
  */
 public interface ClassMemberModel {
+    /**
+     * Returns the declaring class of this class member.
+     *
+     * @return The declaring class of this class member.
+     */
+    public ClassType getDeclaringClass();
+
+    /**
+     * Retrieve the visibility of the class member.
+     *
+     * @return The visibility of the class member.
+     */
     public Visibility getVisibility();
 
     /**
@@ -98,10 +110,12 @@ public interface ClassMemberModel {
      * Retrieve the {@link OverrideSelector override selector} for this class
      * member.
      *
+     * @param ctx Context to look up types.
      * @return An optional that contains the override selector, if the class
      * member is a method.
      */
-    public default Optional<OverrideSelector> getOverrideSelector() {
+    public default Optional<OverrideSelector> getOverrideSelector(Context ctx) {
+        requireNonNull(ctx);
         return Optional.empty();
     }
 
@@ -232,8 +246,9 @@ public interface ClassMemberModel {
         }
 
         @Override
-        public Optional<OverrideSelector> getOverrideSelector() {
-            return Optional.of(new OverrideSelector(this));
+        public Optional<OverrideSelector> getOverrideSelector(Context ctx) {
+            if (!isVirtual()) return Optional.empty();
+            return Optional.of(new OverrideSelector(ctx, this));
         }
 
         @Override
@@ -408,48 +423,77 @@ public interface ClassMemberModel {
      * The significant portion of a method for override comparisons.
      */
     public static class OverrideSelector {
-        public OverrideSelector(ClassMethod method) {
-            this(
-                    method.cdef,
-                    method.getName(),
-                    method.isConst(),
-                    method.getArgumentTypes());
+        public OverrideSelector(Context ctx, ClassMethod method) {
+            requireNonNull(ctx);
+            this.method = requireNonNull(method);
+            this.variablesMap = makeVariablesMap_(method.getDeclaringClass().getTemplateArgumentNames());
+            this.arguments = requireNonNull(method.getArgumentTypes()).stream()
+                    .map(type -> type.prerender(ctx, singletonMap("model", requireNonNull(method.getDeclaringClass())), variablesMap))
+                    .collect(Collectors.toList());
         }
 
-        public OverrideSelector(ClassType declaringClass, String name, boolean constVar, List<Type> arguments) {
-            this(declaringClass, name, constVar, arguments, declaringClass.getTemplateArgumentNames());
-        }
-
-        public OverrideSelector(ClassType declaringClass, String name, boolean constVar, List<Type> arguments, Collection<String> variables) {
-            this(declaringClass, name, constVar, arguments, makeVariablesMap_(variables));
-        }
-
-        public OverrideSelector(ClassType declaringClass, String name, boolean constVar, List<Type> arguments, Map<String, ? extends BoundTemplate> variablesMap) {
-            this.declaringClass = declaringClass;
-            this.name = requireNonNull(name);
-            this.constVar = requireNonNull(constVar);
-            this.variablesMap = requireNonNull(variablesMap);
-            this.arguments = requireNonNull(arguments);
-        }
-
+        /**
+         * The name of the method.
+         *
+         * This is significant in determining override mapping.
+         *
+         * @return The name of the method.
+         */
         public String getName() {
-            return name;
+            return method.getName();
         }
 
+        /**
+         * Const qualification of the method.
+         *
+         * This is significant in determining override mapping.
+         *
+         * @return True if the method is const qualified.
+         */
         public boolean isConst() {
-            return constVar;
+            return method.isConst();
         }
 
+        /**
+         * List of method arguments.
+         *
+         * This is significant in determining override mapping.
+         *
+         * @return The arguments of the method.
+         */
         public List<Type> getArguments() {
-            return unmodifiableList(arguments);
+            return arguments;
+        }
+
+        /**
+         * Retrieve the declaring class of the method.
+         *
+         * @return Declaring class of the method.
+         */
+        public ClassType getDeclaringClass() {
+            return method.getDeclaringClass();
+        }
+
+        /**
+         * Retrieves the bound type of the declaring class.
+         *
+         * @return Declaring class with any variable substitutions applied.
+         */
+        public BoundTemplate getDeclaringType() {
+            final ClassType declaringClass = method.getDeclaringClass();
+            final List<BoundTemplate> rawClassArguments = declaringClass.getTemplateArgumentNames().stream()
+                    .map(BoundTemplate.VarBinding::new)
+                    .collect(Collectors.toList());
+            return new BoundTemplate.ClassBinding(declaringClass, rawClassArguments)
+                    .rebind(variablesMap);
         }
 
         @Override
         public int hashCode() {
             int hash = 7;
-            hash = 97 * hash + Objects.hashCode(this.name);
-            hash = 97 * hash + (this.constVar ? 1 : 0);
-            hash = 97 * hash + Objects.hashCode(this.arguments);
+            hash = 97 * hash + Objects.hashCode(this.getName());
+            hash = 97 * hash + (this.isConst() ? 1 : 0);
+            hash = 97 * hash + Objects.hashCode(this.getArguments());
             return hash;
         }
 
@@ -459,20 +503,21 @@ public interface ClassMemberModel {
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
             final OverrideSelector other = (OverrideSelector) obj;
-            if (this.constVar != other.constVar) return false;
-            if (!Objects.equals(this.name, other.name)) return false;
-            if (!Objects.equals(this.arguments, other.arguments)) return false;
+            if (this.isConst() != other.isConst()) return false;
+            if (!Objects.equals(this.getName(), other.getName())) return false;
+            if (!Objects.equals(this.getArguments(), other.getArguments()))
+                return false;
             return true;
         }
 
         @Override
         public String toString() {
             return "auto "
-                    + name
-                    + arguments.stream()
+                    + getName()
+                    + getArguments().stream()
                             .map(Object::toString)
                             .collect(Collectors.joining(", ", "(", ")"))
-                    + (constVar ? " const" : "");
+                    + (isConst() ? " const" : "");
         }
 
         private static Map<String, BoundTemplate.VarBinding> makeVariablesMap_(Collection<String> variables) {
@@ -480,11 +525,9 @@ public interface ClassMemberModel {
                     .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
         }
 
-        private final String name;
-        private final boolean constVar;
-        private final List<Type> arguments;
         private final transient Map<String, ? extends BoundTemplate> variablesMap;
-        private final transient ClassType declaringClass;
+        private final transient ClassMethod method;
+        private final List<Type> arguments;
     }
 }
 
@@ -526,11 +569,6 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
             this.body = renderImpl(body);
     }
 
-    /**
-     * Returns the declaring class of this class member.
-     *
-     * @return The declaring class of this class member.
-     */
     public ClassType getDeclaringClass() {
         return cdef;
     }

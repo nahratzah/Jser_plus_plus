@@ -43,7 +43,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
      * @return A copy of this bound template, where each occurance of unresolved
      * template variabe in bindings has been replaced with its mapping.
      */
-    public BoundTemplate rebind(Map<String, BoundTemplate> bindings);
+    public BoundTemplate rebind(Map<String, ? extends BoundTemplate> bindings);
 
     /**
      * Visit specializations.
@@ -196,7 +196,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         }
 
         @Override
-        public BoundTemplate rebind(Map<String, BoundTemplate> bindings) {
+        public BoundTemplate rebind(Map<String, ? extends BoundTemplate> bindings) {
             final BoundTemplate replacement = bindings.get(getName());
             if (replacement != null) return replacement;
             return new VarBinding(getName());
@@ -301,7 +301,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         }
 
         @Override
-        public BoundTemplate rebind(Map<String, BoundTemplate> bindings) {
+        public BoundTemplate rebind(Map<String, ? extends BoundTemplate> bindings) {
             final List<BoundTemplate> newBindings = getBindings().stream()
                     .map(binding -> binding.rebind(bindings))
                     .collect(Collectors.toList());
@@ -417,7 +417,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         }
 
         @Override
-        public BoundTemplate rebind(Map<String, BoundTemplate> bindings) {
+        public BoundTemplate rebind(Map<String, ? extends BoundTemplate> bindings) {
             return new ArrayBinding(getType().rebind(bindings), getExtents());
         }
 
@@ -533,7 +533,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         }
 
         @Override
-        public BoundTemplate rebind(Map<String, BoundTemplate> bindings) {
+        public BoundTemplate rebind(Map<String, ? extends BoundTemplate> bindings) {
             final List<BoundTemplate> newSuperTypes = getSuperTypes().stream()
                     .map(type -> type.rebind(bindings))
                     .collect(Collectors.toList());
