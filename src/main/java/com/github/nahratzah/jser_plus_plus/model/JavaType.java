@@ -174,6 +174,17 @@ public interface JavaType {
     }
 
     /**
+     * Post processing of this type.
+     *
+     * Post processing stage consists of figuring out anything depending on
+     * parent types.
+     *
+     * @param ctx Lookup context.
+     */
+    public default void postProcess(Context ctx) {
+    }
+
+    /**
      * Helper that figures out all type parameters for a type.
      *
      * @param c Class for which to figure out all type parameters.

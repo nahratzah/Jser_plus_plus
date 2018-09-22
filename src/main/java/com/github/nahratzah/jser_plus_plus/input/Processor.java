@@ -51,6 +51,9 @@ public class Processor implements Context {
                 if (v != null) return v;
             }
 
+            if (postProcessingStarted)
+                throw new IllegalStateException("Required type " + c + " not in list of classes during post processing.");
+
             final JavaType v;
             if (c.isEnum())
                 v = new EnumType(c);
@@ -78,6 +81,16 @@ public class Processor implements Context {
         c.forEach(this::resolveClass);
     }
 
+    public synchronized void postProcess() {
+        if (postProcessingStarted) {
+            LOG.log(Level.WARNING, "Post processing requested a second time; skipping...");
+            return;
+        }
+        postProcessingStarted = true;
+
+        classes.values().forEach(javaType -> javaType.postProcess(this));
+    }
+
     /**
      * Registers all files that are to be emitted with the module and emits
      * those files.
@@ -85,7 +98,10 @@ public class Processor implements Context {
      * @param module The cmake module that will contain the project.
      * @throws IOException If any of the file write operations fails.
      */
-    public void emit(CmakeModule module) throws IOException {
+    public synchronized void emit(CmakeModule module) throws IOException {
+        if (!postProcessingStarted)
+            throw new IllegalStateException("Must run post processing phase prior to emitting all classes.");
+
         final Map<List<String>, CodeGenerator> cgMap = new HashMap<>();
         classes.values().forEach(jc -> {
             cgMap.computeIfAbsent(CodeGenerator.computeBaseType(jc), baseType -> new CodeGenerator(baseType))
@@ -108,4 +124,5 @@ public class Processor implements Context {
     private final ClassLoader classLoader;
     private final Map<Class, JavaType> classes = new HashMap<>();
     private final Config cfg;
+    private boolean postProcessingStarted = false;
 }

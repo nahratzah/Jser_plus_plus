@@ -42,6 +42,8 @@ public class Main {
                 p.addClasses(classStream.collect(Collectors.toList()));
             }
 
+            p.postProcess();
+
             try (final CmakeModule cmake = new CmakeModule("jvm", new File("/tmp/jvm"), EMPTY_SET, EMPTY_SET, EMPTY_SET)) {
                 cmake.addSupplied(
                         new File("/usr/home/ariane/programming/JSer++-2/jvm_supplied/include"),
