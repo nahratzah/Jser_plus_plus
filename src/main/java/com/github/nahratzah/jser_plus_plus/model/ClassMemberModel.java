@@ -569,6 +569,7 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
             this.body = renderImpl(body);
     }
 
+    @Override
     public ClassType getDeclaringClass() {
         return cdef;
     }
