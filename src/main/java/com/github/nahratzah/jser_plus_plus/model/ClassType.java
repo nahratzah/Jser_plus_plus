@@ -10,6 +10,7 @@ import com.github.nahratzah.jser_plus_plus.config.class_members.Method;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.java.ReflectUtil;
+import com.github.nahratzah.jser_plus_plus.misc.SimpleMapEntry;
 import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
 import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
 import java.io.ObjectStreamClass;
@@ -280,7 +281,7 @@ public class ClassType implements JavaType {
      *
      * @return Defaulted template arguments.
      */
-    public ArrayList<Map.Entry<String, List<BoundTemplate>>> getErasedTemplateArguments() {
+    public ArrayList<Map.Entry<String, BoundTemplate>> getErasedTemplateArguments() {
         // Output result.
         final LinkedHashMap<String, List<BoundTemplate>> mapping = new LinkedHashMap<>();
         // Process raw arguments in deterministic order.
@@ -331,7 +332,9 @@ public class ClassType implements JavaType {
         rawArguments.forEach(new Processor());
 
         // Return result of processing operation.
-        return new ArrayList<>(mapping.entrySet());
+        return new ArrayList<>(mapping.entrySet().stream()
+                .map(mappingEntry -> new SimpleMapEntry<>(mappingEntry.getKey(), BoundTemplate.MultiType.maybeMakeMultiType(mappingEntry.getValue())))
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -499,17 +502,48 @@ public class ClassType implements JavaType {
                 .forEach(parentType -> parentType.postProcess(ctx));
 
         // All methods from parents that have been superseded.
-        final Set<ResolvedMethod> parentResolvedMethods = parentModels.stream()
+        // We'll add our own suppressed methods to this during the post processing phase.
+        this.allResolvedMethods = parentModels.stream()
                 .flatMap(parentTemplate -> {
                     final ClassType parentType = parentTemplate.getType();
                     return parentType.allResolvedMethods.stream();
                 })
                 .collect(Collectors.toSet());
-        final Predicate<ClassMemberModel.OverrideSelector> isParentResolvedMethod = (selector) -> parentResolvedMethods.contains(new ResolvedMethod(selector));
+        final Predicate<ClassMemberModel.OverrideSelector> isParentResolvedMethod = (selector) -> allResolvedMethods.contains(new ResolvedMethod(selector));
 
         // Figure out erased bindings for our type.
         final Map<String, BoundTemplate> erasedBindings = getErasedTemplateArguments().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> BoundTemplate.MultiType.maybeMakeMultiType(entry.getValue())));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        // Maintain a mapping from erased type to template type.
+        // We want to put template types, not erased types, into the {@link ClassType#allMethods} collection.
+        final Map<ClassType, Map<ClassMemberModel.OverrideSelector, ClassMemberModel.OverrideSelector>> erasedToTemplateMapping = parentModels.stream()
+                .flatMap(parentTemplate -> {
+                    final ClassType parentType = parentTemplate.getType();
+                    final Map<String, BoundTemplate> bindingMap = parentTemplate.getBindingsMap();
+                    return parentType.allMethods.stream()
+                            .map(selector -> selector.rebind(bindingMap));
+                })
+                .peek(selector -> LOG.log(Level.INFO, "{0}: importing parent method {1}", new Object[]{getName(), selector}))
+                .map(selector -> new SimpleMapEntry<>(selector.rebind(erasedBindings), selector))
+                .collect(Collectors.groupingBy(
+                        selector -> selector.getValue().getDeclaringClass(),
+                        Collectors.toMap(
+                                Map.Entry::getKey,
+                                Map.Entry::getValue,
+                                (selX, selY) -> {
+                                    if (!Objects.equals(selX.getDeclaringType(), selY.getDeclaringType()))
+                                        throw new IllegalStateException("Collision between methods: " + selX + ", " + selY);
+                                    return selX;
+                                })));
+        final Function<ClassMemberModel.OverrideSelector, ClassMemberModel.OverrideSelector> erasedToTemplate = (selector) -> {
+            final Map<ClassMemberModel.OverrideSelector, ClassMemberModel.OverrideSelector> classMap = requireNonNull(
+                    erasedToTemplateMapping.get(selector.getDeclaringClass()),
+                    "Class " + selector.getDeclaringClass().getName() + " not found: " + selector);
+            return requireNonNull(
+                    classMap.get(selector),
+                    "Selector " + selector + " not found in class " + selector.getDeclaringClass().getName());
+        };
 
         // All parent models, but with their template arguments bound, such that our erased types are propagated.
         final List<BoundTemplate.ClassBinding<? extends ClassType>> erasedParentModels = parentModels.stream()
@@ -524,7 +558,14 @@ public class ClassType implements JavaType {
                     .map(classMemberModel -> classMemberModel.getOverrideSelector(ctx))
                     .filter(Optional::isPresent)
                     .map(Optional::get)
-                    .map(ClassMemberModel.OverrideSelector::getErasedMethod)
+                    .map(selector -> {
+                        final ClassMemberModel.OverrideSelector erasedSelector = selector.getErasedMethod();
+                        // Record mapping while we're here.
+                        erasedToTemplateMapping
+                                .computeIfAbsent(selector.getDeclaringClass(), x -> new HashMap<>())
+                                .put(erasedSelector, selector);
+                        return erasedSelector;
+                    })
                     .collect(Collectors.toList());
             try {
                 myMethods = myMethodsTmp.stream()
@@ -552,24 +593,20 @@ public class ClassType implements JavaType {
                     .forEach(parentMethod -> myMethods.get(parentMethod).add(parentMethod));
         }
 
+        // Add all methods that we override to the set of resolved methods.
         myMethods.entrySet().stream()
                 .filter(entry -> !entry.getValue().isEmpty())
-                .forEach(entry -> {
-                    final List<String> parentSelectorsStr = entry.getValue().stream()
-                            .map(parentSelector -> parentSelector.getDeclaringClass().getName() + ": " + parentSelector + " -> " + parentSelector.getReturnType())
-                            .collect(Collectors.toList());
-                    LOG.log(Level.INFO, "class {0} declares method `{1} -> {2}` overriding: {3}", new Object[]{
+                .peek(entry -> {
+                    // Log override.
+                    LOG.log(Level.FINE, "class {0} declares method `{1}` overriding: {2}", new Object[]{
                         getName(),
                         entry.getKey(),
-                        entry.getKey().getReturnType(),
-                        parentSelectorsStr});
-                });
-
-        // Fill out the resolved methods.
-        allResolvedMethods = myMethods.values().stream()
+                        entry.getValue()});
+                })
+                .map(Map.Entry::getValue)
                 .flatMap(Collection::stream)
                 .map(ResolvedMethod::new)
-                .collect(Collectors.toSet());
+                .forEach(allResolvedMethods::add);
 
         // Figure out which methods need to be re-declared so that we can invoke them with the appropriate rebound types.
         final Map<ClassMemberModel.ClassMethod, ClassMemberModel.OverrideSelector> redeclareMethods = erasedParentModels.stream()
@@ -604,14 +641,9 @@ public class ClassType implements JavaType {
                         .collect(Collectors.groupingBy(method -> method.getReturnType()));
                 if (returnTypeMap.size() != 1) {
                     returnTypeMap.forEach((returnType, methodsWithReturnType) -> {
-                        methodsWithReturnType.forEach(methodWithReturnType -> {
-                            LOG.log(Level.WARNING, "{0} has ambiguous methods from super type: {1}: {2} -> {3}", new Object[]{
-                                getName(),
-                                methodWithReturnType.getDeclaringClass().getName(),
-                                methodWithReturnType, returnType});
-                        });
+                        LOG.log(Level.WARNING, "{0} has ambiguous methods from super type, returning {1}: {2}", new Object[]{getName(), returnType, methodsWithReturnType});
                     });
-//                    throw new IllegalStateException("Ambiguous methods from super types.");
+                    throw new IllegalStateException("Ambiguous methods from super types.");
                 }
             });
 
@@ -620,15 +652,20 @@ public class ClassType implements JavaType {
 
         allMethods = Stream.of(allKeptParentMethods, redeclareMethods.values(), myMethods.keySet())
                 .flatMap(Collection::stream)
+                .map(erasedToTemplate)
+                .map(method -> new SimpleMapEntry<>(method.getDeclaringClass(), method)) // Create mapping with declaring class.
+                .distinct() // Use mapping with declaring class to eliminate duplicates.
+                .map(Map.Entry::getValue) // And then restore the mapping to its original.
+                .sorted(Comparator.comparing(ClassMemberModel.OverrideSelector::getName).thenComparing(selector -> selector.getDeclaringClass().getName()))
                 .collect(Collectors.toList());
 
         System.out.println("========================================================");
-        System.out.println(getName());
+        System.out.println(getName() + (getTemplateArgumentNames().isEmpty() ? "" : getTemplateArgumentNames().stream().collect(Collectors.joining(", ", "<", ">"))));
         System.out.println("--------------------------------------------------------");
         System.out.println("all methods:");
-        allMethods.forEach(m -> System.out.println("  " + m.getDeclaringType() + ": " + m + " -> " + m.getReturnType()));
+        allMethods.forEach(m -> System.out.println("  " + m));
         System.out.println("all suppressed methods:");
-        allResolvedMethods.forEach(m -> System.out.println("  " + m.getSelector().getDeclaringType() + ": " + m.getSelector() + " -> " + m.getSelector().getReturnType()));
+        allResolvedMethods.forEach(m -> System.out.println("  " + m.getSelector()));
         System.out.println("--------------------------------------------------------");
 
 //        throw new UnsupportedOperationException("XXX implement class post processing");

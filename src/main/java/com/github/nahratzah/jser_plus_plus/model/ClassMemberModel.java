@@ -473,7 +473,6 @@ public interface ClassMemberModel {
                     erasedBaseCase.getDeclaringClass(),
                     erasedBaseCase.getDeclaringClass().getErasedTemplateArguments().stream()
                             .map(Map.Entry::getValue)
-                            .map(BoundTemplate.MultiType::maybeMakeMultiType)
                             .collect(Collectors.toList()));
             return erasedBaseCase.rebind(erasedBaseClassType.getBindingsMap());
         }
@@ -604,11 +603,15 @@ public interface ClassMemberModel {
         @Override
         public String toString() {
             return "auto "
+                    + getDeclaringType()
+                    + "::"
                     + getName()
                     + getArguments().stream()
                             .map(Object::toString)
                             .collect(Collectors.joining(", ", "(", ")"))
-                    + (isConst() ? " const" : "");
+                    + (isConst() ? " const" : "")
+                    + " -> "
+                    + getReturnType();
         }
 
         private final Context ctx; // Not significant for equality.
