@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singleton;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,7 +24,7 @@ import java.util.stream.Stream;
  *
  * @author ariane
  */
-public interface BoundTemplate extends Type {
+public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
     @Override
     public default BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
         return this;
@@ -213,6 +216,31 @@ public interface BoundTemplate extends Type {
         }
 
         @Override
+        public int hashCode() {
+            int hash = 5;
+            hash = 37 * hash + Objects.hashCode(this.name);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            final VarBinding other = (VarBinding) obj;
+            if (!Objects.equals(this.name, other.name)) return false;
+            return true;
+        }
+
+        @Override
+        public int compareTo(BoundTemplate o) {
+            if (!getClass().isInstance(o))
+                return getClass().getName().compareTo(o.getClass().getName());
+
+            return name.compareTo(((VarBinding) o).name);
+        }
+
+        @Override
         public String toString() {
             return getName();
         }
@@ -291,6 +319,38 @@ public interface BoundTemplate extends Type {
         @Override
         public <T> T visit(Visitor<T> v) {
             return v.apply(this);
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 97 * hash + Objects.hashCode(this.type);
+            hash = 97 * hash + Objects.hashCode(this.bindings);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            final ClassBinding other = (ClassBinding) obj;
+            if (!Objects.equals(this.type, other.type)) return false;
+            if (!Objects.equals(this.bindings, other.bindings)) return false;
+            return true;
+        }
+
+        @Override
+        public int compareTo(BoundTemplate o) {
+            if (!getClass().isInstance(o))
+                return getClass().getName().compareTo(o.getClass().getName());
+
+            int cmp = 0;
+            if (cmp == 0)
+                cmp = type.getName().compareTo(((ClassBinding) o).type.getName());
+            if (cmp == 0)
+                BoundTemplateUtil.compareCollections(bindings, ((ClassBinding) o).bindings);
+            return cmp;
         }
 
         @Override
@@ -375,6 +435,37 @@ public interface BoundTemplate extends Type {
         }
 
         @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 83 * hash + Objects.hashCode(this.type);
+            hash = 83 * hash + this.extents;
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            final ArrayBinding other = (ArrayBinding) obj;
+            if (this.extents != other.extents) return false;
+            if (!Objects.equals(this.type, other.type)) return false;
+            return true;
+        }
+
+        @Override
+        public int compareTo(BoundTemplate o) {
+            if (!getClass().isInstance(o))
+                return getClass().getName().compareTo(o.getClass().getName());
+
+            int cmp = 0;
+            if (cmp == 0) cmp = type.compareTo(((ArrayBinding) o).type);
+            if (cmp == 0)
+                cmp = Integer.compare(extents, ((ArrayBinding) o).extents);
+            return cmp;
+        }
+
+        @Override
         public String toString() {
             String typeStr = type.toString();
             if (typeStr.indexOf(' ') != -1) typeStr = "(" + typeStr + ")";
@@ -388,14 +479,14 @@ public interface BoundTemplate extends Type {
     /**
      * Wildcard binding.
      */
-    public static class Any implements BoundTemplate {
+    public static final class Any implements BoundTemplate {
         public Any() {
             this(EMPTY_LIST, EMPTY_LIST);
         }
 
-        public Any(List<BoundTemplate> superTypes, List<BoundTemplate> extendTypes) {
-            this.superTypes = requireNonNull(superTypes);
-            this.extendTypes = requireNonNull(extendTypes);
+        public Any(Collection<BoundTemplate> superTypes, Collection<BoundTemplate> extendTypes) {
+            this.superTypes = new TreeSet<>(requireNonNull(superTypes));
+            this.extendTypes = new TreeSet<>(requireNonNull(extendTypes));
         }
 
         @Override
@@ -411,20 +502,20 @@ public interface BoundTemplate extends Type {
             return new Any(newSuperTypes, newExtendTypes);
         }
 
-        public List<BoundTemplate> getSuperTypes() {
+        public Collection<BoundTemplate> getSuperTypes() {
             return superTypes;
         }
 
-        public void setSuperTypes(List<BoundTemplate> superTypes) {
-            this.superTypes = superTypes;
+        public void setSuperTypes(Collection<BoundTemplate> superTypes) {
+            this.superTypes = new TreeSet<>(superTypes);
         }
 
-        public List<BoundTemplate> getExtendTypes() {
+        public Collection<BoundTemplate> getExtendTypes() {
             return extendTypes;
         }
 
-        public void setExtendTypes(List<BoundTemplate> extendTypes) {
-            this.extendTypes = extendTypes;
+        public void setExtendTypes(Collection<BoundTemplate> extendTypes) {
+            this.extendTypes = new TreeSet<>(extendTypes);
         }
 
         @Override
@@ -466,6 +557,40 @@ public interface BoundTemplate extends Type {
         }
 
         @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 53 * hash + Objects.hashCode(this.superTypes);
+            hash = 53 * hash + Objects.hashCode(this.extendTypes);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            final Any other = (Any) obj;
+            if (!Objects.equals(this.superTypes, other.superTypes))
+                return false;
+            if (!Objects.equals(this.extendTypes, other.extendTypes))
+                return false;
+            return true;
+        }
+
+        @Override
+        public int compareTo(BoundTemplate o) {
+            if (!getClass().isInstance(o))
+                return getClass().getName().compareTo(o.getClass().getName());
+
+            int cmp = 0;
+            if (cmp == 0)
+                cmp = BoundTemplateUtil.compareCollections(superTypes, ((Any) o).superTypes);
+            if (cmp == 0)
+                cmp = BoundTemplateUtil.compareCollections(extendTypes, ((Any) o).extendTypes);
+            return cmp;
+        }
+
+        @Override
         public String toString() {
             final StringBuilder spec = new StringBuilder("?");
             if (!superTypes.isEmpty()) {
@@ -492,12 +617,40 @@ public interface BoundTemplate extends Type {
             return spec.toString();
         }
 
-        private List<BoundTemplate> superTypes;
-        private List<BoundTemplate> extendTypes;
+        private SortedSet<BoundTemplate> superTypes;
+        private SortedSet<BoundTemplate> extendTypes;
     }
 
     public static BoundTemplate fromString(String text, Context ctx, Map<String, ? extends BoundTemplate> variables) {
         return new BoundTemplateParser(ctx, variables).parse(text);
+    }
+}
+
+class BoundTemplateUtil {
+    private BoundTemplateUtil() {
+    }
+
+    /**
+     * Compare two collections.
+     *
+     * Collections must have stable ordering.
+     *
+     * @param x A collection.
+     * @param y Another collection.
+     * @return The lexicographical comparison of the two collections.
+     */
+    public static int compareCollections(Iterable<BoundTemplate> x, Iterable<BoundTemplate> y) {
+        final Iterator<BoundTemplate> xIter = x.iterator();
+        final Iterator<BoundTemplate> yIter = y.iterator();
+
+        while (xIter.hasNext() && yIter.hasNext()) {
+            final int cmp = xIter.next().compareTo(yIter.next());
+            if (cmp != 0) return cmp;
+        }
+
+        if (xIter.hasNext()) return 1;
+        if (yIter.hasNext()) return -1;
+        return 0;
     }
 }
 

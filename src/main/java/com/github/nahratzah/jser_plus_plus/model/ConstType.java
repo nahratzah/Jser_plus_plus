@@ -2,6 +2,7 @@ package com.github.nahratzah.jser_plus_plus.model;
 
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -10,7 +11,7 @@ import java.util.stream.Stream;
  *
  * @author ariane
  */
-public class ConstType implements Type {
+public final class ConstType implements Type {
     public ConstType(Type type) {
         if (type instanceof ConstType)
             this.type = ((ConstType) type).type;
@@ -47,6 +48,23 @@ public class ConstType implements Type {
     @Override
     public Stream<JavaType> getAllJavaTypes() {
         return type.getAllJavaTypes();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 23 * hash + Objects.hashCode(this.type);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        final ConstType other = (ConstType) obj;
+        if (!Objects.equals(this.type, other.type)) return false;
+        return true;
     }
 
     private Type type;

@@ -8,6 +8,7 @@ import static java.util.Collections.EMPTY_LIST;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,12 +20,12 @@ import org.stringtemplate.v4.ST;
  *
  * @author ariane
  */
-public class CxxType implements Type {
+public final class CxxType implements Type {
     public CxxType(String template, Includes includes) {
-        this(template, includes, EMPTY_LIST, false);
+        this(template, includes, EMPTY_LIST, null);
     }
 
-    public CxxType(String template, Includes includes, Collection<? extends Type> declTypes, boolean preRendered) {
+    public CxxType(String template, Includes includes, Collection<? extends Type> declTypes, String preRendered) {
         this.template = requireNonNull(template);
         this.includes = requireNonNull(includes);
         this.declTypes = requireNonNull(declTypes);
@@ -33,17 +34,15 @@ public class CxxType implements Type {
 
     @Override
     public CxxType prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
-        if (preRendered) return this;
-
         final Collection<Type> newDeclTypes = new HashSet<>(declTypes);
         final ST stringTemplate = new ST(StCtx.contextGroup(ctx, variables, newDeclTypes::add), getTemplate());
         renderArgs.forEach(stringTemplate::add);
-        return new CxxType(stringTemplate.render(Locale.ROOT), includes, newDeclTypes, true);
+        return new CxxType(template, includes, newDeclTypes, stringTemplate.render(Locale.ROOT));
     }
 
     @Override
     public Set<String> getUnresolvedTemplateNames() {
-        if (!preRendered)
+        if (preRendered == null)
             throw new IllegalStateException("Unresolved template names are only available on prerendered CxxType.");
         return declTypes.stream()
                 .map(Type::getUnresolvedTemplateNames)
@@ -70,12 +69,38 @@ public class CxxType implements Type {
         return template;
     }
 
-    public boolean isPreRendered() {
+    /**
+     * Retrieve prerendered text.
+     *
+     * May be null, if there is none.
+     *
+     * @return Prerendered text or null.
+     */
+    public String getPreRendered() {
         return preRendered;
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 83 * hash + Objects.hashCode(this.template);
+        hash = 83 * hash + Objects.hashCode(this.preRendered);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        final CxxType other = (CxxType) obj;
+        if (!Objects.equals(this.template, other.template)) return false;
+        if (!Objects.equals(this.preRendered, other.preRendered)) return false;
+        return true;
+    }
+
     private final String template;
-    private final Includes includes;
-    private final Collection<? extends Type> declTypes;
-    private final boolean preRendered;
+    private final transient Includes includes;
+    private final transient Collection<? extends Type> declTypes;
+    private final String preRendered;
 }
