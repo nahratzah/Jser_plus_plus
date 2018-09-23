@@ -492,7 +492,11 @@ public class ClassType implements JavaType {
     }
 
     public List<MethodModel> getClassMemberFunctions() {
-        return classMemberFunctions;
+        return classMemberFunctions.stream()
+                .sorted(Comparator.comparing(MethodModel::getVisibility)
+                        .thenComparing(MethodModel::getName)
+                        .thenComparing(MethodModel::isConst, Comparator.reverseOrder()))
+                .collect(Collectors.toList());
     }
 
     public List<ClassMemberModel> getClassNonMemberFunctions() {
