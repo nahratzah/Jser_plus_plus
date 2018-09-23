@@ -128,7 +128,7 @@ public interface MethodModel {
      *
      * @return True if the method is static.
      */
-    public boolean isStaticMethod();
+    public boolean isStatic();
 
     /**
      * Test if the method is virtual.

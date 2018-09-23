@@ -94,7 +94,7 @@ public interface ClassMemberModel {
      *
      * @return True if the class member is a static method.
      */
-    public default boolean isStaticMethod() {
+    public default boolean isStatic() {
         return false;
     }
 
@@ -194,7 +194,7 @@ public interface ClassMemberModel {
         }
 
         @Override
-        public boolean isStaticMethod() {
+        public boolean isStatic() {
             return method.isStatic();
         }
 
@@ -266,7 +266,7 @@ public interface ClassMemberModel {
         public Optional<OverrideSelector> getOverrideSelector(Context ctx) {
             // Static methods don't have an override selector,
             // since they can not be overriden.
-            if (isStaticMethod()) return Optional.empty();
+            if (isStatic()) return Optional.empty();
 
             return Optional.of(new OverrideSelector(ctx, this));
         }
