@@ -82,6 +82,19 @@ public class CfgClass {
         this.friends = friends;
     }
 
+    /**
+     * Retrieve the class documentation string.
+     *
+     * @return The documentation string of this class.
+     */
+    public String getDocString() {
+        return docString;
+    }
+
+    public void setDocString(String docString) {
+        this.docString = docString;
+    }
+
     @JsonProperty("final")
     private Boolean finalVar;
     @JsonProperty("fields")
@@ -92,4 +105,6 @@ public class CfgClass {
     private CfgType varType;
     @JsonProperty("friends")
     private List<CfgType> friends = new ArrayList<>();
+    @JsonProperty("doc_string")
+    private String docString = null;
 }

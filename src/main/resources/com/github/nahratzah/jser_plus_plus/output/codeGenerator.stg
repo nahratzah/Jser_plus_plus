@@ -52,6 +52,7 @@ $endif$
 
 
 class(model) ::= <<
+$renderDocString(model.docString)$
 class $model.className$$if (model.final)$ final$endif$
 $classInheritance(model)$
 {

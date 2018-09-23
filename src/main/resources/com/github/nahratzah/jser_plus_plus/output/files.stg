@@ -119,6 +119,7 @@ class _accessor<$["Base_", {::$["java", "_tags", model.namespace, model.classNam
 
 
 declareBasicRef(model) ::= <<
+$renderDocString(model.docString)$
 $if (model.templateArgumentNames)$
 template<$model.templateArgumentNames:{x|typename $x$}; anchor, wrap, separator = ", "$>
 $endif$

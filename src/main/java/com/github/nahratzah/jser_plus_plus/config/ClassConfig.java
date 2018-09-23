@@ -36,5 +36,9 @@ public class ClassConfig {
         return cfgClass.getFriends();
     }
 
+    public String getDocString() {
+        return cfgClass.getDocString();
+    }
+
     private final CfgClass cfgClass;
 }

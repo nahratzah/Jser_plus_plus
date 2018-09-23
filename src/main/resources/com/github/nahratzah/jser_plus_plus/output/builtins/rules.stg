@@ -105,9 +105,9 @@ $endif$
 %>
 
 
-renderDocString(docString) ::= <<
-$renderDocString_.(docString)$
->>
+renderDocString(docString) ::= <%
+$if (docString)$$renderDocString_.(docString)$$endif$
+%>
 
 
 boundTemplateType(t, format="") ::= <%

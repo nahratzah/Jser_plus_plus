@@ -119,6 +119,8 @@ public class ClassType implements JavaType {
             this.varType = typeFromCfgType(classCfg.getVarType(), ctx, argRename.values())
                     .prerender(ctx, singletonMap("model", this), argRename.values());
         }
+
+        this.docString = classCfg.getDocString();
     }
 
     private void initSuperTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
@@ -906,6 +908,15 @@ public class ClassType implements JavaType {
     }
 
     /**
+     * Documentation of the class.
+     *
+     * @return String containing class documentation.
+     */
+    public String getDocString() {
+        return docString;
+    }
+
+    /**
      * Build a simple identity map for the given type variables.
      *
      * @param vars List of type variables.
@@ -1250,4 +1261,8 @@ public class ClassType implements JavaType {
      * logic.
      */
     private List<MethodModel> classMemberFunctions = new ArrayList<>();
+    /**
+     * Documentation of the class.
+     */
+    private String docString;
 }
