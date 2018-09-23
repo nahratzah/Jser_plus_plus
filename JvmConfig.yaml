@@ -697,6 +697,41 @@ classes:
         cxx: void
       body: |
         pop_front();
+    - type: method
+      name: at
+      virtual: true
+      arguments:
+      - name: index
+        type:
+          cxx: std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: E
+      doc_string: |
+        \brief Retrieve the element at the given index from the list.
+        \param index Index of the element to be returned.
+        \returns Element at the given index.
+        \throws std::out_of_range if the index exceeds the list size.
+    - type: method
+      name: at
+      const: true
+      virtual: true
+      arguments:
+      - name: index
+        type:
+          cxx: std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: const E
+      doc_string: |
+        \brief Retrieve the element at the given index from the list.
+        \param index Index of the element to be returned.
+        \returns Element at the given index.
+        \throws std::out_of_range if the index exceeds the list size.
 
 
   java.util.ArrayList<E>:
@@ -841,6 +876,35 @@ classes:
         java: E
       body: |
         return data_.back();
+    - type: method
+      name: at
+      override: true
+      arguments:
+      - name: index
+        type:
+          cxx: std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: E
+      body: |
+        return data_.at(index);
+    - type: method
+      name: at
+      const: true
+      override: true
+      arguments:
+      - name: index
+        type:
+          cxx: std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: const E
+      body: |
+        return data_.at(index);
     fields:
       size:
         visibility: private
@@ -1183,3 +1247,64 @@ classes:
         includes:
           declaration:
           - java/iterator.h
+
+
+  java.util.AbstractCollection<E>:
+    members:
+    - type: method
+      name: empty
+      const: true
+      override: true
+      return:
+        cxx: std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return size() == 0u;
+    # XXX implement to_string logic for objects
+
+
+  java.util.AbstractSequentialList<E>:
+    members:
+    - type: method
+      name: at
+      override: true
+      arguments:
+      - name: index
+        type:
+          cxx: std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: E
+      body: |
+        if (index >= size()) throw ::std::out_of_range("index too large");
+        return *::std::next(begin(), index);
+      includes:
+        implementation:
+        - cassert
+        - iterator
+        - stdexcept
+    - type: method
+      name: at
+      const: true
+      override: true
+      arguments:
+      - name: index
+        type:
+          cxx: std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: const E
+      body: |
+        if (index >= size()) throw ::std::out_of_range("index too large");
+        return *::std::next(begin(), index);
+      includes:
+        implementation:
+        - cassert
+        - iterator
+        - stdexcept
