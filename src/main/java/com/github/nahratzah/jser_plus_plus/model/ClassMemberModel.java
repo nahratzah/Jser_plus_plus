@@ -443,7 +443,7 @@ public interface ClassMemberModel {
      * The significant portion of a method for override comparisons.
      */
     public static class OverrideSelector {
-        public OverrideSelector(Context ctx, ClassMethod method) {
+        public OverrideSelector(Context ctx, MethodModel method) {
             this.ctx = requireNonNull(ctx);
             this.method = requireNonNull(method);
             this.declaringType = new BoundTemplate.ClassBinding<>(
@@ -595,7 +595,7 @@ public interface ClassMemberModel {
          *
          * @return The underlying method.
          */
-        public ClassMethod getUnderlyingMethod() {
+        public MethodModel getUnderlyingMethod() {
             return method;
         }
 
@@ -637,7 +637,7 @@ public interface ClassMemberModel {
 
         private final Context ctx; // Not significant for equality.
         private final BoundTemplate.ClassBinding<ClassType> declaringType; //Not significant for equality.
-        private final ClassMethod method; // Not significant for equality.
+        private final MethodModel method; // Not significant for equality.
         private final List<Type> arguments; // Significant for equality.
         private final Type returnType; // Significant for equality.
     }

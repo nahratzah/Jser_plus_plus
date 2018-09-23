@@ -616,7 +616,7 @@ public class ClassType implements JavaType {
                 .forEach(allResolvedMethods::add);
 
         // Figure out which methods need to be re-declared so that we can invoke them with the appropriate rebound types.
-        final Map<ClassMemberModel.ClassMethod, ClassMemberModel.OverrideSelector> redeclareMethods = erasedParentModels.stream()
+        final Map<MethodModel, ClassMemberModel.OverrideSelector> redeclareMethods = erasedParentModels.stream()
                 .flatMap(parentTemplate -> parentTemplate.getType().redeclareMethods(ctx, parentTemplate.getBindingsMap()))
                 .filter(override -> !myMethods.containsKey(override))
                 .peek(override -> {
