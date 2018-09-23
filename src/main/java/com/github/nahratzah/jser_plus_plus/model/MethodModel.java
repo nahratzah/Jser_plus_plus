@@ -4,7 +4,9 @@ import com.github.nahratzah.jser_plus_plus.config.Includes;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -205,5 +207,203 @@ public interface MethodModel {
      * @param ctx Lookup context to resolve classes.
      * @return An optional containing an override selector.
      */
-    public Optional<ClassMemberModel.OverrideSelector> getOverrideSelector(Context ctx);
+    public default Optional<ClassMemberModel.OverrideSelector> getOverrideSelector(Context ctx) {
+        if (isStatic()) return Optional.empty();
+        return Optional.of(new ClassMemberModel.OverrideSelector(ctx, this));
+    }
+
+    /**
+     * Very simple implementation of {@link MethodModel}.
+     */
+    public static class SimpleMethodModel implements MethodModel {
+        private final ClassType declaringClass;
+        private final String name;
+        private final Includes includes;
+        private final Set<Type> declarationTypes;
+        private final Set<Type> implementationTypes;
+        private final Type returnType;
+        private final List<Type> argumentTypes;
+        private final List<String> argumentNames;
+        private final String body;
+        private final boolean staticVar;
+        private final boolean virtualVar;
+        private final boolean pureVirtualVar;
+        private final boolean overrideVar;
+        private final boolean constVar;
+        private final boolean finalVar;
+        private final Object noexcept;
+        private final Visibility visibility;
+        private final String docString;
+
+        public SimpleMethodModel(ClassType declaringClass, String name, Includes includes, Set<Type> declarationTypes, Set<Type> implementationTypes, Type returnType, List<Type> argumentTypes, List<String> argumentNames, String body, boolean staticVar, boolean virtualVar, boolean pureVirtualVar, boolean overrideVar, boolean constVar, boolean finalVar, Object noexcept, Visibility visibility, String docString) {
+            this.declaringClass = declaringClass;
+            this.name = name;
+            this.includes = includes;
+            this.declarationTypes = declarationTypes;
+            this.implementationTypes = implementationTypes;
+            this.returnType = returnType;
+            this.argumentTypes = argumentTypes;
+            this.argumentNames = argumentNames;
+            this.body = body;
+            this.staticVar = staticVar;
+            this.virtualVar = virtualVar;
+            this.pureVirtualVar = pureVirtualVar;
+            this.overrideVar = overrideVar;
+            this.constVar = constVar;
+            this.finalVar = finalVar;
+            this.noexcept = noexcept;
+            this.visibility = visibility;
+            this.docString = docString;
+        }
+
+        @Override
+        public ClassType getDeclaringClass() {
+            return declaringClass;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public Includes getIncludes() {
+            return includes;
+        }
+
+        @Override
+        public Stream<Type> getDeclarationTypes() {
+            return declarationTypes.stream();
+        }
+
+        @Override
+        public Stream<Type> getImplementationTypes() {
+            return implementationTypes.stream();
+        }
+
+        @Override
+        public Type getReturnType() {
+            return returnType;
+        }
+
+        @Override
+        public List<Type> getArgumentTypes() {
+            return argumentTypes;
+        }
+
+        @Override
+        public List<String> getArgumentNames() {
+            return argumentNames;
+        }
+
+        @Override
+        public String getBody() {
+            return body;
+        }
+
+        @Override
+        public boolean isStatic() {
+            return staticVar;
+        }
+
+        @Override
+        public boolean isVirtual() {
+            return virtualVar;
+        }
+
+        @Override
+        public boolean isPureVirtual() {
+            return pureVirtualVar;
+        }
+
+        @Override
+        public boolean isOverride() {
+            return overrideVar;
+        }
+
+        @Override
+        public boolean isConst() {
+            return constVar;
+        }
+
+        @Override
+        public boolean isFinal() {
+            return finalVar;
+        }
+
+        @Override
+        public Object getNoexcept() {
+            return noexcept;
+        }
+
+        @Override
+        public Visibility getVisibility() {
+            return visibility;
+        }
+
+        @Override
+        public String getDocString() {
+            return docString;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 67 * hash + Objects.hashCode(this.declaringClass);
+            hash = 67 * hash + Objects.hashCode(this.name);
+            hash = 67 * hash + Objects.hashCode(this.includes);
+            hash = 67 * hash + Objects.hashCode(this.returnType);
+            hash = 67 * hash + Objects.hashCode(this.argumentTypes);
+            hash = 67 * hash + Objects.hashCode(this.argumentNames);
+            hash = 67 * hash + Objects.hashCode(this.body);
+            hash = 67 * hash + (this.staticVar ? 1 : 0);
+            hash = 67 * hash + (this.virtualVar ? 1 : 0);
+            hash = 67 * hash + (this.pureVirtualVar ? 1 : 0);
+            hash = 67 * hash + (this.overrideVar ? 1 : 0);
+            hash = 67 * hash + (this.constVar ? 1 : 0);
+            hash = 67 * hash + (this.finalVar ? 1 : 0);
+            hash = 67 * hash + Objects.hashCode(this.noexcept);
+            hash = 67 * hash + Objects.hashCode(this.visibility);
+            hash = 67 * hash + Objects.hashCode(this.docString);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            final SimpleMethodModel other = (SimpleMethodModel) obj;
+            if (this.staticVar != other.staticVar) return false;
+            if (this.virtualVar != other.virtualVar) return false;
+            if (this.pureVirtualVar != other.pureVirtualVar) return false;
+            if (this.overrideVar != other.overrideVar) return false;
+            if (this.constVar != other.constVar) return false;
+            if (this.finalVar != other.finalVar) return false;
+            if (!Objects.equals(this.name, other.name)) return false;
+            if (!Objects.equals(this.body, other.body)) return false;
+            if (!Objects.equals(this.docString, other.docString)) return false;
+            if (!Objects.equals(this.declaringClass, other.declaringClass))
+                return false;
+            if (!Objects.equals(this.includes, other.includes)) return false;
+            if (!Objects.equals(this.declarationTypes, other.declarationTypes))
+                return false;
+            if (!Objects.equals(this.implementationTypes, other.implementationTypes))
+                return false;
+            if (!Objects.equals(this.returnType, other.returnType))
+                return false;
+            if (!Objects.equals(this.argumentTypes, other.argumentTypes))
+                return false;
+            if (!Objects.equals(this.argumentNames, other.argumentNames))
+                return false;
+            if (!Objects.equals(this.noexcept, other.noexcept)) return false;
+            if (this.visibility != other.visibility) return false;
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "SimpleMethodModel{" + "declaringClass=" + declaringClass + ", name=" + name + ", includes=" + includes + ", declarationTypes=" + declarationTypes + ", implementationTypes=" + implementationTypes + ", returnType=" + returnType + ", argumentTypes=" + argumentTypes + ", argumentNames=" + argumentNames + ", body=" + body + ", staticVar=" + staticVar + ", virtualVar=" + virtualVar + ", pureVirtualVar=" + pureVirtualVar + ", overrideVar=" + overrideVar + ", constVar=" + constVar + ", finalVar=" + finalVar + ", noexcept=" + noexcept + ", visibility=" + visibility + ", docString=" + docString + '}';
+        }
+    }
 }

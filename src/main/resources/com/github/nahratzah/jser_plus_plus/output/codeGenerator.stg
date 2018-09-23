@@ -170,7 +170,7 @@ $ classMembers(model, true)$
 
 
 classMembers(model, doImplement) ::= <<
-$ model.classMembers
+$ [model.classMembers, model.classMemberFunctions]
   : {m | $if (!doImplement || !m.pureVirtual || m.destructorMethod)$$\\$
          $if (!doImplement)$$m.visibility$:$" "$$endif$$\\$
          $function(
