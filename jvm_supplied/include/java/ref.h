@@ -287,11 +287,13 @@ class _accessor_proxy final
 
 template<typename T>
 class _accessor_proxy<const T> final
-: private _basic_ref_inheritance<T>::accessor_type
+: private _basic_ref_inheritance<const T>::accessor_type
 {
+  template<template<typename> class, typename> friend class ::java::basic_ref;
+
  private:
-  explicit JSER_INLINE _accessor_proxy(typename _basic_ref_inheritance<T>::erased_type& ref) noexcept
-  : _basic_ref_inheritance<T>::base_type(ref)
+  explicit JSER_INLINE _accessor_proxy(typename _basic_ref_inheritance<const T>::erased_type& ref) noexcept
+  : _basic_ref_inheritance<const T>::base_type(ref)
   {}
 
  public:
@@ -299,7 +301,7 @@ class _accessor_proxy<const T> final
   JSER_INLINE _accessor_proxy& operator=(const _accessor_proxy&) = delete;
 
   JSER_INLINE auto operator->() const noexcept
-  -> const typename _basic_ref_inheritance<T>::accessor_type* {
+  -> const typename _basic_ref_inheritance<const T>::accessor_type* {
     return this;
   }
 };
@@ -397,13 +399,13 @@ class basic_ref final
   template<typename ErasedType, typename X, typename Y>
   static auto is_instance_of_(X* x, Y* y) noexcept
   -> bool {
-    if constexpr(std::is_convertible_v<X*, ErasedType*>
-        || std::is_convertible_v<Y*, ErasedType*>) {
+    if constexpr(std::is_convertible_v<X*, const ErasedType*>
+        || std::is_convertible_v<Y*, const ErasedType*>) {
       return true;
     } else {
-      if (x != nullptr && dynamic_cast<ErasedType*>(x) == nullptr)
+      if (x != nullptr && dynamic_cast<const ErasedType*>(x) == nullptr)
         return false;
-      if (y != nullptr && dynamic_cast<ErasedType*>(y) == nullptr)
+      if (y != nullptr && dynamic_cast<const ErasedType*>(y) == nullptr)
         return false;
       return true;
     }
