@@ -60,6 +60,16 @@ import org.stringtemplate.v4.ST;
  */
 public class ClassType implements JavaType {
     private static final Logger LOG = Logger.getLogger(ClassType.class.getName());
+    private static final String VIRTUAL_FUNCTION_PREFIX = "_virtual_";
+    private static final String REDECLARE_BODY_TEMPLATE = "return "
+            + "$if (needCast)$::java::cast<$boundTemplateType(declare.returnType, \"style=type, class\")$>($endif$"
+            + "this->$underlying.declaringClass.className$::$underlying.name$"
+            + "($declare.underlyingMethod.argumentNames: { name | ::std::forward<decltype($name$)>($name$)}; anchor, wrap, separator = \", \"$)"
+            + "$if (needCast)$)$endif$;";
+    private static final String FORWARDING_BODY_TEMPLATE = "return "
+            + "this->" + VIRTUAL_FUNCTION_PREFIX + "$fn.name$"
+            + "($[{$tagType(model)$()}, fn.underlyingMethod.argumentNames: { name | ::std::forward<decltype($name$)>($name$)}]; anchor, wrap, separator = \", \"$)"
+            + ";";
 
     public ClassType(Class<?> c) {
         this.c = requireNonNull(c);
@@ -485,6 +495,12 @@ public class ClassType implements JavaType {
         return classMemberFunctions;
     }
 
+    public List<ClassMemberModel> getClassNonMemberFunctions() {
+        return getClassMembers().stream()
+                .filter(classMember -> classMember.isStatic() || !(classMember instanceof ClassMemberModel.ClassMethod))
+                .collect(Collectors.toList());
+    }
+
     /**
      * Test if this class has a default constructor defined.
      *
@@ -604,6 +620,8 @@ public class ClassType implements JavaType {
                     })
                     // Keep the ones that match prototypes in our class.
                     .filter(myMethods::containsKey)
+                    // Drop already satisfied methods.
+                    .filter(isParentResolvedMethod.negate())
                     // Add them to the mapping of overrides.
                     .forEach(parentMethod -> myMethods.get(parentMethod).add(parentMethod));
         }
@@ -673,6 +691,8 @@ public class ClassType implements JavaType {
 
         // Add redeclared methods to the classMemberFunctions list.
         postProcessingApplyRedeclare(redeclareMethods);
+        // Add all my methods to the classMemberFunctions list.
+        postProcessingApplyMyMethods(ctx, myMethods);
 
         allMethods = Stream.of(allKeptParentMethods, redeclareMethods.values(), myMethods.keySet())
                 .flatMap(Collection::stream)
@@ -691,6 +711,9 @@ public class ClassType implements JavaType {
         System.out.println("all suppressed methods:");
         allResolvedMethods.forEach(m -> System.out.println("  " + m.getSelector()));
         System.out.println("--------------------------------------------------------");
+        System.out.println("actually emitted methods:");
+        classMemberFunctions.forEach(m -> System.out.println("  " + m.getOverrideSelector(ctx)));
+        System.out.println("--------------------------------------------------------");
 
 //        throw new UnsupportedOperationException("XXX implement class post processing");
     }
@@ -703,12 +726,7 @@ public class ClassType implements JavaType {
      */
     private void postProcessingApplyRedeclare(Map<MethodModel, ClassMemberModel.OverrideSelector> redeclareMethods) {
         redeclareMethods.forEach((MethodModel underlying, ClassMemberModel.OverrideSelector declare) -> {
-            final String bodyTemplate = "return "
-                    + "$if (needCast)$::java::cast<$boundTemplateType(declare.returnType, \"style=type, class\")$>($endif$"
-                    + "this->$underlying.declaringClass.className$::$underlying.name$"
-                    + "($declare.underlyingMethod.argumentNames: { name | ::std::move($name$)}; anchor, wrap, separator = \"\\n\"$)"
-                    + "$if (needCast)$)$endif$;";
-            final String body = new ST(StCtx.BUILTINS, bodyTemplate)
+            final String body = new ST(StCtx.BUILTINS, REDECLARE_BODY_TEMPLATE)
                     .add("needCast", !Objects.equals(declare.getReturnType(), underlying.getReturnType()))
                     .add("declare", declare)
                     .add("underlying", underlying)
@@ -736,6 +754,115 @@ public class ClassType implements JavaType {
                     underlying.getNoexcept(),
                     underlying.getVisibility(),
                     underlying.getDocString()));
+        });
+    }
+
+    /**
+     * Apply member methods to classMemberFunction list.
+     *
+     * @param myMethods Mapping of function, to all functions it overrides.
+     */
+    private void postProcessingApplyMyMethods(Context ctx, Map<ClassMemberModel.OverrideSelector, List<ClassMemberModel.OverrideSelector>> myMethods) {
+        myMethods.forEach((myFn, overrideFns) -> {
+            // If the method is not virtual, add it directly.
+            if (!myFn.getUnderlyingMethod().isVirtual()) {
+                if (!overrideFns.isEmpty())
+                    LOG.log(Level.WARNING, "{0} hides {1}", new Object[]{myFn, overrideFns});
+                classMemberFunctions.add(myFn.getUnderlyingMethod());
+                return;
+            }
+
+            // Figure out my tag type.
+            final com.github.nahratzah.jser_plus_plus.model.Type myTag = new CxxType("$tagType(model)$", new Includes())
+                    .prerender(ctx, singletonMap("model", this), EMPTY_LIST);
+
+            // Figure out body of forwarders to private virtual method.
+            final String forwardingBody = new ST(StCtx.BUILTINS, FORWARDING_BODY_TEMPLATE)
+                    .add("model", this)
+                    .add("fn", myFn)
+                    .render(Locale.ROOT);
+
+            // Figure out which super methods we actually have to replace.
+            final List<ClassMemberModel.OverrideSelector> superMethods = overrideFns.stream()
+                    .map(overrideFn -> new SimpleMapEntry<>(overrideFn.getDeclaringClass(), overrideFn)) // Introduce declaring class.
+                    .distinct() // Eliminate duplicates, using the declaring class as support.
+                    .map(Map.Entry::getValue) // Undo declaring class introduction.
+                    .filter(fn -> fn.getUnderlyingMethod().isVirtual())
+                    .collect(Collectors.toList());
+
+            // Emit overrideFns with extra tag argument.
+            superMethods.forEach(overrideFn -> {
+                final com.github.nahratzah.jser_plus_plus.model.Type overrideTag = new CxxType("$tagType(model)$", new Includes())
+                        .prerender(ctx, singletonMap("model", overrideFn.getDeclaringClass()), EMPTY_LIST);
+
+                classMemberFunctions.add(new MethodModel.SimpleMethodModel(
+                        this,
+                        VIRTUAL_FUNCTION_PREFIX + overrideFn.getName(),
+                        new Includes(
+                                overrideFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
+                                myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList())),
+                        overrideFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
+                        myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
+                        overrideFn.getReturnType(),
+                        Stream.concat(Stream.of(overrideTag), overrideFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch.
+                        Stream.concat(Stream.of("_tag_"), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type.
+                        forwardingBody, // Apply forwarding rule.
+                        overrideFn.getUnderlyingMethod().isStatic(),
+                        overrideFn.getUnderlyingMethod().isVirtual(),
+                        false, // We're not pure virtual: we implement an override, forwarding to the new override.
+                        true, // We do override the base implementation.
+                        overrideFn.getUnderlyingMethod().isConst(),
+                        true, // Override will close the chain on the original method.
+                        overrideFn.getUnderlyingMethod().getNoexcept(),
+                        Visibility.PRIVATE, // Make actual virtual method private: it's only accessed via the untagged forwarding function.
+                        null));
+            });
+
+            // Emit normal forwarder for overrideFns.
+            classMemberFunctions.add(new MethodModel.SimpleMethodModel(
+                    this,
+                    myFn.getName(),
+                    new Includes(
+                            myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
+                            EMPTY_LIST),
+                    myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
+                    myFn.getUnderlyingMethod().getImplementationTypes().collect(Collectors.toSet()),
+                    myFn.getReturnType(),
+                    myFn.getArguments(),
+                    myFn.getUnderlyingMethod().getArgumentNames(),
+                    forwardingBody,
+                    myFn.getUnderlyingMethod().isStatic(),
+                    false, // Forwarding function is never virtual, so we can apply method hiding.
+                    false, // Forwarding function is never pure virtual.
+                    false, // Forwarding function is not overriding, but hiding instead.
+                    myFn.getUnderlyingMethod().isConst(),
+                    false, // Forwarding function is not final, because it is not virtual.
+                    myFn.getUnderlyingMethod().getNoexcept(),
+                    myFn.getUnderlyingMethod().getVisibility(),
+                    myFn.getUnderlyingMethod().getDocString()));
+
+            // Emit actual virtual method.
+            classMemberFunctions.add(new MethodModel.SimpleMethodModel(
+                    this,
+                    VIRTUAL_FUNCTION_PREFIX + myFn.getName(),
+                    new Includes(
+                            myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
+                            myFn.getUnderlyingMethod().getImplementationIncludes().collect(Collectors.toList())),
+                    myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
+                    myFn.getUnderlyingMethod().getImplementationTypes().collect(Collectors.toSet()),
+                    myFn.getReturnType(),
+                    Stream.concat(Stream.of(myTag), myFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch.
+                    Stream.concat(Stream.of("_tag_"), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type.
+                    myFn.getUnderlyingMethod().getBody(),
+                    myFn.getUnderlyingMethod().isStatic(),
+                    myFn.getUnderlyingMethod().isVirtual(),
+                    myFn.getUnderlyingMethod().isPureVirtual(),
+                    false, // XXX: *do* override if we have the same return type, thus not requiring conversion.
+                    myFn.getUnderlyingMethod().isConst(),
+                    myFn.getUnderlyingMethod().isFinal(),
+                    myFn.getUnderlyingMethod().getNoexcept(),
+                    Visibility.PRIVATE, // Make actual virtual method private: it's only accessed via the untagged forwarding function.
+                    myFn.getUnderlyingMethod().getDocString()));
         });
     }
 

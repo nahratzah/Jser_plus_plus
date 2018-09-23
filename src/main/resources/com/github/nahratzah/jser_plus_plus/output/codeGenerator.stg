@@ -97,11 +97,8 @@ $endif$
   ~$model.className$() noexcept override$if (model.interface || model.abstract)$ = 0$endif$;
 
   // XXX constructors that take arguments.
-$if (model.classMembers)$
 
-  // methods
   $ classMembers(model, false); anchor$
-$endif$
 $if(model.fields)$
 
   // fields
@@ -170,9 +167,9 @@ $ classMembers(model, true)$
 
 
 classMembers(model, doImplement) ::= <<
-$ [model.classMembers, model.classMemberFunctions]
+$ [model.classNonMemberFunctions, model.classMemberFunctions]
   : {m | $if (!doImplement || !m.pureVirtual || m.destructorMethod)$$\\$
-         $if (!doImplement)$$m.visibility$:$" "$$endif$$\\$
+         $if (!doImplement)$$m.visibility$:$"\n"$$endif$$\\$
          $function(
               name=m.name,
               doImplement=doImplement,

@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -217,6 +218,7 @@ public interface MethodModel {
      */
     public static class SimpleMethodModel implements MethodModel {
         private final ClassType declaringClass;
+        private final BoundTemplate.ClassBinding<ClassType> argumentDeclaringClass;
         private final String name;
         private final Includes includes;
         private final Set<Type> declarationTypes;
@@ -237,6 +239,7 @@ public interface MethodModel {
 
         public SimpleMethodModel(ClassType declaringClass, String name, Includes includes, Set<Type> declarationTypes, Set<Type> implementationTypes, Type returnType, List<Type> argumentTypes, List<String> argumentNames, String body, boolean staticVar, boolean virtualVar, boolean pureVirtualVar, boolean overrideVar, boolean constVar, boolean finalVar, Object noexcept, Visibility visibility, String docString) {
             this.declaringClass = declaringClass;
+            this.argumentDeclaringClass = new BoundTemplate.ClassBinding<>(declaringClass, declaringClass.getTemplateArgumentNames().stream().map(BoundTemplate.VarBinding::new).collect(Collectors.toList())); // XXX turn into constructor argument.
             this.name = name;
             this.includes = includes;
             this.declarationTypes = declarationTypes;
@@ -403,7 +406,7 @@ public interface MethodModel {
 
         @Override
         public String toString() {
-            return "SimpleMethodModel{" + "declaringClass=" + declaringClass + ", name=" + name + ", includes=" + includes + ", declarationTypes=" + declarationTypes + ", implementationTypes=" + implementationTypes + ", returnType=" + returnType + ", argumentTypes=" + argumentTypes + ", argumentNames=" + argumentNames + ", body=" + body + ", staticVar=" + staticVar + ", virtualVar=" + virtualVar + ", pureVirtualVar=" + pureVirtualVar + ", overrideVar=" + overrideVar + ", constVar=" + constVar + ", finalVar=" + finalVar + ", noexcept=" + noexcept + ", visibility=" + visibility + ", docString=" + docString + '}';
+            return "SimpleMethodModel{" + "declaringClass=" + declaringClass + ", argumentDeclaringClass=" + argumentDeclaringClass + ", name=" + name + ", includes=" + includes + ", declarationTypes=" + declarationTypes + ", implementationTypes=" + implementationTypes + ", returnType=" + returnType + ", argumentTypes=" + argumentTypes + ", argumentNames=" + argumentNames + ", body=" + body + ", staticVar=" + staticVar + ", virtualVar=" + virtualVar + ", pureVirtualVar=" + pureVirtualVar + ", overrideVar=" + overrideVar + ", constVar=" + constVar + ", finalVar=" + finalVar + ", noexcept=" + noexcept + ", visibility=" + visibility + ", docString=" + docString + '}';
         }
     }
 }
