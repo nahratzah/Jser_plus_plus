@@ -129,6 +129,25 @@ classes:
       initializers:
         value: v
     - type: method
+      name: compareTo
+      const: true
+      override: true
+      arguments:
+      - name: o
+        type:
+          java: const java.lang.Boolean
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        const bool x = value;
+        const bool y = o->value();
+
+        if (x == y) return 0;
+        return (x ? 1 : -1);
+    - type: method
       name: "True"
       return:
         java: java.lang.Boolean
@@ -176,6 +195,28 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: compareTo
+      const: true
+      override: true
+      arguments:
+      - name: o
+        type:
+          java: const java.lang.Character
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        const ::java::char_t x = value;
+        const ::java::char_t y = o->value();
+
+        if (x == y) return 0;
+        return (x < y ? -1 : 1);
+      includes:
+        implementation:
+        - java/primitives.h
   java.lang.Byte:
     fields:
       value:
@@ -192,6 +233,28 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: compareTo
+      const: true
+      override: true
+      arguments:
+      - name: o
+        type:
+          java: const java.lang.Byte
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        const ::java::byte_t x = value;
+        const ::java::byte_t y = o->value();
+
+        if (x == y) return 0;
+        return (x < y ? -1 : 1);
+      includes:
+        implementation:
+        - java/primitives.h
     - type: method
       name: byteValue
       override: true
@@ -235,6 +298,28 @@ classes:
       initializers:
         value: v
     - type: method
+      name: compareTo
+      const: true
+      override: true
+      arguments:
+      - name: o
+        type:
+          java: const java.lang.Short
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        const ::java::short_t x = value;
+        const ::java::short_t y = o->value();
+
+        if (x == y) return 0;
+        return (x < y ? -1 : 1);
+      includes:
+        implementation:
+        - java/primitives.h
+    - type: method
       name: shortValue
       override: true
       const: true
@@ -276,6 +361,28 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: compareTo
+      const: true
+      override: true
+      arguments:
+      - name: o
+        type:
+          java: const java.lang.Integer
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        const ::java::int_t x = value;
+        const ::java::int_t y = o->value();
+
+        if (x == y) return 0;
+        return (x < y ? -1 : 1);
+      includes:
+        implementation:
+        - java/primitives.h
     - type: method
       name: intValue
       override: true
@@ -319,6 +426,28 @@ classes:
       initializers:
         value: v
     - type: method
+      name: compareTo
+      const: true
+      override: true
+      arguments:
+      - name: o
+        type:
+          java: const java.lang.Long
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        const ::java::long_t x = value;
+        const ::java::long_t y = o->value();
+
+        if (x == y) return 0;
+        return (x < y ? -1 : 1);
+      includes:
+        implementation:
+        - java/primitives.h
+    - type: method
       name: longValue
       override: true
       const: true
@@ -352,6 +481,28 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: compareTo
+      const: true
+      override: true
+      arguments:
+      - name: o
+        type:
+          java: const java.lang.Float
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        const ::java::float_t x = value;
+        const ::java::float_t y = o->value();
+
+        if (x == y) return 0;
+        return (x < y ? -1 : 1);
+      includes:
+        implementation:
+        - java/primitives.h
     - type: method
       name: longValue
       override: true
@@ -394,6 +545,28 @@ classes:
             - java/primitives.h
       initializers:
         value: v
+    - type: method
+      name: compareTo
+      const: true
+      override: true
+      arguments:
+      - name: o
+        type:
+          java: const java.lang.Double
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        const ::java::double_t x = value;
+        const ::java::double_t y = o->value();
+
+        if (x == y) return 0;
+        return (x < y ? -1 : 1);
+      includes:
+        implementation:
+        - java/primitives.h
     - type: method
       name: longValue
       override: true
@@ -908,6 +1081,7 @@ classes:
     fields:
       size:
         visibility: private
+        # XXX implement field removal
         rename: xxx_implement_remove_
       data_:
         visibility: private
@@ -1316,3 +1490,119 @@ classes:
       \details
       This interface makes more sense in java than in C++.
       In java, it indicates the list has fast random access.
+
+
+  java.util.PriorityQueue<E>:
+    doc_string: |
+      \brief Priority queue.
+    members:
+    - type: method
+      name: compare_
+      visibility: private
+      arguments:
+      - name: x
+        type:
+          java: E
+      - name: y
+        type:
+          java: E
+      return:
+        cxx: bool
+      body: |
+        if (this->comparator == nullptr)
+          return $boundTemplateType(java.("java.util.Comparator<E>"), "style=type, class")$::naturalOrder()->compare(std::move(x), std::move(y)) < 0;
+        return this->comparator->compare(std::move(x), std::move(y)) < 0;
+    fields:
+      size:
+        visibility: private
+        # XXX implement field removal
+        rename: xxx_implement_remove_
+      data_:
+        visibility: private
+        type:
+          cxx: ::std::priority_queue<$boundTemplateType(java.("E"), "style=type, class")$, ::std::vector<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>, ::std::function<bool($boundTemplateType(java.("const E"), "style=type, class=param")$, $boundTemplateType(java.("const E"), "style=type, class=param")$)>>
+          includes:
+            declaration:
+            - queue
+            - vector
+            - functional
+        default: |
+          ::std::function<bool($boundTemplateType(java.("const E"), "style=type, class=param")$, $boundTemplateType(java.("const E"), "style=type, class=param")$)>([this]($boundTemplateType(java.("const E"), "style=type, class=param")$ x, $boundTemplateType(java.("const E"), "style=type, class=param")$ y) {
+            return compare_(std::move(x), std::move(y));
+          }),
+          ::std::vector<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>(
+            ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+          )
+      comparator:
+        const: true
+
+
+  java.util.Comparator<T>:
+    members:
+    - type: method
+      name: compare
+      const: true
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: const T
+      - name: y
+        type:
+          java: const T
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+    - type: method
+      name: naturalOrder
+      static: true
+      return:
+        java: const java.util.Comparator<java.lang.Object>
+      body: |
+        return ::java::cast<$boundTemplateType(java.("java.util.Comparator<java.lang.Object>"), "style=type, class")$>(
+            $boundTemplateType(java.({java.util.Comparators\$NaturalOrderComparator}), "style=type, class")$::Instance());
+
+
+  java.util.Comparators$NaturalOrderComparator:
+    members:
+    - type: method
+      name: compare
+      override: true
+      arguments:
+      - name: x
+        type:
+          java: const java.lang.Comparable<java.lang.Object>
+      - name: y
+        type:
+          java: const java.lang.Comparable<java.lang.Object>
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        return x->compareTo(y);
+
+
+  java.lang.Comparable<T>:
+    doc_string: |
+      \brief Interface that declares two types are comparable.
+      \tparam T The type with which the type implementing this interface can be compared.
+    members:
+    - type: method
+      name: compareTo
+      const: true
+      virtual: true
+      arguments:
+      - name: o
+        type:
+          java: const T
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      # XXX Must be pure virtual
+      body: return 0; // XXX implementations needed
