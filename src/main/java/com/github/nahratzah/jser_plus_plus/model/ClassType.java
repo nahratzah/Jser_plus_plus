@@ -637,43 +637,6 @@ public class ClassType implements JavaType {
                 })
                 .collect(Collectors.toMap(ClassMemberModel.OverrideSelector::getUnderlyingMethod, Function.identity()));
 
-        // Add redeclared methods to the classMemberFunctions list.
-        redeclareMethods.forEach((MethodModel underlying, ClassMemberModel.OverrideSelector declare) -> {
-            final String bodyTemplate = "return "
-                    + "$if (needCast)$::java::cast<$boundTemplateType(declare.returnType, \"style=type, class\")$>($endif$"
-                    + "this->$underlying.declaringClass.className$::$underlying.name$"
-                    + "($declare.underlyingMethod.argumentNames: { name | ::std::move($name$)}; anchor, wrap, separator = \"\\n\"$)"
-                    + "$if (needCast)$)$endif$;";
-            final String body = new ST(StCtx.BUILTINS, bodyTemplate)
-                    .add("needCast", !Objects.equals(declare.getReturnType(), underlying.getReturnType()))
-                    .add("declare", declare)
-                    .add("underlying", underlying)
-                    .render(Locale.ROOT, 78);
-
-            classMemberFunctions.add(new MethodModel.SimpleMethodModel(
-                    this,
-                    declare.getName(),
-                    new Includes(
-                            declare.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                            Stream.concat(declare.getUnderlyingMethod().getImplementationIncludes(), underlying.getDeclarationIncludes())
-                                    .collect(Collectors.toList())),
-                    declare.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
-                    Stream.concat(declare.getUnderlyingMethod().getImplementationTypes(), underlying.getDeclarationTypes()).collect(Collectors.toSet()),
-                    declare.getReturnType(),
-                    declare.getArguments(),
-                    declare.getUnderlyingMethod().getArgumentNames(),
-                    body,
-                    underlying.isStatic(),
-                    false,// Accessor delegate is never virtual.
-                    false,// Accessor delegate is never pure virtual.
-                    false,// Accessor delegate is never override.
-                    underlying.isConst(),
-                    false,// Accessor delegate is never final.
-                    underlying.getNoexcept(),
-                    underlying.getVisibility(),
-                    underlying.getDocString()));
-        });
-
         // Figure out which other methods are available on the parent.
         // Only methods that are not re-declared and not overriden are here.
         final List<ClassMemberModel.OverrideSelector> allKeptParentMethods;
@@ -711,6 +674,9 @@ public class ClassType implements JavaType {
             allKeptParentMethods = allKeptParentMethodsTmp.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
         }
 
+        // Add redeclared methods to the classMemberFunctions list.
+        postProcessingApplyRedeclare(redeclareMethods);
+
         allMethods = Stream.of(allKeptParentMethods, redeclareMethods.values(), myMethods.keySet())
                 .flatMap(Collection::stream)
                 .map(erasedToTemplate)
@@ -730,6 +696,50 @@ public class ClassType implements JavaType {
         System.out.println("--------------------------------------------------------");
 
 //        throw new UnsupportedOperationException("XXX implement class post processing");
+    }
+
+    /**
+     * Add all redeclare methods to {@link #classMemberFunctions}.
+     *
+     * @param redeclareMethods Mapping from original method to override
+     * selector.
+     */
+    private void postProcessingApplyRedeclare(Map<MethodModel, ClassMemberModel.OverrideSelector> redeclareMethods) {
+        redeclareMethods.forEach((MethodModel underlying, ClassMemberModel.OverrideSelector declare) -> {
+            final String bodyTemplate = "return "
+                    + "$if (needCast)$::java::cast<$boundTemplateType(declare.returnType, \"style=type, class\")$>($endif$"
+                    + "this->$underlying.declaringClass.className$::$underlying.name$"
+                    + "($declare.underlyingMethod.argumentNames: { name | ::std::move($name$)}; anchor, wrap, separator = \"\\n\"$)"
+                    + "$if (needCast)$)$endif$;";
+            final String body = new ST(StCtx.BUILTINS, bodyTemplate)
+                    .add("needCast", !Objects.equals(declare.getReturnType(), underlying.getReturnType()))
+                    .add("declare", declare)
+                    .add("underlying", underlying)
+                    .render(Locale.ROOT, 78);
+
+            classMemberFunctions.add(new MethodModel.SimpleMethodModel(
+                    this,
+                    declare.getName(),
+                    new Includes(
+                            declare.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
+                            Stream.concat(declare.getUnderlyingMethod().getImplementationIncludes(), underlying.getDeclarationIncludes())
+                                    .collect(Collectors.toList())),
+                    declare.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
+                    Stream.concat(declare.getUnderlyingMethod().getImplementationTypes(), underlying.getDeclarationTypes()).collect(Collectors.toSet()),
+                    declare.getReturnType(),
+                    declare.getArguments(),
+                    declare.getUnderlyingMethod().getArgumentNames(),
+                    body,
+                    underlying.isStatic(),
+                    false,// Accessor delegate is never virtual.
+                    false,// Accessor delegate is never pure virtual.
+                    false,// Accessor delegate is never override.
+                    underlying.isConst(),
+                    false,// Accessor delegate is never final.
+                    underlying.getNoexcept(),
+                    underlying.getVisibility(),
+                    underlying.getDocString()));
+        });
     }
 
     /**
