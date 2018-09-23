@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableList;
@@ -68,7 +69,7 @@ public class ClassType implements JavaType {
             + "$if (needCast)$)$endif$;";
     private static final String FORWARDING_BODY_TEMPLATE = "return "
             + "this->" + VIRTUAL_FUNCTION_PREFIX + "$fn.name$"
-            + "($[{$tagType(model)$()}, fn.underlyingMethod.argumentNames: { name | ::std::forward<decltype($name$)>($name$)}]; anchor, wrap, separator = \", \"$)"
+            + "($[{$tagType(model)$()}, fn.underlyingMethod.argumentNames: { name | ::java::_maybe_cast(::std::forward<decltype($name$)>($name$))}]; anchor, wrap, separator = \", \"$)"
             + ";";
 
     public ClassType(Class<?> c) {
@@ -377,14 +378,20 @@ public class ClassType implements JavaType {
                     .filter(field -> field.isGetterFn() || field.isSetterFn())
                     .map(field -> field.getVarType())
                     .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
-            memberIncludes = getClassMembers().stream()
-                    .flatMap(member -> member.getDeclarationIncludes());
+            memberIncludes = Stream.concat(
+                    getClassMemberFunctions().stream()
+                            .flatMap(member -> member.getDeclarationIncludes()),
+                    getClassNonMemberFunctions().stream()
+                            .flatMap(member -> member.getDeclarationIncludes()));
         } else {
             fieldIncludes = getFields().stream()
                     .flatMap(field -> Stream.of(field.getType(), field.getVarType()))
                     .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
-            memberIncludes = getClassMembers().stream()
-                    .flatMap(member -> member.getImplementationIncludes());
+            memberIncludes = Stream.concat(
+                    getClassMemberFunctions().stream()
+                            .flatMap(member -> member.getImplementationIncludes()),
+                    getClassMembers().stream()
+                            .flatMap(member -> member.getImplementationIncludes()));
         }
 
         return Stream.of(parentTypes, fieldIncludes, memberIncludes)
@@ -428,8 +435,11 @@ public class ClassType implements JavaType {
                 .flatMap(Collection::stream);
         final Stream<com.github.nahratzah.jser_plus_plus.model.Type> fieldTypes = getFields().stream()
                 .map(field -> field.getVarType());
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> memberTypes = getClassMembers().stream()
-                .flatMap(member -> member.getDeclarationTypes());
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> memberTypes = Stream.concat(
+                this.getClassMemberFunctions().stream()
+                        .flatMap(member -> member.getDeclarationTypes()),
+                getClassNonMemberFunctions().stream()
+                        .flatMap(member -> member.getDeclarationTypes()));
 
         return Stream.of(templateTypes, fieldTypes, memberTypes)
                 .flatMap(Function.identity())
@@ -443,8 +453,11 @@ public class ClassType implements JavaType {
                 getInterfaces().stream());
         final Stream<com.github.nahratzah.jser_plus_plus.model.Type> fieldTypes = getFields().stream()
                 .flatMap(field -> Stream.of(field.getType(), field.getVarType()));
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> memberTypes = getClassMembers().stream()
-                .flatMap(member -> member.getImplementationTypes());
+        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> memberTypes = Stream.concat(
+                getClassMemberFunctions().stream()
+                        .flatMap(member -> member.getImplementationTypes()),
+                getClassNonMemberFunctions().stream()
+                        .flatMap(member -> member.getImplementationTypes()));
 
         return Stream.of(superTypes, fieldTypes, memberTypes)
                 .flatMap(Function.identity())
@@ -704,7 +717,6 @@ public class ClassType implements JavaType {
                 .map(method -> new SimpleMapEntry<>(method.getDeclaringClass(), method)) // Create mapping with declaring class.
                 .distinct() // Use mapping with declaring class to eliminate duplicates.
                 .map(Map.Entry::getValue) // And then restore the mapping to its original.
-                .sorted(Comparator.comparing(ClassMemberModel.OverrideSelector::getName).thenComparing(selector -> selector.getDeclaringClass().getName()))
                 .collect(Collectors.toList());
 
         System.out.println("========================================================");
@@ -796,7 +808,9 @@ public class ClassType implements JavaType {
 
             if (!myFn.getUnderlyingMethod().isPureVirtual()) {
                 // Emit overrideFns with extra tag argument.
-                superMethods.forEach(overrideFn -> {
+                superMethods.forEach(superMethod -> {
+                    final ClassMemberModel.OverrideSelector overrideFn = superMethod.getErasedMethod(); // We're going to override the original function.
+
                     final com.github.nahratzah.jser_plus_plus.model.Type overrideTag = new CxxType("$tagType(model)$", new Includes())
                             .prerender(ctx, singletonMap("model", overrideFn.getDeclaringClass()), EMPTY_LIST);
 
@@ -805,7 +819,7 @@ public class ClassType implements JavaType {
                             VIRTUAL_FUNCTION_PREFIX + overrideFn.getName(),
                             new Includes(
                                     overrideFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                                    myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList())),
+                                    Stream.concat(Stream.of("java/_maybe_cast.h"), myFn.getUnderlyingMethod().getDeclarationIncludes()).collect(Collectors.toList())),
                             overrideFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
                             myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
                             overrideFn.getReturnType(),
@@ -830,7 +844,7 @@ public class ClassType implements JavaType {
                     myFn.getName(),
                     new Includes(
                             myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                            EMPTY_LIST),
+                            singletonList("java/_maybe_cast.h")),
                     myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
                     myFn.getUnderlyingMethod().getImplementationTypes().collect(Collectors.toSet()),
                     myFn.getReturnType(),

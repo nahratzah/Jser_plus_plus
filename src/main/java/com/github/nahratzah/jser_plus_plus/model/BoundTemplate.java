@@ -801,7 +801,7 @@ class BoundTemplateUtil {
 }
 
 class BoundTemplateParser {
-    private static final String IDENTIFIER = "[_a-zA-Z][_a-zA-Z0-9]*";
+    private static final String IDENTIFIER = "[_a-zA-Z][_a-zA-Z0-9$]*";
     private static final String ANY = Pattern.quote("?");
     private static final String EXTENDS_SPECIFIER = Pattern.quote("extends");
     private static final String SUPER_SPECIFIER = Pattern.quote("super");
