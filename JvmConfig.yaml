@@ -110,6 +110,8 @@ classes:
       doc_string: |
         \brief Retrieve the `double` value.
         \attention The returned value may be truncated.
+
+
   java.lang.Boolean:
     fields:
       value:
@@ -156,6 +158,8 @@ classes:
       includes:
         implementation:
         - cycle_ptr/cycle_ptr.h
+
+
   java.lang.Character:
     fields:
       value:
@@ -212,6 +216,8 @@ classes:
         cxx: ::java::double_t
       body: |
         return value;
+
+
   java.lang.Short:
     fields:
       value:
@@ -252,6 +258,8 @@ classes:
         cxx: ::java::double_t
       body: |
         return value;
+
+
   java.lang.Integer:
     fields:
       value:
@@ -292,6 +300,8 @@ classes:
         cxx: ::java::double_t
       body: |
         return value;
+
+
   java.lang.Long:
     fields:
       value:
@@ -324,6 +334,8 @@ classes:
         cxx: ::java::double_t
       body: |
         return value;
+
+
   java.lang.Float:
     fields:
       value:
@@ -364,6 +376,8 @@ classes:
         cxx: ::java::double_t
       body: |
         return value;
+
+
   java.lang.Double:
     fields:
       value:
@@ -396,6 +410,8 @@ classes:
         cxx: ::java::double_t
       body: |
         return value;
+
+
   java.io.Serializable:
     friends:
     - cxx: ::java::serialization::cycle_handler
@@ -423,6 +439,8 @@ classes:
         - java/serialization/type_def.h
       body: |
         return nullptr; // XXX erase body once rules take care of most things.
+
+
   java.lang.String:
     var_type:
       cxx: ::std::string
@@ -489,6 +507,8 @@ classes:
         - locale
         - codecvt
         - java/serialization/type_def.h
+
+
   java.lang.Class<Type>:
     members:
     - type: method
@@ -497,6 +517,8 @@ classes:
         java: java.lang.Class<Type[]>
       body: |
         return nullptr;
+
+
   java.lang.Iterable<T>:
     members:
     - type: method
@@ -533,6 +555,8 @@ classes:
         includes:
           declaration:
           - java/iterator.h
+
+
   java.util.Collection<E>:
     members:
     - type: method
@@ -555,6 +579,8 @@ classes:
     - type: method
       name: clear
       virtual: true
+
+
   java.util.List<E>:
     members:
     - type: method
@@ -619,6 +645,60 @@ classes:
         includes:
           declaration:
           - java/iterator.h
+    - type: method
+      name: front
+      virtual: true
+      const: true
+      return:
+        java: const E
+      doc_string: |
+        \brief Retrieve the first element from the queue.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      const: true
+      return:
+        java: const E
+      doc_string: |
+        \brief Retrieve the last element from the queue.
+        \returns The last element.
+    - type: method
+      name: front
+      virtual: true
+      return:
+        java: E
+      doc_string: |
+        \brief Retrieve the first element from the queue.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      return:
+        java: E
+      doc_string: |
+        \brief Retrieve the last element from the queue.
+        \returns The last element.
+    - type: method
+      name: push
+      virtual: true
+      return:
+        cxx: void
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        push_back(std::move(e));
+    - type: method
+      name: pop
+      virtual: true
+      return:
+        cxx: void
+      body: |
+        pop_front();
+
+
   java.util.ArrayList<E>:
     members:
     - type: method
@@ -731,6 +811,36 @@ classes:
           - java/iterator.h
       body: |
         return ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>(data_.end());
+    - type: method
+      name: front
+      override: true
+      const: true
+      return:
+        java: const E
+      body: |
+        return data_.front();
+    - type: method
+      name: back
+      override: true
+      const: true
+      return:
+        java: const E
+      body: |
+        return data_.back();
+    - type: method
+      name: front
+      override: true
+      return:
+        java: E
+      body: |
+        return data_.front();
+    - type: method
+      name: back
+      override: true
+      return:
+        java: E
+      body: |
+        return data_.back();
     fields:
       size:
         visibility: private
@@ -744,6 +854,8 @@ classes:
             - vector
             - cycle_ptr/allocator.h
         default: ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+
+
   java.util.LinkedList<E>:
     members:
     - type: method
@@ -856,6 +968,36 @@ classes:
           - java/iterator.h
       body: |
         return ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>(data_.end());
+    - type: method
+      name: front
+      override: true
+      const: true
+      return:
+        java: const E
+      body: |
+        return data_.front();
+    - type: method
+      name: back
+      override: true
+      const: true
+      return:
+        java: const E
+      body: |
+        return data_.back();
+    - type: method
+      name: front
+      override: true
+      return:
+        java: E
+      body: |
+        return data_.front();
+    - type: method
+      name: back
+      override: true
+      return:
+        java: E
+      body: |
+        return data_.back();
     fields:
       data_:
         visibility: private
@@ -866,3 +1008,178 @@ classes:
             - list
             - cycle_ptr/allocator.h
         default: ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+
+
+  java.util.Queue<E>:
+    members:
+    - type: method
+      name: push
+      virtual: true
+      return:
+        cxx: void
+      arguments:
+      - name: e
+        type:
+          java: E
+      doc_string: |
+        \brief Pushes the element \p e on the end of the queue.
+        \param e The element to be pushed onto the queue.
+    - type: method
+      name: pop
+      virtual: true
+      return:
+        cxx: void
+      doc_string: |
+        \brief Removes an element from the front of the queue.
+    - type: method
+      name: front
+      virtual: true
+      const: true
+      return:
+        java: const E
+      doc_string: |
+        \brief Retrieve the first element from the queue.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      const: true
+      return:
+        java: const E
+      doc_string: |
+        \brief Retrieve the last element from the queue.
+        \returns The last element.
+    - type: method
+      name: front
+      virtual: true
+      return:
+        java: E
+      doc_string: |
+        \brief Retrieve the first element from the queue.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      return:
+        java: E
+      doc_string: |
+        \brief Retrieve the last element from the queue.
+        \returns The last element.
+
+
+  java.util.Deque<E>:
+    members:
+    - type: method
+      name: push_front
+      virtual: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
+    - type: method
+      name: push_back
+      virtual: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
+    - type: method
+      name: pop_front
+      virtual: true
+      return:
+        java: E
+    - type: method
+      name: pop_back
+      virtual: true
+      return:
+        java: E
+    - type: method
+      name: front
+      virtual: true
+      const: true
+      return:
+        java: const E
+      doc_string: |
+        \brief Retrieve the first element from the queue.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      const: true
+      return:
+        java: const E
+      doc_string: |
+        \brief Retrieve the last element from the queue.
+        \returns The last element.
+    - type: method
+      name: front
+      virtual: true
+      return:
+        java: E
+      doc_string: |
+        \brief Retrieve the first element from the queue.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      return:
+        java: E
+      doc_string: |
+        \brief Retrieve the last element from the queue.
+        \returns The last element.
+    - type: method
+      name: push
+      virtual: true
+      return:
+        cxx: void
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        push_back(std::move(e));
+    - type: method
+      name: pop
+      virtual: true
+      return:
+        cxx: void
+      body: |
+        pop_front();
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: begin
+      override: true
+      const: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      override: true
+      const: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
