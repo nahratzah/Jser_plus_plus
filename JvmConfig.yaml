@@ -149,6 +149,7 @@ classes:
         return (x ? 1 : -1);
     - type: method
       name: "True"
+      static: true
       return:
         java: java.lang.Boolean
       doc_string: |
@@ -164,6 +165,7 @@ classes:
         - cycle_ptr/cycle_ptr.h
     - type: method
       name: "False"
+      static: true
       return:
         java: java.lang.Boolean
       doc_string: |
@@ -1559,7 +1561,7 @@ classes:
       name: naturalOrder
       static: true
       return:
-        java: const java.util.Comparator<java.lang.Object>
+        java: java.util.Comparator<T>
       body: |
         return ::java::cast<$boundTemplateType(java.("java.util.Comparator<java.lang.Object>"), "style=type, class")$>(
             $boundTemplateType(java.({java.util.Comparators\$NaturalOrderComparator}), "style=type, class")$::Instance());
@@ -1569,6 +1571,7 @@ classes:
     members:
     - type: method
       name: compare
+      const: true
       override: true
       arguments:
       - name: x

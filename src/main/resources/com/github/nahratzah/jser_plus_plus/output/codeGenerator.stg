@@ -22,6 +22,8 @@ $if (model.enum)$
   // Enum constants.
   $model.enumValues:{kv | $accessorEnumConstantMethod(model, kv, false)$}; anchor, separator = "\n"$
 $endif$
+
+  $staticAccessorClassMembers(model, false); anchor$
 };
 
 $templateLine(["Base_", model.templateArgumentNames], true)$
@@ -123,6 +125,8 @@ $endif$
 $model.fields:{f|$fieldAccessors(model, f, true)$}; separator = "\n"$
 
 $accessorClassMembers(model, true)$
+
+$staticAccessorClassMembers(model, true)$
 >>
 
 
@@ -208,6 +212,28 @@ $ model.accessorMethods
               containingClass="_accessor",
               containingClassTemplateArguments=["Base_", model.templateArgumentNames],
               containingClassTemplateArgumentsImpl=["Base_", tagType(model), model.templateArgumentNames],
+              inline="JSER_INLINE",
+              const=m.const,
+              noexcept=m.noexcept,
+              static=m.static
+            )$}
+  ; anchor, separator = "\n\n"$
+>>
+
+
+staticAccessorClassMembers(model, doImplement) ::= <<
+$ model.staticAccessorMethods
+  : {m | $function(
+              name=m.name,
+              doImplement=doImplement,
+              return=m.returnType,
+              body={return $if (m.returnType.unresolvedTemplateNames)$::java::cast<$boundTemplateType(m.returnType, "style=type, class=return")$>($endif$$erasedType(model)$::$m.name$($m.argumentNames:{name | ::std::move($name$)}; anchor, wrap, separator = ", "$)$if (m.returnType.unresolvedTemplateNames)$)$endif$;},
+              docString=m.docString,
+              argumentNames=m.argumentNames,
+              argumentTypes=m.argumentTypes,
+              containingClass="_static_accessor",
+              containingClassTemplateArguments=[model.templateArgumentNames],
+              containingClassTemplateArgumentsImpl=[tagType(model), model.templateArgumentNames],
               inline="JSER_INLINE",
               const=m.const,
               noexcept=m.noexcept,

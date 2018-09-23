@@ -506,6 +506,15 @@ public class ClassType implements JavaType {
                 .collect(Collectors.toList());
     }
 
+    public Collection<MethodModel> getStaticAccessorMethods() {
+        return getClassMembers().stream()
+                .filter(member -> member.isPublicMethod())
+                .filter(member -> member.isStatic())
+                .filter(MethodModel.class::isInstance)
+                .map(MethodModel.class::cast)
+                .collect(Collectors.toList());
+    }
+
     public List<MethodModel> getClassMemberFunctions() {
         return classMemberFunctions.stream()
                 .sorted(Comparator.comparing(MethodModel::getVisibility)
