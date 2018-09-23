@@ -701,8 +701,8 @@ public class ClassType implements JavaType {
     /**
      * Add all redeclare methods to {@link #classMemberFunctions}.
      *
-     * @param redeclareMethods Mapping from original method to override
-     * selector.
+     * @param redeclareMethods Mapping from original method to override selector
+     * in current class.
      */
     private void postProcessingApplyRedeclare(Map<MethodModel, ClassMemberModel.OverrideSelector> redeclareMethods) {
         redeclareMethods.forEach((MethodModel underlying, ClassMemberModel.OverrideSelector declare) -> {
