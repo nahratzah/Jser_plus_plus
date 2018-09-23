@@ -536,9 +536,8 @@ public class ClassType implements JavaType {
         // We want to put template types, not erased types, into the {@link ClassType#allMethods} collection.
         final Map<ClassType, Map<ClassMemberModel.OverrideSelector, ClassMemberModel.OverrideSelector>> erasedToTemplateMapping = parentModels.stream()
                 .flatMap(parentTemplate -> {
-                    final ClassType parentType = parentTemplate.getType();
                     final Map<String, BoundTemplate> bindingMap = parentTemplate.getBindingsMap();
-                    return parentType.allMethods.stream()
+                    return parentTemplate.getType().getAllMethods().stream()
                             .map(selector -> selector.rebind(bindingMap));
                 })
                 .peek(selector -> LOG.log(Level.FINE, "{0}: importing parent method {1}", new Object[]{getName(), selector}))
@@ -600,8 +599,7 @@ public class ClassType implements JavaType {
             erasedParentModels.stream()
                     // Rebind and retrieve the parent methods, to the binding map (which now holds out erased bindings).
                     .flatMap(parentTemplate -> {
-                        final ClassType parentType = parentTemplate.getType();
-                        return parentType.allMethods.stream()
+                        return parentTemplate.getType().getAllMethods().stream()
                                 .map(parentMethod -> parentMethod.rebind(parentTemplate.getBindingsMap()));
                     })
                     // Keep the ones that match prototypes in our class.
@@ -643,8 +641,7 @@ public class ClassType implements JavaType {
         {
             final Map<ClassMemberModel.OverrideSelector, List<ClassMemberModel.OverrideSelector>> allKeptParentMethodsTmp = erasedParentModels.stream()
                     .flatMap(erasedParentTemplate -> {
-                        final ClassType parentModel = erasedParentTemplate.getType();
-                        return parentModel.allMethods.stream()
+                        return erasedParentTemplate.getType().getAllMethods().stream()
                                 .filter(isParentResolvedMethod.negate())
                                 .map(overrideSelector -> overrideSelector.rebind(erasedParentTemplate.getBindingsMap()));
                     })
@@ -770,11 +767,11 @@ public class ClassType implements JavaType {
      *
      * @return List of all methods in this class that can be overriden.
      */
-    public List<ClassMemberModel.OverrideSelector> getAllMethods() {
+    public synchronized List<ClassMemberModel.OverrideSelector> getAllMethods() {
         if (!postProcessingDone)
             throw new IllegalStateException("Must have completed post processing stage.");
 
-        throw new UnsupportedOperationException("XXX implement this");
+        return allMethods;
     }
 
     /**
