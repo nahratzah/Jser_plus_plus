@@ -497,6 +497,42 @@ classes:
         java: java.lang.Class<Type[]>
       body: |
         return nullptr;
+  java.lang.Iterable<T>:
+    members:
+    - type: method
+      name: begin
+      virtual: true
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.("T"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      virtual: true
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.("T"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: begin
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.("T"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.("T"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
   java.util.Collection<E>:
     members:
     - type: method
@@ -551,7 +587,7 @@ classes:
         java: E
     - type: method
       name: begin
-      virtual: true
+      override: true
       return:
         cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
         includes:
@@ -559,7 +595,7 @@ classes:
           - java/iterator.h
     - type: method
       name: end
-      virtual: true
+      override: true
       return:
         cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
         includes:
@@ -567,7 +603,7 @@ classes:
           - java/iterator.h
     - type: method
       name: begin
-      virtual: true
+      override: true
       const: true
       return:
         cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
@@ -576,7 +612,7 @@ classes:
           - java/iterator.h
     - type: method
       name: end
-      virtual: true
+      override: true
       const: true
       return:
         cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
