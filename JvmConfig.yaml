@@ -1308,3 +1308,11 @@ classes:
         - cassert
         - iterator
         - stdexcept
+
+
+  java.util.RandomAccess:
+    doc_string: |
+      \brief Marker interface.
+      \details
+      This interface makes more sense in java than in C++.
+      In java, it indicates the list has fast random access.
