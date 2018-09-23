@@ -624,8 +624,6 @@ public class ClassType implements JavaType {
                     })
                     // Keep the ones that match prototypes in our class.
                     .filter(myMethods::containsKey)
-                    // Drop already satisfied methods.
-                    .filter(isParentResolvedMethod.negate())
                     // Add them to the mapping of overrides.
                     .forEach(parentMethod -> myMethods.get(parentMethod).add(parentMethod));
         }
@@ -794,33 +792,35 @@ public class ClassType implements JavaType {
                     .filter(fn -> fn.getUnderlyingMethod().isVirtual())
                     .collect(Collectors.toList());
 
-            // Emit overrideFns with extra tag argument.
-            superMethods.forEach(overrideFn -> {
-                final com.github.nahratzah.jser_plus_plus.model.Type overrideTag = new CxxType("$tagType(model)$", new Includes())
-                        .prerender(ctx, singletonMap("model", overrideFn.getDeclaringClass()), EMPTY_LIST);
+            if (!myFn.getUnderlyingMethod().isPureVirtual()) {
+                // Emit overrideFns with extra tag argument.
+                superMethods.forEach(overrideFn -> {
+                    final com.github.nahratzah.jser_plus_plus.model.Type overrideTag = new CxxType("$tagType(model)$", new Includes())
+                            .prerender(ctx, singletonMap("model", overrideFn.getDeclaringClass()), EMPTY_LIST);
 
-                classMemberFunctions.add(new MethodModel.SimpleMethodModel(
-                        this,
-                        VIRTUAL_FUNCTION_PREFIX + overrideFn.getName(),
-                        new Includes(
-                                overrideFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                                myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList())),
-                        overrideFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
-                        myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
-                        overrideFn.getReturnType(),
-                        Stream.concat(Stream.of(overrideTag), overrideFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch.
-                        Stream.concat(Stream.of("_tag_"), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type.
-                        forwardingBody, // Apply forwarding rule.
-                        overrideFn.getUnderlyingMethod().isStatic(),
-                        overrideFn.getUnderlyingMethod().isVirtual(),
-                        false, // We're not pure virtual: we implement an override, forwarding to the new override.
-                        true, // We do override the base implementation.
-                        overrideFn.getUnderlyingMethod().isConst(),
-                        true, // Override will close the chain on the original method.
-                        overrideFn.getUnderlyingMethod().getNoexcept(),
-                        Visibility.PRIVATE, // Make actual virtual method private: it's only accessed via the untagged forwarding function.
-                        null));
-            });
+                    classMemberFunctions.add(new MethodModel.SimpleMethodModel(
+                            this,
+                            VIRTUAL_FUNCTION_PREFIX + overrideFn.getName(),
+                            new Includes(
+                                    overrideFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
+                                    myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList())),
+                            overrideFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
+                            myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
+                            overrideFn.getReturnType(),
+                            Stream.concat(Stream.of(overrideTag), overrideFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch.
+                            Stream.concat(Stream.of("_tag_"), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type.
+                            forwardingBody, // Apply forwarding rule.
+                            overrideFn.getUnderlyingMethod().isStatic(),
+                            overrideFn.getUnderlyingMethod().isVirtual(),
+                            false, // We're not pure virtual: we implement an override, forwarding to the new override.
+                            true, // We do override the base implementation.
+                            overrideFn.getUnderlyingMethod().isConst(),
+                            overrideFn.getUnderlyingMethod().isFinal(),
+                            overrideFn.getUnderlyingMethod().getNoexcept(),
+                            Visibility.PRIVATE, // Make actual virtual method private: it's only accessed via the untagged forwarding function.
+                            null));
+                });
+            }
 
             // Emit normal forwarder for overrideFns.
             classMemberFunctions.add(new MethodModel.SimpleMethodModel(
