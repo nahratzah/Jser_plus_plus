@@ -468,6 +468,13 @@ public class ClassType implements JavaType {
         return classMembers;
     }
 
+    public Collection<ClassMemberModel> getAccessorMethods() {
+        return getClassMembers().stream()
+                .filter(member -> member.isPublicMethod())
+                .filter(member -> !member.isStaticMethod())
+                .collect(Collectors.toList());
+    }
+
     /**
      * Test if this class has a default constructor defined.
      *

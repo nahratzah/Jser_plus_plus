@@ -198,8 +198,8 @@ $ model.classMembers
 
 
 accessorClassMembers(model, doImplement) ::= <<
-$ model.classMembers
-  : {m | $if (m.publicMethod)$$function(
+$ model.accessorMethods
+  : {m | $function(
               name=m.name,
               doImplement=doImplement,
               return=m.returnType,
@@ -212,8 +212,9 @@ $ model.classMembers
               containingClassTemplateArgumentsImpl=["Base_", tagType(model), model.templateArgumentNames],
               inline="JSER_INLINE",
               const=m.const,
-              noexcept=m.noexcept
-            )$$endif$}
+              noexcept=m.noexcept,
+              static=m.static
+            )$}
   ; anchor, separator = "\n\n"$
 >>
 

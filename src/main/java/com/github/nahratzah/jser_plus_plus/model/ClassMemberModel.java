@@ -88,6 +88,17 @@ public interface ClassMemberModel {
     }
 
     /**
+     * Test if this class member is a static method.
+     *
+     * Constructors and destructors are not static.
+     *
+     * @return True if the class member is a static method.
+     */
+    public default boolean isStaticMethod() {
+        return false;
+    }
+
+    /**
      * Test if this is a class destructor.
      *
      * @return Class destructors are always implemented, even if they are pure
@@ -134,17 +145,19 @@ public interface ClassMemberModel {
         public T apply(ClassDestructor destructor);
     }
 
-    public static class ClassMethod extends AbstractClassMemberModel {
+    public static class ClassMethod extends AbstractClassMemberModel implements MethodModel {
         public ClassMethod(Context ctx, ClassType model, Method method) {
             super(ctx, model, method.getReturnType(), method.getArguments(), method.getBody());
 
             this.method = requireNonNull(method);
         }
 
+        @Override
         public String getName() {
             return method.getName();
         }
 
+        @Override
         public Includes getIncludes() {
             return method.getIncludes();
         }
@@ -167,20 +180,12 @@ public interface ClassMemberModel {
 
         @Override
         public Stream<String> getDeclarationIncludes() {
-            return Stream.of(
-                    getIncludes().getDeclarationIncludes().stream(),
-                    getArgumentTypes().stream().flatMap(at -> at.getIncludes(true)),
-                    getReturnType().getIncludes(true))
-                    .flatMap(Function.identity());
+            return MethodModel.super.getDeclarationIncludes();
         }
 
         @Override
         public Stream<String> getImplementationIncludes() {
-            return Stream.of(
-                    getIncludes().getImplementationIncludes().stream(),
-                    getArgumentTypes().stream().flatMap(at -> at.getIncludes(false)),
-                    getReturnType().getIncludes(false))
-                    .flatMap(Function.identity());
+            return MethodModel.super.getImplementationIncludes();
         }
 
         @Override
@@ -188,10 +193,17 @@ public interface ClassMemberModel {
             return getVisibility() == Visibility.PUBLIC;
         }
 
+        @Override
+        public boolean isStaticMethod() {
+            return method.isStatic();
+        }
+
+        @Override
         public boolean isVirtual() {
             return method.isVirtual() || method.isOverride();
         }
 
+        @Override
         public boolean isPureVirtual() {
             return isVirtual() && method.getBody() == null;
         }
@@ -201,14 +213,17 @@ public interface ClassMemberModel {
             return method.getVisibility();
         }
 
+        @Override
         public boolean isOverride() {
             return method.isOverride();
         }
 
+        @Override
         public boolean isConst() {
             return method.isConst();
         }
 
+        @Override
         public boolean isFinal() {
             return method.isFinal();
         }
@@ -223,6 +238,7 @@ public interface ClassMemberModel {
          * @throws IllegalStateException If the underlying method has a noexcept
          * specification that is neither a string nor a boolean.
          */
+        @Override
         public Object getNoexcept() {
             if (method.getNoexcept() == null) {
                 return null;
@@ -236,6 +252,7 @@ public interface ClassMemberModel {
             }
         }
 
+        @Override
         public String getDocString() {
             return method.getDocString();
         }
@@ -247,6 +264,10 @@ public interface ClassMemberModel {
 
         @Override
         public Optional<OverrideSelector> getOverrideSelector(Context ctx) {
+            // Static methods don't have an override selector,
+            // since they can not be overriden.
+            if (isStaticMethod()) return Optional.empty();
+
             return Optional.of(new OverrideSelector(ctx, this));
         }
 

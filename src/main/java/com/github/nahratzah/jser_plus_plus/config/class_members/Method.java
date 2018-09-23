@@ -35,6 +35,8 @@ public class Method implements ClassMember {
     private boolean finalVar = false;
     @JsonProperty("noexcept")
     private Object noexcept = Boolean.FALSE;
+    @JsonProperty("static")
+    private boolean staticVar = false;
     @JsonProperty("visibility")
     private Visibility visibility = Visibility.PUBLIC;
     @JsonProperty("doc_string")
@@ -181,6 +183,19 @@ public class Method implements ClassMember {
         if (noexcept != null && !(noexcept instanceof String) && !(noexcept instanceof Boolean))
             throw new IllegalArgumentException("Expected string or boolean value.");
         this.noexcept = noexcept;
+    }
+
+    /**
+     * Test if the method is static.
+     *
+     * @return True if the method is static, false otherwise.
+     */
+    public boolean isStatic() {
+        return staticVar;
+    }
+
+    public void setStatic(boolean staticVar) {
+        this.staticVar = staticVar;
     }
 
     @Override
