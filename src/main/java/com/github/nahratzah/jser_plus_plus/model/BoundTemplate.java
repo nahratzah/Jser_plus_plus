@@ -767,7 +767,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         private Set<BoundTemplate> types;
     }
 
-    public static BoundTemplate fromString(String text, Context ctx, Map<String, ? extends BoundTemplate> variables) {
+    public static Type fromString(String text, Context ctx, Map<String, ? extends BoundTemplate> variables) {
         return new BoundTemplateParser(ctx, variables).parse(text);
     }
 }
@@ -824,6 +824,7 @@ class BoundTemplateParser {
     private static final Pattern AMPERSANT_START = startWith("\\s*" + Pattern.quote("&") + "\\s*");
     private static final Pattern ARRAY_EXTENT = startWith("\\s*" + Pattern.quote("[") + "\\s*" + Pattern.quote("]"));
     private static final Pattern ROUND_BRACKET_OPEN = startWith("\\s*" + Pattern.quote("("));
+    private static final Pattern CONST_STARTS = startWith("\\s*" + Pattern.quote("const") + "\\s+");
     private final Pattern VARIABLES_STARTS;
 
     /**
@@ -850,13 +851,24 @@ class BoundTemplateParser {
                     .collect(Collectors.joining("|", "(?:", ")")));
     }
 
-    public BoundTemplate parse(CharSequence text) {
+    public Type parse(CharSequence text) {
+        final boolean wrapConst;
         this.s = requireNonNull(text);
+
+        // Eat the const keyword at the beginning.
+        {
+            final Matcher constMatcher = CONST_STARTS.matcher(s);
+            wrapConst = constMatcher.find();
+            if (wrapConst) s = s.subSequence(constMatcher.end(), s.length());
+        }
+
         final BoundTemplate type = parse_();
         eatWs_();
         if (s.length() != 0)
             throw new IllegalArgumentException("Text remaining after parsing.");
-        return type;
+        return (wrapConst
+                ? new ConstType(type)
+                : type);
     }
 
     private void eatWs_() {

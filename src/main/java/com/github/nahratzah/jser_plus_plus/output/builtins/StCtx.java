@@ -2,6 +2,8 @@ package com.github.nahratzah.jser_plus_plus.output.builtins;
 
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
+import com.github.nahratzah.jser_plus_plus.model.ConstType;
+import com.github.nahratzah.jser_plus_plus.model.Type;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -42,7 +44,15 @@ public class StCtx {
         contextGroup.defineDictionary(
                 "java",
                 new FunctionAttrMap(text -> {
-                    final BoundTemplate template = BoundTemplate.fromString(text, context, variables);
+                    final Type type = BoundTemplate.fromString(text, context, variables);
+
+                    // XXX figure out a prettier way to do this.
+                    final BoundTemplate template;
+                    if (type instanceof ConstType)
+                        template = (BoundTemplate) ((ConstType) type).getType();
+                    else
+                        template = (BoundTemplate) type;
+
                     registry.accept(template);
                     return template;
                 }));
