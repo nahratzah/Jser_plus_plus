@@ -1630,6 +1630,33 @@ classes:
     doc_string: |
       \brief Priority queue.
     members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: comparator
+        type:
+          java: java.util.Comparator<? super E>
+      initializers:
+        comparator: std::move(comparator)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          java: java.lang.Iterable<? extends E>
+      body: |
+        for (auto i = init->begin(), e = init->end(); i != e; ++i) data_.push(*i);
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          java: java.lang.Iterable<? extends E>
+      - name: comparator
+        type:
+          java: java.util.Comparator<? super E>
+      initializers:
+        comparator: std::move(comparator)
+      body: |
+        for (auto i = init->begin(), e = init->end(); i != e; ++i) data_.push(*i);
     - type: method
       name: compare_
       visibility: private
