@@ -995,6 +995,12 @@ class forward_iterator {
   : forward_iterator(forward_iterator<OtherType>(std::move(other)))
   {}
 
+  template<typename Iterator>
+  auto operator==(const Iterator& other) const noexcept
+  -> std::enable_if_t<::java::type_traits::is_iterator_v<Iterator>, bool> {
+    return iter_ == other;
+  }
+
   auto operator++() -> forward_iterator& {
     ++iter_;
     return *this;
