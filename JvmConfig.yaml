@@ -817,13 +817,60 @@ classes:
 
 
   java.lang.Class<Type>:
+    fields:
+      name:
+        type:
+          cxx: ::std::string
+        const: true
+      super:
+        type:
+          java: java.lang.Class<?>
+        final: true
+        default: nullptr
+      interfaces:
+        visibility: private
+        type:
+          java: java.lang.Iterable<java.lang.Class<?>>
     members:
-    - type: method
-      name: syntheticTestDummy
-      return:
-        java: java.lang.Class<Type[]>
-      body: |
-        return nullptr;
+    - type: constructor
+      arguments:
+      - name: name
+        type:
+          cxx: ::std::string
+      initializers:
+        name: std::move(name)
+        super: nullptr
+        interfaces: ::java::_direct(), ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=erased")$>()
+    - type: constructor
+      arguments:
+      - name: name
+        type:
+          cxx: ::std::string
+      - name: super
+        type:
+          java: java.lang.Class<?>
+      initializers:
+        name: std::move(name)
+        super: std::move(super)
+        interfaces: ::java::_direct(), ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=erased")$>()
+    - type: constructor
+      arguments:
+      - name: name
+        type:
+          cxx: ::std::string
+      - name: super
+        type:
+          java: java.lang.Class<?>
+      - name: interfaces
+        type:
+          cxx: std::initializer_list<$boundTemplateType(java.("java.lang.Class<?>"), "style=type, class")$>
+          includes:
+            declaration:
+            - initializer_list
+      initializers:
+        name: std::move(name)
+        super: std::move(super)
+        interfaces: ::java::_direct(), ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=erased")$>(interfaces.begin(), interfaces.end())
 
 
   java.lang.Iterable<T>:
@@ -886,6 +933,16 @@ classes:
     - type: method
       name: clear
       virtual: true
+    - type: method
+      name: insert
+      virtual: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      doc_string: |
+        \brief Add an element to the collection.
+        \note Exact position depends on implementation.
 
 
   java.util.List<E>:
@@ -1039,10 +1096,48 @@ classes:
         \param index Index of the element to be returned.
         \returns Element at the given index.
         \throws std::out_of_range if the index exceeds the list size.
+    - type: method
+      name: insert
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        push_back(std::move(e));
+      doc_string: |
+        \brief Add an element to the end of the list.
 
 
   java.util.ArrayList<E>:
     members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: b
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      initializers:
+        data_: std::move(b), std::move(e), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          cxx: ::std::initializer_list<$boundTemplateType(java.("E"), "style=type, class")$>
+          includes:
+            declaration:
+            - initializer_list
+      initializers:
+        data_: init, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
     - type: method
       name: empty
       override: true
@@ -1230,6 +1325,33 @@ classes:
 
   java.util.LinkedList<E>:
     members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: b
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      initializers:
+        data_: std::move(b), std::move(e), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          cxx: ::std::initializer_list<$boundTemplateType(java.("E"), "style=type, class")$>
+          includes:
+            declaration:
+            - initializer_list
+      initializers:
+        data_: init, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
     - type: method
       name: empty
       override: true
@@ -1370,6 +1492,17 @@ classes:
         java: E
       body: |
         return data_.back();
+    - type: method
+      name: insert
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        push_back(std::move(e));
+      doc_string: |
+        \brief Add an element to the end of the list.
     fields:
       data_:
         visibility: private
@@ -1437,6 +1570,17 @@ classes:
       doc_string: |
         \brief Retrieve the last element from the queue.
         \returns The last element.
+    - type: method
+      name: insert
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        push(std::move(e));
+      doc_string: |
+        \brief Add an element to the end of the list.
 
 
   java.util.Deque<E>:
@@ -1641,11 +1785,20 @@ classes:
         comparator: std::move(comparator)
     - type: constructor
       arguments:
-      - name: init
+      - name: b
         type:
-          java: java.lang.Iterable<? extends E>
+          cxx: forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
       initializers:
-        data_: init->begin(), init->end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        data_: b, e, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
       body: |
         std::make_heap(data_.begin(), data_.end(),
                        [this](const auto& x, const auto& y) {
@@ -1658,12 +1811,61 @@ classes:
       arguments:
       - name: init
         type:
-          java: java.lang.Iterable<? extends E>
+          cxx: std::initializer_list<$boundTemplateType(java.("E"), "style=type, class")$>
+          includes:
+            declaration:
+            - initializer_list
+      initializers:
+        data_: init.begin(), init.end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+      body: |
+        std::make_heap(data_.begin(), data_.end(),
+                       [this](const auto& x, const auto& y) {
+                         return compare_(x, y);
+                       });
+      includes:
+        implementation:
+        - algorithm
+    - type: constructor
+      arguments:
+      - name: b
+        type:
+          cxx: forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
       - name: comparator
         type:
           java: java.util.Comparator<? super E>
       initializers:
-        data_: init->begin(), init->end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        data_: b, e, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        comparator: std::move(comparator)
+      body: |
+        std::make_heap(data_.begin(), data_.end(),
+                       [this](const auto& x, const auto& y) {
+                         return compare_(x, y);
+                       });
+      includes:
+        implementation:
+        - algorithm
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          cxx: std::initializer_list<$boundTemplateType(java.("E"), "style=type, class")$>
+          includes:
+            declaration:
+            - initializer_list
+      - name: comparator
+        type:
+          java: java.util.Comparator<? super E>
+      initializers:
+        data_: init.begin(), init.end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
         comparator: std::move(comparator)
       body: |
         std::make_heap(data_.begin(), data_.end(),
