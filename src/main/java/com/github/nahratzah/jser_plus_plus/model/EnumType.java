@@ -11,7 +11,9 @@ import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.util.Arrays;
 import java.util.Collection;
+import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.EMPTY_MAP;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
@@ -48,6 +50,7 @@ public class EnumType extends ClassType {
         enumTypeTemplate = "::java::_static_accessor<$boundTemplateType(java.({" + getName().replaceAll(Pattern.quote("$"), Matcher.quoteReplacement("\\$")) + "}), \"style=tag\")$>::enum_t";
         initEnumFieldAndConstructor(ctx, cfg);
         initEnumValueStatics(ctx, cfg);
+        initEnumCompareTo(ctx, cfg);
     }
 
     private void initEnumFieldAndConstructor(Context ctx, Config cfg) {
@@ -100,6 +103,34 @@ public class EnumType extends ClassType {
                 bodyTemplate.remove("value");
             }
         });
+    }
+
+    private void initEnumCompareTo(Context ctx, Config cfg) {
+        final String body = "const ::java::int_t x = static_cast<::java::int_t>(value);\n"
+                + "const ::java::int_t y = static_cast<::java::int_t>(o->value());\n"
+                + "\n"
+                + "return (x < y ? -1 : (x > y ? 1 : 0));";
+
+        final CfgType methodArgumentType = new CfgType();
+        methodArgumentType.setJavaType(getName() + (getNumTemplateArguments() == 0 ? "" : "<" + String.join(", ", getTemplateArgumentNames()) + ">"));
+        final CfgArgument methodArgument = new CfgArgument();
+        methodArgument.setName("o");
+        methodArgument.setType(methodArgumentType);
+        final CfgType methodResult = new CfgType();
+        methodResult.setCxxType("::java::int_t");
+        methodResult.setIncludes(new Includes(singleton("java/primitives.h"), EMPTY_LIST));
+        final Method methodCfg = new Method();
+        methodCfg.setBody(body);
+        methodCfg.setArguments(singletonList(methodArgument));
+        methodCfg.setName("compareTo");
+        methodCfg.setReturnType(methodResult);
+        methodCfg.setConst(true);
+        methodCfg.setOverride(true);
+        methodCfg.setVisibility(Visibility.PUBLIC);
+        methodCfg.setIncludes(new Includes(EMPTY_LIST, singleton("java/primitives.h")));
+        final ClassMemberModel.ClassMethod enumConstantMethod = new ClassMemberModel.ClassMethod(ctx, this, methodCfg);
+
+        classMembers.add(enumConstantMethod);
     }
 
     @Override
