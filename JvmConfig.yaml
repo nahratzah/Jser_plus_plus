@@ -1668,6 +1668,6 @@ classes:
             ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
           )
       comparator:
-        const: true
+        final: true
 
 
