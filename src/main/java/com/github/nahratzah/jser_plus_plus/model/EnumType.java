@@ -1,17 +1,30 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
+import com.github.nahratzah.jser_plus_plus.config.CfgArgument;
+import com.github.nahratzah.jser_plus_plus.config.CfgType;
 import com.github.nahratzah.jser_plus_plus.config.Config;
+import com.github.nahratzah.jser_plus_plus.config.Includes;
+import com.github.nahratzah.jser_plus_plus.config.class_members.Constructor;
+import com.github.nahratzah.jser_plus_plus.config.class_members.Method;
+import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import com.github.nahratzah.jser_plus_plus.input.Context;
+import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.util.Arrays;
 import java.util.Collection;
+import static java.util.Collections.EMPTY_MAP;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.stringtemplate.v4.ST;
 
 /**
  * An enum type.
@@ -20,6 +33,7 @@ import java.util.stream.Stream;
  */
 public class EnumType extends ClassType {
     private static final List<String> EXTRA_PUBLIC_INCLUDES = unmodifiableList(Arrays.asList("string_view", "java/primitives.h"));
+    private String enumTypeTemplate;
 
     public EnumType(Class<?> c) {
         super(c);
@@ -30,6 +44,62 @@ public class EnumType extends ClassType {
     @Override
     public void init(Context ctx, Config cfg) {
         super.init(ctx, cfg);
+
+        enumTypeTemplate = "::java::_static_accessor<$boundTemplateType(java.({" + getName().replaceAll(Pattern.quote("$"), Matcher.quoteReplacement("\\$")) + "}), \"style=tag\")$>::enum_t";
+        initEnumFieldAndConstructor(ctx, cfg);
+        initEnumValueStatics(ctx, cfg);
+    }
+
+    private void initEnumFieldAndConstructor(Context ctx, Config cfg) {
+        // Declare the enum field.
+        final FieldType enumField = new FieldType(
+                "value",
+                new CxxType(enumTypeTemplate, new Includes())
+                        .prerender(ctx, EMPTY_MAP, getTemplateArgumentNames()));
+        enumField.setConst(true);
+        this.fields.add(enumField);
+
+        // Declare the single-argument constructor.
+        final CfgType constructorArgumentType = new CfgType();
+        constructorArgumentType.setCxxType(enumTypeTemplate);
+        final CfgArgument constructorArgument = new CfgArgument();
+        constructorArgument.setName("v");
+        constructorArgument.setType(constructorArgumentType);
+        final Constructor constructorCfg = new Constructor();
+        constructorCfg.setArguments(singletonList(constructorArgument));
+        constructorCfg.setInitializers(singletonMap(enumField.getName(), constructorArgument.getName()));
+        constructorCfg.setVisibility(Visibility.PUBLIC);
+        final ClassMemberModel constructor = new ClassMemberModel.ClassConstructor(ctx, this, constructorCfg);
+        this.classMembers.add(constructor);
+    }
+
+    private void initEnumValueStatics(Context ctx, Config cfg) {
+        final ST bodyTemplate = new ST(StCtx.BUILTINS, "static const $boundTemplateType(model, \"style=type, class\")$ impl =\n"
+                + "    $boundTemplateType(model, \"style=type, class\")$(\n"
+                + "        ::java::_direct(),\n"
+                + "        cycle_ptr::make_cycle<$erasedType(model.type)$>(enum_t::$value$));\n"
+                + "return impl;")
+                .add("model", new BoundTemplate.ClassBinding<>(this, getTemplateArgumentNames().stream().map(BoundTemplate.VarBinding::new).collect(Collectors.toList())));
+
+        getEnumValues().forEach(enumConstant -> {
+            bodyTemplate.add("value", enumConstant.getRemappedName());
+            try {
+                final CfgType methodResult = new CfgType();
+                methodResult.setJavaType(getName() + (getNumTemplateArguments() == 0 ? "" : "<" + String.join(", ", getTemplateArgumentNames()) + ">"));
+                final Method methodCfg = new Method();
+                methodCfg.setBody(bodyTemplate.render(Locale.ROOT).replaceAll(Pattern.quote("$"), Matcher.quoteReplacement("\\$")));
+                methodCfg.setName(enumConstant.getRemappedName());
+                methodCfg.setReturnType(methodResult);
+                methodCfg.setStatic(true);
+                methodCfg.setVisibility(Visibility.PUBLIC);
+                methodCfg.setDocString("\\brief Enum constant " + enumConstant.getName() + ".\n\\returns An instance of " + getName());
+                final ClassMemberModel.ClassMethod enumConstantMethod = new ClassMemberModel.ClassMethod(ctx, this, methodCfg);
+
+                classMembers.add(enumConstantMethod);
+            } finally {
+                bodyTemplate.remove("value");
+            }
+        });
     }
 
     @Override

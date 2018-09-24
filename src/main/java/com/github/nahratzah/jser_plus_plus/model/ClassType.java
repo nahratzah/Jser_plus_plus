@@ -1235,7 +1235,7 @@ public class ClassType implements JavaType {
     /**
      * List of fields.
      */
-    private List<FieldType> fields;
+    protected List<FieldType> fields;
     /**
      * If the class is a final class.
      */
@@ -1243,7 +1243,7 @@ public class ClassType implements JavaType {
     /**
      * Class members for the class.
      */
-    private Collection<ClassMemberModel> classMembers;
+    protected Collection<ClassMemberModel> classMembers;
     /**
      * Default variable type for a class.
      *

@@ -18,9 +18,6 @@ $if (model.enum)$
   enum class enum_t : ::java::int_t {
     $model.enumValues:{kv|$kv.remappedName$}; anchor, separator = ",\n"$
   };
-
-  // Enum constants.
-  $model.enumValues:{kv | $accessorEnumConstantMethod(model, kv, false)$}; anchor, separator = "\n"$
 $endif$
 
   $staticAccessorClassMembers(model, false); anchor$
@@ -74,7 +71,7 @@ $endif$
 $if (model.templateArguments)$
  private:
   $ model.erasedTemplateArguments
-    : {tArg | using $tArg.key$ = ::java::G::pack<$tArg.value:{b | $boundTemplateType(b, "style=type")$}; separator = ", "$>;}
+    : {tArg | using $tArg.key$ = $boundTemplateType(tArg.value, "style=type")$;}
     ; anchor, separator = "\n"$
 
 $endif$
@@ -82,11 +79,6 @@ $if (model.enum)$
  public:
   using enum_t = ::java::_static_accessor<$tagType(model)$>::enum_t;
 
-  $model.enumValues:{kv| $classEnumConstantMethod(model, kv, false)$}; anchor, separator = "\n"$
-
-  // We don't want this to be public, but without it, we're having a hard time
-  // instantiating the enum class.
-  JSER_INLINE $model.className$(enum_t enum_value) : value(enum_value) {}
 $endif$
 
  public:
@@ -107,21 +99,11 @@ $if(model.fields)$
   // fields
   $model.fields:{f|$if (f.docString)$$renderDocString(f.docString)$$"\n"$$endif$$f.visibility$: $field(f)$;}; anchor, separator = "\n"$
 $endif$
-$if (model.enum)$
-
- public:
-  ///\brief Value for the enumerator type.
-  const enum_t value;
-$endif$
 };
 >>
 
 
 accessorImpl(model) ::= <<
-$if (model.enum)$
-$model.enumValues:{kv | $accessorEnumConstantMethod(model, kv, true)$}; anchor, separator = "\n"$
-$endif$
-
 $model.fields:{f|$fieldAccessors(model, f, true)$}; separator = "\n"$
 
 $accessorClassMembers(model, true)$
@@ -164,8 +146,6 @@ case enum_t::$v.remappedName$:
 
 classImpl(model) ::= <<
 $model.className$::~$model.className$() noexcept = default;
-
-$model.enumValues:{ kv | $classEnumConstantMethod(model, kv, true)$}; separator = "\n"$
 
 $ classMembers(model, true)$
 >>
@@ -324,49 +304,6 @@ $else$
 : public virtual $base$
 $endif$
 %>
-
-
-accessorEnumConstantMethod(model, kv, doImplement=true) ::= <%
-$function(
-    name=kv.remappedName,
-    doImplement=doImplement,
-    return={::$[model.namespace, model.className]; separator = "::"$},
-    containingClass="_static_accessor",
-    containingClassTemplateArguments=model.templateArgumentNames,
-    containingClassTemplateArgumentsImpl=[tagType(model), model.templateArgumentNames],
-    body=accessorEnumConstantMethodBody(model, kv),
-    inline="JSER_INLINE",
-    static=true,
-    docString={\brief Enum constant $kv.name$.}
-    )$
-%>
-
-
-accessorEnumConstantMethodBody(model, kv) ::= <<
-return $erasedType(model)$::$kv.remappedName$();
->>
-
-
-classEnumConstantMethod(model, kv, doImplement) ::= <%
-$function(
-    name=kv.remappedName,
-    docString={\brief Enum constant $kv.name$.$\n$\returns An instance of $[model.namespace, model.className]; separator = "::"$.},
-    doImplement=doImplement,
-    return={::$[model.namespace, model.className]; separator = "::"$},
-    containingClass=model.className,
-    body={$classEnumConstantMethodBody(model, kv)$},
-    static=true
-    )$
-%>
-
-
-classEnumConstantMethodBody(model, kv) ::= <<
-static const ::$[model.namespace, model.className]; separator="::"$ impl =
-    ::$[model.namespace, model.className]; separator="::"$(
-        ::java::_direct(),
-        cycle_ptr::make_cycle<$model.className$>($model.className$::enum_t::$kv.remappedName$));
-return impl;
->>
 
 
 classInheritTemplateClassRenderer(model) ::= <%
