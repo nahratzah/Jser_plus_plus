@@ -649,6 +649,24 @@ classes:
       initializers:
         value: s.data(), s.size()
     - type: method
+      name: compareTo
+      visibility: public
+      override: true
+      const: true
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      arguments:
+      - name: o
+        type:
+          java: java.lang.String
+      body: |
+        const std::string& x = value;
+        const std::string& y = o->value();
+        return (x < y ? -1 : (x > y ? 1 : 0));
+    - type: method
       name: do_encode_
       visibility: private
       override: true
