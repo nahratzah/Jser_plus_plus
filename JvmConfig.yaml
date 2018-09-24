@@ -1629,6 +1629,7 @@ classes:
   java.util.PriorityQueue<E>:
     doc_string: |
       \brief Priority queue.
+      \attention Java's priority queue is a min-heap, in contrast to the one in C++, which is a max heap.
     members:
     - type: constructor
     - type: constructor
@@ -1643,8 +1644,16 @@ classes:
       - name: init
         type:
           java: java.lang.Iterable<? extends E>
+      initializers:
+        data_: init->begin(), init->end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
       body: |
-        for (auto i = init->begin(), e = init->end(); i != e; ++i) data_.push(*i);
+        std::make_heap(data_.begin(), data_.end(),
+                       [this](const auto& x, const auto& y) {
+                         return compare_(x, y);
+                       });
+      includes:
+        implementation:
+        - algorithm
     - type: constructor
       arguments:
       - name: init
@@ -1654,9 +1663,16 @@ classes:
         type:
           java: java.util.Comparator<? super E>
       initializers:
+        data_: init->begin(), init->end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
         comparator: std::move(comparator)
       body: |
-        for (auto i = init->begin(), e = init->end(); i != e; ++i) data_.push(*i);
+        std::make_heap(data_.begin(), data_.end(),
+                       [this](const auto& x, const auto& y) {
+                         return compare_(x, y);
+                       });
+      includes:
+        implementation:
+        - algorithm
     - type: method
       name: compare_
       visibility: private
@@ -1670,9 +1686,135 @@ classes:
       return:
         cxx: bool
       body: |
+        // Note: java's priority queue is a min-heap, while the C++ one is a max heap.
+        // We compare `>0` instead of `<0` to create the min-heap behaviour.
         if (this->comparator == nullptr)
-          return $boundTemplateType(java.("java.util.Comparator<E>"), "style=type, class")$::naturalOrder()->compare(std::move(x), std::move(y)) < 0;
-        return this->comparator->compare(std::move(x), std::move(y)) < 0;
+          return $boundTemplateType(java.("java.util.Comparator<E>"), "style=type, class")$::naturalOrder()->compare(std::move(x), std::move(y)) > 0;
+        return this->comparator->compare(std::move(x), std::move(y)) > 0;
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.begin());
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.end());
+    - type: method
+      name: begin
+      const: true
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>(data_.begin());
+    - type: method
+      name: end
+      const: true
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>(data_.end());
+    - type: method
+      name: empty
+      override: true
+      const: true
+      noexcept: true
+      return:
+        cxx: bool
+      body: |
+        return data_.empty();
+    - type: method
+      name: size
+      virtual: true
+      const: true
+      noexcept: true
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return data_.size();
+    - type: method
+      name: clear
+      virtual: true
+      body: |
+        data_.clear();
+    - type: method
+      name: push
+      virtual: true
+      return:
+        cxx: void
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        data_.push_back(std::move(e));
+        ::std::push_heap(data_.begin(), data_.end(),
+                         [this](const auto& x, const auto& y) {
+                           return compare_(x, y);
+                         });
+    - type: method
+      name: pop
+      virtual: true
+      return:
+        cxx: void
+      body: |
+        ::std::pop_heap(data_.begin(), data_.end(),
+                        [this](const auto& x, const auto& y) {
+                          return compare_(x, y);
+                        });
+        data_.pop_back();
+    - type: method
+      name: front
+      virtual: true
+      const: true
+      return:
+        java: const E
+      body:
+        return data_.front();
+    - type: method
+      name: back
+      virtual: true
+      const: true
+      return:
+        java: const E
+      body: |
+        return data_.back();
+    - type: method
+      name: front
+      virtual: true
+      return:
+        java: E
+      body:
+        return data_.front();
+    - type: method
+      name: back
+      virtual: true
+      return:
+        java: E
+      body: |
+        return data_.back();
     fields:
       size:
         visibility: private
@@ -1681,19 +1823,12 @@ classes:
       data_:
         visibility: private
         type:
-          cxx: ::std::priority_queue<$boundTemplateType(java.("E"), "style=type, class")$, ::std::vector<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>, ::std::function<bool($boundTemplateType(java.("const E"), "style=type, class=param")$, $boundTemplateType(java.("const E"), "style=type, class=param")$)>>
+          cxx: ::std::vector<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>
           includes:
             declaration:
-            - queue
             - vector
-            - functional
         default: |
-          ::std::function<bool($boundTemplateType(java.("const E"), "style=type, class=param")$, $boundTemplateType(java.("const E"), "style=type, class=param")$)>([this]($boundTemplateType(java.("const E"), "style=type, class=param")$ x, $boundTemplateType(java.("const E"), "style=type, class=param")$ y) {
-            return compare_(std::move(x), std::move(y));
-          }),
-          ::std::vector<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>(
-            ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
-          )
+          ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
       comparator:
         final: true
 
