@@ -1607,6 +1607,48 @@ classes:
         return x->compareTo(y);
 
 
+  java.util.Comparators$NullComparator<T>:
+    members:
+    - type: method
+      name: compare
+      const: true
+      override: true
+      arguments:
+      - name: x
+        type:
+          java: const T
+      - name: y
+        type:
+          java: const T
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+      body: |
+        if (x == nullptr && y == nullptr)
+          return 0;
+        else if (x == nullptr)
+          return (nullFirst ? -1 : 1);
+        else if (y == nullptr)
+          return (!nullFirst ? -1 : 1);
+        else if (real == nullptr)
+          return 0;
+        else
+          return real->compare(std::move(x), std::move(y));
+    - type: constructor
+      arguments:
+      - name: nullFirst
+        type:
+          cxx: bool
+      - name: real
+        type:
+          java: java.util.Comparator<? super T>
+      initializers:
+        nullFirst: nullFirst
+        real: ::java::cast<$boundTemplateType(java.("java.util.Comparator<T>"), "style=type, class")$>(std::move(real))
+
+
   java.lang.Comparable<T>:
     doc_string: |
       \brief Interface that declares two types are comparable.
