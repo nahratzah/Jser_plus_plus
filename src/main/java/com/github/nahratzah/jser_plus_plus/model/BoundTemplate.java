@@ -883,7 +883,7 @@ class BoundTemplateParser {
         final Matcher var = (VARIABLES_STARTS == null ? null : VARIABLES_STARTS.matcher(s));
         final Matcher cls = CLASS_NAME_STARTS.matcher(s);
 
-        if (any.matches()) {
+        if (any.find()) {
             s = s.subSequence(any.end(), s.length());
             return parseAny_();
         } else if (var != null && var.find()) {
