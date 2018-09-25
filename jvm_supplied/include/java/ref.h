@@ -7,6 +7,9 @@
 
 namespace java {
 
+struct allocate_t {};
+constexpr allocate_t allocate{};
+
 template<template<class> class PtrImpl, typename Type>
 class basic_ref;
 
@@ -394,6 +397,11 @@ class basic_ref final
       noexcept(std::is_nothrow_copy_constructible_v<ptr_type>) = default;
   JSER_INLINE basic_ref(basic_ref&&)
       noexcept(std::is_nothrow_move_constructible_v<ptr_type>) = default;
+
+  template<typename... Args, typename = std::void_t<decltype(std::declval<::java::_constructor<Type>>()(std::declval<Args>()...))>>
+  explicit JSER_INLINE basic_ref(allocate_t a, Args&&... args)
+  : basic_ref(_direct(), ::java::_constructor<Type>()(std::forward<Args>(args)...))
+  {}
 
  private:
   template<typename ErasedType, typename X, typename Y>

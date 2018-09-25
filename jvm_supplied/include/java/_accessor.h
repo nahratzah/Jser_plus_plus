@@ -5,6 +5,14 @@ namespace java {
 
 
 /**
+ * \brief Constructor object.
+ * \details Contains zero or more functor methods `operator()` that will
+ * construct an instance of the corresponding class.
+ */
+template<typename Tag, typename... Arguments>
+struct _constructor;
+
+/**
  * \brief Accessor for a specific type.
  * \details
  * Each type declares an accessor, which allows access to all public methods

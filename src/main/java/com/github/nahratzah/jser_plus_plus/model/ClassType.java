@@ -61,6 +61,7 @@ import org.stringtemplate.v4.ST;
  */
 public class ClassType implements JavaType {
     private static final Logger LOG = Logger.getLogger(ClassType.class.getName());
+    private static final boolean WRITE_POST_PROCESSING_RESULT = true;
     private static final String VIRTUAL_FUNCTION_PREFIX = "_virtual_";
     private static final String REDECLARE_BODY_TEMPLATE = "return "
             + "$if (needCast)$::java::cast<$boundTemplateType(declare.returnType, \"style=type, class\")$>($endif$"
@@ -498,6 +499,14 @@ public class ClassType implements JavaType {
         return classMembers;
     }
 
+    public Collection<ClassMemberModel.ClassConstructor> getConstructors() {
+        return getClassMembers().stream()
+                .filter(member -> member.getVisibility() == Visibility.PUBLIC)
+                .filter(ClassMemberModel.ClassConstructor.class::isInstance)
+                .map(ClassMemberModel.ClassConstructor.class::cast)
+                .collect(Collectors.toList());
+    }
+
     public Collection<MethodModel> getAccessorMethods() {
         return getClassMembers().stream()
                 .filter(member -> member.isPublicMethod())
@@ -730,17 +739,19 @@ public class ClassType implements JavaType {
                 .map(Map.Entry::getValue) // And then restore the mapping to its original.
                 .collect(Collectors.toList());
 
-        System.out.println("========================================================");
-        System.out.println(getName() + (getTemplateArgumentNames().isEmpty() ? "" : getTemplateArgumentNames().stream().collect(Collectors.joining(", ", "<", ">"))));
-        System.out.println("--------------------------------------------------------");
-        System.out.println("all methods:");
-        allMethods.forEach(m -> System.out.println("  " + m));
-        System.out.println("all suppressed methods:");
-        allResolvedMethods.forEach(m -> System.out.println("  " + m.getSelector()));
-        System.out.println("--------------------------------------------------------");
-        System.out.println("actually emitted methods:");
-        classMemberFunctions.forEach(m -> System.out.println("  " + m.getOverrideSelector(ctx)));
-        System.out.println("--------------------------------------------------------");
+        if (WRITE_POST_PROCESSING_RESULT) {
+            System.out.println("========================================================");
+            System.out.println(getName() + (getTemplateArgumentNames().isEmpty() ? "" : getTemplateArgumentNames().stream().collect(Collectors.joining(", ", "<", ">"))));
+            System.out.println("--------------------------------------------------------");
+            System.out.println("all methods:");
+            allMethods.forEach(m -> System.out.println("  " + m));
+            System.out.println("all suppressed methods:");
+            allResolvedMethods.forEach(m -> System.out.println("  " + m.getSelector()));
+            System.out.println("--------------------------------------------------------");
+            System.out.println("actually emitted methods:");
+            classMemberFunctions.forEach(m -> System.out.println("  " + m.getOverrideSelector(ctx)));
+            System.out.println("--------------------------------------------------------");
+        }
 
 //        throw new UnsupportedOperationException("XXX implement class post processing");
     }

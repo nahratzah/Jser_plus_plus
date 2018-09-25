@@ -278,9 +278,7 @@ classes:
         \details This simply invokes the constructor for Boolean.
         \bug This method should be static.
       body: |
-        return $boundTemplateType(java.("java.lang.Boolean"), "style=type, class")$(
-            ::java::_direct(),
-            ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.lang.Boolean"), "style=erased")$>(true));
+        return $boundTemplateType(java.("java.lang.Boolean"), "style=type, class")$(::java::allocate, true);
       includes:
         implementation:
         - cycle_ptr/cycle_ptr.h
@@ -294,9 +292,7 @@ classes:
         \details This simply invokes the constructor for Boolean.
         \bug This method should be static.
       body: |
-        return $boundTemplateType(java.("java.lang.Boolean"), "style=type, class")$(
-            ::java::_direct(),
-            ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.lang.Boolean"), "style=erased")$>(false));
+        return $boundTemplateType(java.("java.lang.Boolean"), "style=type, class")$(::java::allocate, false);
       includes:
         implementation:
         - cycle_ptr/cycle_ptr.h
@@ -870,8 +866,7 @@ classes:
         java: java.lang.String
       body: |
         return $boundTemplateType(java.("java.lang.String"), "style=type, class")$(
-            ::java::_direct(),
-            ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.lang.String"), "style=erased")$>(value.substr(pos, count)));
+            ::java::allocate, value.substr(pos, count));
     - type: method
       name: str
       override: true
@@ -944,7 +939,7 @@ classes:
       initializers:
         name: std::move(name)
         super: nullptr
-        interfaces: ::java::_direct(), ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=erased")$>()
+        interfaces: $boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=type, class")$(::java::allocate)
     - type: constructor
       arguments:
       - name: name
@@ -956,7 +951,7 @@ classes:
       initializers:
         name: std::move(name)
         super: std::move(super)
-        interfaces: ::java::_direct(), ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=erased")$>()
+        interfaces: $boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=type, class")$(::java::allocate)
     - type: constructor
       arguments:
       - name: name
@@ -974,7 +969,7 @@ classes:
       initializers:
         name: std::move(name)
         super: std::move(super)
-        interfaces: ::java::_direct(), ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=erased")$>(interfaces.begin(), interfaces.end())
+        interfaces: $boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=type, class")$(::java::allocate, interfaces.begin(), interfaces.end())
 
 
   java.lang.Iterable<T>:

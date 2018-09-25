@@ -1,4 +1,11 @@
 accessor(model) ::= <<
+$if (!model.interface && !model.abstract && !model.enum)$
+$templateLine(model.templateArgumentNames, true)$
+struct _constructor$templateArgs([{::java::G::is_t<$[tagType(model), model.templateArgumentNames]; separator = ", "$>}], true)$ {
+  $constructors(model, false); anchor$
+};
+$endif$
+
 $templateLine(model.templateArgumentNames, true)$
 class _static_accessor$templateArgs([tagType(model), model.templateArgumentNames], true)$ {
  protected:
@@ -106,6 +113,10 @@ $endif$
 accessorImpl(model) ::= <<
 $model.fields:{f|$fieldAccessors(model, f, true)$}; separator = "\n"$
 
+$if (!model.interface && !model.abstract && !model.enum)$
+$constructors(model, true)$
+$endif$
+
 $accessorClassMembers(model, true)$
 
 $staticAccessorClassMembers(model, true)$
@@ -176,6 +187,26 @@ $ [model.classNonMemberFunctions, model.classMemberFunctions]
             )$$\\$
          $endif$}
   ; separator = "\n\n"$
+>>
+
+
+constructors(model, doImplement) ::= <<
+$ model.constructors
+  : {m | $function(
+              name="operator()",
+              doImplement=doImplement,
+              return={::cycle_ptr::cycle_gptr<$erasedType(model)$>},
+              body={return ::cycle_ptr::make_cycle<$erasedType(model)$>($m.argumentNames; separator = ", "$);},
+              argumentNames=m.argumentNames,
+              argumentTypes=m.argumentTypes,
+              containingClass="_constructor",
+              containingClassTemplateArguments=model.templateArgumentNames,
+              containingClassTemplateArgumentsImpl={::java::G::is_t<$[tagType(model), model.templateArgumentNames]; separator = ", "$>},
+              inline="JSER_INLINE",
+              const=true,
+              static=false
+            )$}
+  ; anchor, separator = "\n\n"$
 >>
 
 
