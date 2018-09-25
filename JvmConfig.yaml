@@ -800,6 +800,90 @@ classes:
         const std::string& y = o->value();
         return (x < y ? -1 : (x > y ? 1 : 0));
     - type: method
+      name: empty
+      override: true
+      const: true
+      return:
+        cxx: bool
+      body: |
+        return value.empty();
+    - type: method
+      name: size
+      override: true
+      const: true
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return value.size();
+    - type: method
+      name: front
+      override: true
+      const: true
+      return:
+        cxx: char
+      body: |
+        return value.front();
+    - type: method
+      name: back
+      override: true
+      const: true
+      return:
+        cxx: char
+      body: |
+        return value.back();
+    - type: method
+      name: at
+      override: true
+      const: true
+      arguments:
+      - name: index
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: char
+      body: |
+        return value.at(index);
+    - type: method
+      name: substr
+      override: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: count
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: java.lang.String
+      body: |
+        return $boundTemplateType(java.("java.lang.String"), "style=type, class")$(
+            ::java::_direct(),
+            ::cycle_ptr::make_cycle<$boundTemplateType(java.("java.lang.String"), "style=erased")$>(value.substr(pos, count)));
+    - type: method
+      name: str
+      override: true
+      const: true
+      return:
+        cxx: ::std::string
+        includes:
+          declaration:
+          - string
+      body: |
+        return value;
+    - type: method
       name: do_encode_
       visibility: private
       override: true
@@ -1090,7 +1174,7 @@ classes:
       arguments:
       - name: index
         type:
-          cxx: std::size_t
+          cxx: ::std::size_t
           includes:
             declaration:
             - cstddef
@@ -1108,7 +1192,7 @@ classes:
       arguments:
       - name: index
         type:
-          cxx: std::size_t
+          cxx: ::std::size_t
           includes:
             declaration:
             - cstddef
@@ -1308,7 +1392,7 @@ classes:
       arguments:
       - name: index
         type:
-          cxx: std::size_t
+          cxx: ::std::size_t
           includes:
             declaration:
             - cstddef
@@ -1323,7 +1407,7 @@ classes:
       arguments:
       - name: index
         type:
-          cxx: std::size_t
+          cxx: ::std::size_t
           includes:
             declaration:
             - cstddef
@@ -1736,7 +1820,7 @@ classes:
       const: true
       override: true
       return:
-        cxx: std::size_t
+        cxx: ::std::size_t
         includes:
           declaration:
           - cstddef
@@ -1754,7 +1838,7 @@ classes:
       arguments:
       - name: index
         type:
-          cxx: std::size_t
+          cxx: ::std::size_t
           includes:
             declaration:
             - cstddef
@@ -1775,7 +1859,7 @@ classes:
       arguments:
       - name: index
         type:
-          cxx: std::size_t
+          cxx: ::std::size_t
           includes:
             declaration:
             - cstddef
@@ -2066,3 +2150,142 @@ classes:
         final: true
 
 
+  java.lang.CharSequence:
+    dev_mode: false
+    doc_string: |
+      \brief Character sequence.
+      \details Holds a sequence of characters.
+
+      \attention
+      Java uses UTF-16, but in C++ we use UTF-8.
+      Therefore our string are UTF-8 sequences and length/index computation is based on 8 bit characters.
+    members:
+    - type: method
+      name: length
+      const: true
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return size();
+      doc_string: |
+        \brief Retrieve the size of the string.
+        \returns The number of characters in the string.
+    - type: method
+      name: size
+      virtual: true
+      const: true
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      doc_string: |
+        \brief Retrieve the size of the string.
+        \returns The number of characters in the string.
+    - type: method
+      name: empty
+      virtual: true
+      const: true
+      return:
+        cxx: bool
+      doc_string: |
+        \brief Test if this is an empty string.
+        \returns True if the string is empty. False otherwise.
+      body: |
+        return size() == 0u;
+    - type: method
+      name: at
+      virtual: true
+      const: true
+      arguments:
+      - name: index
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: char
+      doc_string: |
+        \brief Retrieve the character at the given index from the list.
+        \param index Index of the character to be returned.
+        \returns Character at the given index.
+        \throws std::out_of_range if the index exceeds the string size.
+    - type: method
+      name: front
+      virtual: true
+      const: true
+      return:
+        cxx: char
+      doc_string: |
+        \brief Front of the string.
+        \returns First character of the string.
+    - type: method
+      name: back
+      virtual: true
+      const: true
+      return:
+        cxx: char
+      doc_string: |
+        \brief Back of the string.
+        \returns Last character of the string.
+    - type: method
+      name: substr
+      virtual: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: java.lang.CharSequence
+      doc_string: |
+        \brief Retrieve a substring.
+        \details: Returns the substring starting at \p pos.
+        \param pos Starting index for the substring.
+        \return CharSequence containing everything from \p pos until the end.
+        \throws std::out_of_range if \p pos larger than `size()`.
+      body: |
+        return substr(pos, std::size_t(-1));
+    - type: method
+      name: substr
+      virtual: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: count
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: java.lang.CharSequence
+      doc_string: |
+        \brief Retrieve a substring.
+        \details: Returns the substring starting at \p pos.
+        The substring will be at most \p count characters.
+        \param pos Starting index for the substring.
+        \param count Number of characters to include in the returned string.
+        \return CharSequence containing up to \p count characters starting at \p pos.
+        \throws std::out_of_range if \p pos larger than `size()`.
+    - type: method
+      name: str
+      virtual: true
+      const: true
+      return:
+        cxx: ::std::string
+        includes:
+          declaration:
+          - string
