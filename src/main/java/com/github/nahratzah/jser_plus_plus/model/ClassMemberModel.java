@@ -675,10 +675,16 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
             this.argumentTypes = unmodifiableList(argumentTypesTmp);
         }
 
-        if (body == null)
+        if (body == null) {
             this.body = null;
-        else
-            this.body = renderImpl(body);
+        } else {
+            String renderedBody = renderImpl(body);
+            // Remove newline at end, since the render engine will also generate one for us.
+            // This gets rid of the blank line at the end of method bodies.
+            if (renderedBody.endsWith("\n"))
+                renderedBody = renderedBody.substring(0, renderedBody.length() - 1);
+            this.body = renderedBody;
+        }
     }
 
     @Override
