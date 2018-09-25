@@ -187,7 +187,7 @@ class forward_iterator<type_of_t<const_ref<java::lang::Object>>> {
   constexpr forward_iterator() noexcept = default;
 
   template<typename Iterator, typename = std::enable_if_t<!::java::type_traits::is_iterator_v<Iterator>>>
-  explicit forward_iterator(Iterator&& iter);
+  forward_iterator(Iterator&& iter);
 
   forward_iterator(const forward_iterator& other)
   : iter_ptr_(other.iter_ptr_ ? other.iter_ptr_->copy() : nullptr)
@@ -351,7 +351,7 @@ class forward_iterator<type_of_t<java::lang::Object>> {
   constexpr forward_iterator() noexcept = default;
 
   template<typename Iterator, typename = std::enable_if_t<!::java::type_traits::is_iterator_v<Iterator>>>
-  explicit forward_iterator(Iterator&& iter);
+  forward_iterator(Iterator&& iter);
 
   forward_iterator(const forward_iterator& other)
   : iter_ptr_(other.iter_ptr_ ? other.iter_ptr_->copy() : nullptr)
@@ -510,7 +510,7 @@ class bidirectional_iterator<type_of_t<const_ref<java::lang::Object>>> {
   constexpr bidirectional_iterator() noexcept = default;
 
   template<typename Iterator, typename = std::enable_if_t<!::java::type_traits::is_iterator_v<Iterator>>>
-  explicit bidirectional_iterator(Iterator&& iter);
+  bidirectional_iterator(Iterator&& iter);
 
   bidirectional_iterator(const bidirectional_iterator& other)
   : iter_ptr_(other.iter_ptr_ ? other.iter_ptr_->copy() : nullptr)
@@ -666,7 +666,7 @@ class bidirectional_iterator<type_of_t<java::lang::Object>> {
   constexpr bidirectional_iterator() noexcept = default;
 
   template<typename Iterator, typename = std::enable_if_t<!::java::type_traits::is_iterator_v<Iterator>>>
-  explicit bidirectional_iterator(Iterator&& iter);
+  bidirectional_iterator(Iterator&& iter);
 
   bidirectional_iterator(const bidirectional_iterator& other)
   : iter_ptr_(other.iter_ptr_ ? other.iter_ptr_->copy() : nullptr)
@@ -926,7 +926,7 @@ class forward_iterator {
               decltype(*std::declval<Iterator>()),
               var_ref<Type>>
           && !java::type_traits::is_iterator_v<Iterator>>>
-  explicit forward_iterator(Iterator&& iter)
+  forward_iterator(Iterator&& iter)
   : iter_(std::forward<Iterator>(iter))
   {}
 
@@ -1055,7 +1055,7 @@ class bidirectional_iterator {
               decltype(*std::declval<Iterator>()),
               var_ref<Type>>
           && !java::type_traits::is_iterator_v<Iterator>>>
-  explicit bidirectional_iterator(Iterator&& iter)
+  bidirectional_iterator(Iterator&& iter)
   : iter_(std::forward<Iterator>(iter))
   {}
 

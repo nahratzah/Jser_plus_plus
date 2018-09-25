@@ -643,7 +643,8 @@ public class ClassType implements JavaType {
             erasedParentModels.stream()
                     // Rebind and retrieve the parent methods, to the binding map (which now holds out erased bindings).
                     .flatMap(parentTemplate -> {
-                        return parentTemplate.getType().getAllMethods().stream()
+                        final ClassType parentType = parentTemplate.getType();
+                        return Stream.concat(parentType.allResolvedMethods.stream().map(ResolvedMethod::getSelector), parentType.getAllMethods().stream())
                                 .map(parentMethod -> parentMethod.rebind(parentTemplate.getBindingsMap()));
                     })
                     // Keep the ones that match prototypes in our class.
