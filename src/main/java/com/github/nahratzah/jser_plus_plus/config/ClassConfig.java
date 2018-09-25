@@ -12,8 +12,9 @@ import java.util.stream.Stream;
  * @author ariane
  */
 public class ClassConfig {
-    public ClassConfig(CfgClass cfgClass) {
+    public ClassConfig(Config cfg, CfgClass cfgClass) {
         this.cfgClass = requireNonNull(cfgClass);
+        this.devMode = cfgClass.getDevMode() == null ? cfg.isDevMode() : cfgClass.getDevMode();
     }
 
     public Map<String, CfgField> getFields() {
@@ -40,5 +41,10 @@ public class ClassConfig {
         return cfgClass.getDocString();
     }
 
+    public boolean isDevMode() {
+        return devMode;
+    }
+
     private final CfgClass cfgClass;
+    private final boolean devMode;
 }

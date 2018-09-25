@@ -122,6 +122,7 @@ public class ClassType implements JavaType {
         }
 
         this.docString = classCfg.getDocString();
+        this.devMode = classCfg.isDevMode();
     }
 
     private void initSuperTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
@@ -941,6 +942,18 @@ public class ClassType implements JavaType {
     }
 
     /**
+     * Test if this class has development mode enabled.
+     *
+     * If development mode is enabled, certain compile checks in the C++ code
+     * are turned off.
+     *
+     * @return True if development mode is enabled, false if disabled.
+     */
+    public boolean isDevMode() {
+        return devMode;
+    }
+
+    /**
      * Build a simple identity map for the given type variables.
      *
      * @param vars List of type variables.
@@ -1289,4 +1302,11 @@ public class ClassType implements JavaType {
      * Documentation of the class.
      */
     private String docString;
+    /**
+     * Flag indicating if development mode is enabled.
+     *
+     * In development mode, certain code checks are disabled to allow for most
+     * things to compile.
+     */
+    private boolean devMode = false;
 }

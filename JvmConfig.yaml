@@ -1,4 +1,5 @@
 ---
+dev_mode: true
 scan:
   include:
   - java
@@ -29,6 +30,7 @@ scan:
   - javax.xml
 classes:
   java.util.Comparator<T>:
+    dev_mode: false
     members:
     - type: method
       name: compare
@@ -57,6 +59,7 @@ classes:
 
 
   java.lang.Comparable<T>:
+    dev_mode: false
     doc_string: |
       \brief Interface that declares two types are comparable.
       \tparam T The type with which the type implementing this interface can be compared.
@@ -79,6 +82,7 @@ classes:
 
 
   java.util.Comparators$NaturalOrderComparator:
+    dev_mode: false
     members:
     - type: method
       name: compare
@@ -101,6 +105,7 @@ classes:
 
 
   java.util.Comparators$NullComparator<T>:
+    dev_mode: false
     members:
     - type: method
       name: compare
@@ -143,6 +148,7 @@ classes:
 
 
   java.lang.Number:
+    dev_mode: false
     members:
     - type: method
       name: byteValue
@@ -227,6 +233,7 @@ classes:
 
 
   java.lang.Boolean:
+    dev_mode: false
     fields:
       value:
         const: true
@@ -296,6 +303,7 @@ classes:
 
 
   java.lang.Character:
+    dev_mode: false
     fields:
       value:
         const: true
@@ -333,7 +341,10 @@ classes:
       includes:
         implementation:
         - java/primitives.h
+
+
   java.lang.Byte:
+    dev_mode: false
     fields:
       value:
         const: true
@@ -398,6 +409,7 @@ classes:
 
 
   java.lang.Short:
+    dev_mode: false
     fields:
       value:
         const: true
@@ -462,6 +474,7 @@ classes:
 
 
   java.lang.Integer:
+    dev_mode: false
     fields:
       value:
         const: true
@@ -526,6 +539,7 @@ classes:
 
 
   java.lang.Long:
+    dev_mode: false
     fields:
       value:
         const: true
@@ -582,6 +596,7 @@ classes:
 
 
   java.lang.Float:
+    dev_mode: false
     fields:
       value:
         const: true
@@ -646,6 +661,7 @@ classes:
 
 
   java.lang.Double:
+    dev_mode: false
     fields:
       value:
         const: true
@@ -702,6 +718,7 @@ classes:
 
 
   java.io.Serializable:
+    dev_mode: false
     friends:
     - cxx: ::java::serialization::cycle_handler
       includes:
@@ -726,11 +743,13 @@ classes:
         - java/serialization/type_def_fwd.h
         implementation:
         - java/serialization/type_def.h
+      # XXX erase body, so method becomes pure virtual
       body: |
         return nullptr; // XXX erase body once rules take care of most things.
 
 
   java.lang.String:
+    dev_mode: false
     var_type:
       cxx: ::std::string
       includes:
@@ -817,6 +836,7 @@ classes:
 
 
   java.lang.Class<Type>:
+    dev_mode: false
     fields:
       name:
         type:
@@ -874,6 +894,7 @@ classes:
 
 
   java.lang.Iterable<T>:
+    dev_mode: false
     members:
     - type: method
       name: begin
@@ -912,6 +933,7 @@ classes:
 
 
   java.util.Collection<E>:
+    dev_mode: false
     members:
     - type: method
       name: empty
@@ -946,6 +968,7 @@ classes:
 
 
   java.util.List<E>:
+    dev_mode: false
     members:
     - type: method
       name: push_front
@@ -1110,6 +1133,7 @@ classes:
 
 
   java.util.ArrayList<E>:
+    dev_mode: false
     members:
     - type: constructor
     - type: constructor
@@ -1324,6 +1348,7 @@ classes:
 
 
   java.util.LinkedList<E>:
+    dev_mode: false
     members:
     - type: constructor
     - type: constructor
@@ -1516,6 +1541,7 @@ classes:
 
 
   java.util.Queue<E>:
+    dev_mode: false
     members:
     - type: method
       name: push
@@ -1584,6 +1610,7 @@ classes:
 
 
   java.util.Deque<E>:
+    dev_mode: false
     members:
     - type: method
       name: push_front
@@ -1702,6 +1729,7 @@ classes:
 
 
   java.util.AbstractCollection<E>:
+    dev_mode: false
     members:
     - type: method
       name: empty
@@ -1718,6 +1746,7 @@ classes:
 
 
   java.util.AbstractSequentialList<E>:
+    dev_mode: false
     members:
     - type: method
       name: at
@@ -1763,6 +1792,7 @@ classes:
 
 
   java.util.RandomAccess:
+    dev_mode: false
     doc_string: |
       \brief Marker interface.
       \details
@@ -1771,6 +1801,7 @@ classes:
 
 
   java.util.PriorityQueue<E>:
+    dev_mode: false
     doc_string: |
       \brief Priority queue.
       \attention Java's priority queue is a min-heap, in contrast to the one in C++, which is a max heap.

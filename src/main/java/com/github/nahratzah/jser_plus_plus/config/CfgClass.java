@@ -95,6 +95,20 @@ public class CfgClass {
         this.docString = docString;
     }
 
+    /**
+     * Test if development mode is enabled for this class.
+     *
+     * @return A boolean indicating if development mode is enabled. Or null if
+     * unspecified.
+     */
+    public Boolean getDevMode() {
+        return devMode;
+    }
+
+    public void setDevMode(Boolean devMode) {
+        this.devMode = devMode;
+    }
+
     @JsonProperty("final")
     private Boolean finalVar;
     @JsonProperty("fields")
@@ -107,4 +121,6 @@ public class CfgClass {
     private List<CfgType> friends = new ArrayList<>();
     @JsonProperty("doc_string")
     private String docString = null;
+    @JsonProperty("dev_mode")
+    private Boolean devMode = null;
 }

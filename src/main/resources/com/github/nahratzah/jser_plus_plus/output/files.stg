@@ -91,6 +91,8 @@ $[codeGen.headerName, includes]:{f|$include(f)$}; separator = "\n"$
 
 namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
 
+$codeGen.types:emitStaticCompileChecks(); separator = "\n"$
+
 $codeGen.types:{model|$classImpl(model)$}; separator = "\n\n"$
 
 } /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
@@ -124,6 +126,19 @@ $if (model.templateArgumentNames)$
 template<$model.templateArgumentNames:{x|typename $x$}; anchor, wrap, separator = ", "$>
 $endif$
 using $model.className$ = ::java::type<$[{::$["java", "_tags", model.namespace, model.className]; separator = "::"$}, model.templateArgumentNames]:{x|$x$}; anchor, wrap, separator = ", "$>;
+>>
+
+
+emitStaticCompileChecks(model) ::= <<
+$if (model.devMode)$#if 0 // Development mode, checks disabled.$endif$
+$if (model.abstract)$
+static_assert(::std::is_abstract_v<$model.className$>, "Abstract class must be abstract.");
+$elseif (model.interface)$
+static_assert(::std::is_abstract_v<$model.className$>, "Interface must be abstract.");
+$else$
+static_assert(${::std::negation_v<::std::is_abstract<$model.className$\>>}$, "Class (that is neither an interface, nor abstract) may not be abstract.");
+$endif$
+$if (model.devMode)$#endif$endif$
 >>
 
 

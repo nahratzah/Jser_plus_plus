@@ -92,7 +92,7 @@ public class Config {
                 .findAny()
                 .orElseGet(CfgClass::new);
 
-        return new ClassConfig(cfgClass);
+        return new ClassConfig(this, cfgClass);
     }
 
     public List<MatchMethod> getMatchMethods() {
@@ -108,6 +108,14 @@ public class Config {
                 .filter(mm -> mm.getPredicate().test(c));
     }
 
+    public boolean isDevMode() {
+        return devMode;
+    }
+
+    public void setDevMode(boolean devMode) {
+        this.devMode = devMode;
+    }
+
     @JsonProperty(value = "scan", required = true)
     private Scan scan;
 
@@ -116,4 +124,7 @@ public class Config {
 
     @JsonProperty("match_methods")
     private List<MatchMethod> matchMethods = new ArrayList<>();
+
+    @JsonProperty("dev_mode")
+    private boolean devMode = false;
 }
