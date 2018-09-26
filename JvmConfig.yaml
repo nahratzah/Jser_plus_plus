@@ -234,6 +234,11 @@ classes:
 
   java.lang.Boolean:
     dev_mode: false
+    var_type:
+      cxx: ::java::boolean_t
+      includes:
+        declaration:
+        - java/primitives.h
     fields:
       value:
         const: true
@@ -300,6 +305,11 @@ classes:
 
   java.lang.Character:
     dev_mode: false
+    var_type:
+      cxx: ::java::char_t
+      includes:
+        declaration:
+        - java/primitives.h
     fields:
       value:
         const: true
@@ -341,6 +351,11 @@ classes:
 
   java.lang.Byte:
     dev_mode: false
+    var_type:
+      cxx: ::java::byte_t
+      includes:
+        declaration:
+        - java/primitives.h
     fields:
       value:
         const: true
@@ -406,6 +421,11 @@ classes:
 
   java.lang.Short:
     dev_mode: false
+    var_type:
+      cxx: ::java::short_t
+      includes:
+        declaration:
+        - java/primitives.h
     fields:
       value:
         const: true
@@ -471,6 +491,11 @@ classes:
 
   java.lang.Integer:
     dev_mode: false
+    var_type:
+      cxx: ::java::int_t
+      includes:
+        declaration:
+        - java/primitives.h
     fields:
       value:
         const: true
@@ -536,6 +561,11 @@ classes:
 
   java.lang.Long:
     dev_mode: false
+    var_type:
+      cxx: ::java::long_t
+      includes:
+        declaration:
+        - java/primitives.h
     fields:
       value:
         const: true
@@ -593,6 +623,11 @@ classes:
 
   java.lang.Float:
     dev_mode: false
+    var_type:
+      cxx: ::java::float_t
+      includes:
+        declaration:
+        - java/primitives.h
     fields:
       value:
         const: true
@@ -658,6 +693,11 @@ classes:
 
   java.lang.Double:
     dev_mode: false
+    var_type:
+      cxx: ::java::double_t
+      includes:
+        declaration:
+        - java/primitives.h
     fields:
       value:
         const: true
