@@ -36,6 +36,21 @@ class array_intf
   }
 
  private:
+  auto _virtual___get_class__(::java::_tags::java::lang::Object _tag_) const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override final;
+
+  auto _virtual___get_class__(::java::_tags::java::io::Serializable _tag_) const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override final;
+
+  auto array_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>>;
+
+  virtual auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> = 0;
+
+  virtual auto array_class_(std::size_t dimensions) const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>>;
+
   virtual auto size_() const noexcept -> std::size_t = 0;
   virtual auto dimensions_() const noexcept -> std::size_t = 0;
 };
@@ -69,6 +84,12 @@ class array<::java::boolean_t> final
   }
 
  private:
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto array_class_(std::size_t dimensions) const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -95,6 +116,12 @@ class array<::java::byte_t> final
   }
 
  private:
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto array_class_(std::size_t dimensions) const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -121,6 +148,12 @@ class array<::java::short_t> final
   }
 
  private:
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto array_class_(std::size_t dimensions) const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -147,6 +180,12 @@ class array<::java::int_t> final
   }
 
  private:
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto array_class_(std::size_t dimensions) const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -173,6 +212,12 @@ class array<::java::long_t> final
   }
 
  private:
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto array_class_(std::size_t dimensions) const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -199,6 +244,12 @@ class array<::java::float_t> final
   }
 
  private:
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto array_class_(std::size_t dimensions) const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -225,6 +276,12 @@ class array<::java::double_t> final
   }
 
  private:
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto array_class_(std::size_t dimensions) const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -251,6 +308,12 @@ class array<::java::char_t> final
   }
 
  private:
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto array_class_(std::size_t dimensions) const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -267,7 +330,8 @@ class array<::java::lang::Object> final
       ::cycle_ptr::cycle_allocator<::std::allocator<::java::field_t<::java::lang::Object>>>>;
 
  public:
-  array() = default;
+  array() = delete;
+  explicit array(::java::lang::Class<::java::G::pack<>> element_type);
   ~array() noexcept override;
 
   JSER_INLINE auto size() const noexcept -> std::size_t {
@@ -279,10 +343,16 @@ class array<::java::lang::Object> final
   }
 
  private:
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
-  vector_type data_;
+  const ::java::lang::Class<::java::G::pack<>> element_type_;
+  vector_type data_{
+    ::cycle_ptr::cycle_allocator<::std::allocator<::java::field_t<::java::lang::Object>>>(*this)
+  };
 };
 
 } /* namespace java::_erased::java */

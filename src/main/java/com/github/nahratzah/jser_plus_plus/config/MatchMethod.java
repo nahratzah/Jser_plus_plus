@@ -45,8 +45,9 @@ public class MatchMethod {
         }
 
         private boolean testInherits(Set<String> types) {
-            return inherits.stream()
-                    .anyMatch(types::contains);
+            return inherits.isEmpty()
+                    || inherits.stream()
+                            .anyMatch(types::contains);
         }
     }
 }

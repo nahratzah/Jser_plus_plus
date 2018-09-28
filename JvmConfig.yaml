@@ -29,6 +29,7 @@ scan:
   - javax.transaction
   - javax.xml
 rules:
+# Implement Comparable<> for enums.
 - predicate:
     interface: false
     abstract: false
@@ -59,8 +60,64 @@ rules:
       implementation:
       - java/primitives.h
 
+# Add implemented __get_class__ method to all concrete classes.
+- predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.lang.Object
+  members:
+  - type: method
+    name: __get_class__
+    override: true
+    const: true
+    return:
+      # Change this to model with parameters.
+      java: java.lang.Class<?>
+    # XXX also add arguments for super type and interfaces!
+    body: |
+      using namespace ::std::string_literals;
+
+      return $boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(
+          ::java::allocate,
+          $u8String(model.name)$);
+
+# Add pure virtual __get_class__ method to all abstract classes and interfaces.
+- predicate:
+    interface: true
+    abstract: true
+    class: false
+  members:
+  - type: method
+    name: __get_class__
+    virtual: true
+    const: true
+    return:
+      # Change this to model with parameters.
+      java: java.lang.Class<?>
+
 
 classes:
+  java.lang.Object:
+    dev_mode: false
+    members:
+    - type: method
+      name: __get_class__
+      virtual: true
+      const: true
+      return:
+        # Change this to model with parameters.
+        java: java.lang.Class<?>
+      # XXX also add arguments for super type and interfaces!
+      body: |
+        using namespace ::std::string_literals;
+
+        return $boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(
+            ::java::allocate,
+            $u8String(model.name)$);
+
+
   java.util.Comparator<T>:
     dev_mode: false
     members:
