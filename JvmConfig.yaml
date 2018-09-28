@@ -2413,3 +2413,220 @@ classes:
         includes:
           declaration:
           - string
+
+
+  java.lang.Appendable:
+    dev_mode: false
+    members:
+    - type: method
+      name: append
+      arguments:
+      - name: c
+        type:
+          cxx: char
+      doc_string: |
+        Append a character to this.
+      body: |
+        append(::std::string_view(&c, 1));
+    - type: method
+      name: append
+      virtual: true
+      arguments:
+      - name: s
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      doc_string: |
+        Append string to this.
+    - type: method
+      name: append
+      arguments:
+      - name: s
+        type:
+          java: const java.lang.CharSequence
+      doc_string: |
+        Append string to this.
+      body: |
+        append(s->str());
+
+
+  java.lang.AbstractStringBuilder:
+    dev_mode: false
+    fields:
+      value:
+        visibility: public
+        type:
+          cxx: ::std::string
+          includes:
+            declaration:
+            - string
+    members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: s
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      initializers:
+        value: s.begin(), s.end()
+    - type: method
+      name: append
+      override: true
+      arguments:
+      - name: s
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      body: |
+        value.append(s.begin(), s.end());
+    - type: method
+      name: size
+      override: true
+      const: true
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return value.size();
+    - type: method
+      name: empty
+      override: true
+      const: true
+      return:
+        cxx: bool
+      body: |
+        return value.empty();
+    - type: method
+      name: at
+      override: true
+      const: true
+      arguments:
+      - name: index
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: char
+      body: |
+        return value.at(index);
+    - type: method
+      name: front
+      override: true
+      const: true
+      return:
+        cxx: char
+      body: |
+        return value.front();
+    - type: method
+      name: back
+      override: true
+      const: true
+      return:
+        cxx: char
+      body: |
+        return value.back();
+    - type: method
+      name: str
+      override: true
+      const: true
+      return:
+        cxx: ::std::string
+        includes:
+          declaration:
+          - string
+      body: |
+        return value;
+
+
+  java.lang.StringBuilder:
+    dev_mode: false
+    members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: s
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      initializers:
+        super: s
+    - type: method
+      name: substr
+      override: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: count
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: java.lang.CharSequence
+      body: |
+        return $boundTemplateType(java.({java.lang.StringBuilder}), "style=type, class")$(
+            ::java::allocate,
+            std::string_view(this->value).substr(pos, count));
+
+
+  java.lang.StringBuffer:
+    dev_mode: false
+    fields:
+      value:
+        visibility: private
+        # XXX implement field removal
+        rename: xxx_implement_remove_
+    members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: s
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      initializers:
+        super: s
+    - type: method
+      name: substr
+      override: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: count
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: java.lang.CharSequence
+      body: |
+        return $boundTemplateType(java.({java.lang.StringBuffer}), "style=type, class")$(
+            ::java::allocate,
+            std::string_view(this->value).substr(pos, count));
