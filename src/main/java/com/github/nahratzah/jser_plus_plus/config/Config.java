@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  *
@@ -103,11 +102,6 @@ public class Config {
         this.matchMethods = matchMethods;
     }
 
-    public Stream<MatchMethod> getMatchMethods(Class<?> c) {
-        return matchMethods.stream()
-                .filter(mm -> mm.getPredicate().test(c));
-    }
-
     public boolean isDevMode() {
         return devMode;
     }
@@ -122,7 +116,7 @@ public class Config {
     @JsonProperty(value = "classes")
     private Map<ClassName, CfgClass> classes = new HashMap<>();
 
-    @JsonProperty("match_methods")
+    @JsonProperty("rules")
     private List<MatchMethod> matchMethods = new ArrayList<>();
 
     @JsonProperty("dev_mode")

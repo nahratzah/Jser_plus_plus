@@ -1,12 +1,9 @@
 package com.github.nahratzah.jser_plus_plus.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Set;
 
 /**
  * Methods that are applied on classes or interfaces, selected by a predicate.
@@ -27,8 +24,7 @@ public class MatchMethod {
         return members;
     }
 
-    public static class Predicate implements java.util.function.Predicate<Class<?>> {
-        private static final Logger LOG = Logger.getLogger(Predicate.class.getName());
+    public static class Predicate {
         @JsonProperty("interface")
         private boolean interface_ = true;
         @JsonProperty("class")
@@ -38,37 +34,19 @@ public class MatchMethod {
         @JsonProperty("inherits")
         private List<String> inherits = new ArrayList<>();
 
-        @Override
-        public boolean test(Class<?> type) {
-            return testModifiers(type) && testInherits(type);
+        public boolean test(boolean isAbstract, boolean isInterface, boolean isEnum, Set<String> types) {
+            return testModifiers(isAbstract, isInterface, isEnum) && testInherits(types);
         }
 
-        private boolean testModifiers(Class<?> type) {
-            if (type.isEnum() || type.isArray()) return false;
-            if ((type.getModifiers() & Modifier.INTERFACE) != 0)
-                return interface_;
-            if ((type.getModifiers() & Modifier.ABSTRACT) != 0)
-                return abstract_;
+        private boolean testModifiers(boolean isAbstract, boolean isInterface, boolean isEnum) {
+            if (isAbstract) return abstract_;
+            if (isInterface) return interface_;
             return class_;
         }
 
-        private boolean testInherits(Class<?> type) {
-            final ClassLoader loader = Optional.ofNullable(type.getClassLoader()).orElseGet(ClassLoader::getSystemClassLoader);
-
+        private boolean testInherits(Set<String> types) {
             return inherits.stream()
-                    .allMatch(c -> {
-                        final Class<?> cls;
-                        try {
-                            cls = loader.loadClass(c);
-                        } catch (ClassNotFoundException ex) {
-                            LOG.log(Level.WARNING, "Unable to resolve class " + c, ex);
-                            return false;
-                        }
-
-                        final boolean result = cls.isAssignableFrom(type);
-                        LOG.log(Level.FINE, "({0}).isAssignableFrom({1}) -> {2}", new Object[]{cls, type, result});
-                        return result;
-                    });
+                    .anyMatch(types::contains);
         }
     }
 }

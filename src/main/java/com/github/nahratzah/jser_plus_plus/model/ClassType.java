@@ -95,6 +95,13 @@ public class ClassType implements JavaType {
         initTemplateArguments(ctx, classCfg, cTypeParameters, argRename);
         initClassAttributes(ctx, classCfg, argRename);
         initSuperTypes(ctx, classCfg, argRename);
+
+        classCfg.updateWithSuperTypes(
+                isAbstract(),
+                isInterface(),
+                isEnum(),
+                cfgType());
+
         initFields(ctx, classCfg, argRename, streamClass);
         initClassMembers(ctx, classCfg, argRename);
         initFriendTypes(ctx, classCfg, argRename);
@@ -749,7 +756,7 @@ public class ClassType implements JavaType {
             allResolvedMethods.forEach(m -> System.out.println("  " + m.getSelector()));
             System.out.println("--------------------------------------------------------");
             System.out.println("actually emitted methods:");
-            classMemberFunctions.forEach(m -> System.out.println("  " + m.getOverrideSelector(ctx)));
+            classMemberFunctions.forEach(m -> System.out.println("  " + m.getOverrideSelector(ctx).map(Object::toString).orElse(m.toString())));
             System.out.println("--------------------------------------------------------");
         }
 
@@ -962,6 +969,16 @@ public class ClassType implements JavaType {
      */
     public boolean isDevMode() {
         return devMode;
+    }
+
+    /**
+     * Retrieve the {@link ClassConfig.CfgSuperType CfgSuperType} for this type.
+     *
+     * @return Instance of {@link ClassConfig.CfgSuperType CfgSuperType} backed
+     * by this {@link ClassType ClassType}.
+     */
+    private ClassConfig.CfgSuperType cfgType() {
+        return new CfgType();
     }
 
     /**
@@ -1234,6 +1251,44 @@ public class ClassType implements JavaType {
 
         private final ClassType declaringClass;
         private final ClassMemberModel.OverrideSelector selector;
+    }
+
+    private class CfgType implements ClassConfig.CfgSuperType {
+        @Override
+        public String getName() {
+            return ClassType.this.getName();
+        }
+
+        @Override
+        public Optional<ClassConfig.CfgSuperType> getSuperClass() {
+            return Optional.ofNullable(ClassType.this.getSuperClass())
+                    .map(BoundTemplate.ClassBinding::getType)
+                    .map(ClassType::cfgType);
+        }
+
+        @Override
+        public List<ClassConfig.CfgSuperType> getInterfaces() {
+            return ClassType.this.getInterfaces().stream()
+                    .map(BoundTemplate.ClassBinding::getType)
+                    .map(ClassType::cfgType)
+                    .collect(Collectors.toList());
+        }
+
+        private ClassType classType() {
+            return ClassType.this;
+        }
+
+        @Override
+        public int hashCode() {
+            return classType().hashCode();
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (other == null) return false;
+            if (!Objects.equals(getClass(), other.getClass())) return false;
+            return classType() == ((CfgType) other).classType();
+        }
     }
 
     /**
