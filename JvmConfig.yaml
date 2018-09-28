@@ -28,6 +28,38 @@ scan:
   - javax.tools
   - javax.transaction
   - javax.xml
+rules:
+- predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.lang.Enum
+  members:
+  - type: method
+    name: compareTo
+    override: true
+    const: true
+    arguments:
+    - name: o
+      type:
+        # This is a bit of a hack; we would prefer something a little more elegant.
+        cxx: $boundTemplateType(java.({const $model.name$}), "style=type, class=param")$
+    return:
+      cxx: ::java::int_t
+      includes:
+        declaration:
+        - java/primitives.h
+    body: |
+      const ::java::int_t x = static_cast<::java::int_t>(value);
+      const ::java::int_t y = static_cast<::java::int_t>(o->value());
+
+      return (x < y ? -1 : (x > y ? 1 : 0));
+    includes:
+      implementation:
+      - java/primitives.h
+
+
 classes:
   java.util.Comparator<T>:
     dev_mode: false
