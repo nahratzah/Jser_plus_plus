@@ -750,6 +750,30 @@ JSER_INLINE auto operator!=(std::nullptr_t np, const basic_ref<Base, P>& b) noex
   return b != nullptr;
 }
 
+auto ref_eq_(::cycle_ptr::cycle_gptr<const object_intf> x,
+             ::cycle_ptr::cycle_gptr<const object_intf> y)
+-> bool;
+
+template<
+    template<typename> class XPtrImpl, typename XType,
+    template<typename> class YPtrImpl, typename YType>
+JSER_INLINE auto operator==(
+    const basic_ref<XPtrImpl, XType>& x,
+    const basic_ref<YPtrImpl, YType>& y)
+-> bool {
+  return ref_eq_(raw_objintf_ptr(x), raw_objintf_ptr(y));
+}
+
+template<
+    template<typename> class XPtrImpl, typename XType,
+    template<typename> class YPtrImpl, typename YType>
+JSER_INLINE auto operator!=(
+    const basic_ref<XPtrImpl, XType>& x,
+    const basic_ref<YPtrImpl, YType>& y)
+-> bool {
+  return !(x == y);
+}
+
 
 ///\brief Convert basic_ref to a variable reference.
 template<typename BasicRef>

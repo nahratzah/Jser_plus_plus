@@ -116,11 +116,20 @@ class _equal_helper {
   -> std::enable_if_t<
       std::is_convertible_v<decltype(std::declval<const X&>() == std::declval<const Y&>()), bool>
       && !std::is_convertible_v<const X, const_ref<java::lang::Object>>
-      && !std::is_convertible_v<const Y, const_ref<java::lang::Object>>,
+      && !std::is_convertible_v<const Y, const_ref<java::lang::Object>>
+      && !std::is_convertible_v<const X, ::cycle_ptr::cycle_gptr<const void>>
+      && !std::is_convertible_v<const Y, ::cycle_ptr::cycle_gptr<const void>>,
       _equal_helper&> {
     if (!success_) return *this;
     success_ = (x == y);
     return *this;
+  }
+
+  auto operator()(::cycle_ptr::cycle_gptr<const object_intf> x,
+                  ::cycle_ptr::cycle_gptr<const object_intf> y)
+  -> _equal_helper& {
+    if (!success_) return *this;
+    return eq_(x, y);
   }
 
  private:
