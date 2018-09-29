@@ -945,7 +945,7 @@ public class ClassType implements JavaType {
                         myFn.getUnderlyingMethod().isConst(),
                         myFn.getUnderlyingMethod().isFinal(),
                         myFn.getUnderlyingMethod().getNoexcept(),
-                        Visibility.PRIVATE, // Make actual virtual method private: it's only accessed via the untagged forwarding function.
+                        (covariantReturn ? Visibility.PRIVATE : myFn.getUnderlyingMethod().getVisibility()), // Make actual virtual method private: it's only accessed via the untagged forwarding function.
                         myFn.getUnderlyingMethod().getDocString()));
         });
     }

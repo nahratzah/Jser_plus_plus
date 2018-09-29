@@ -937,6 +937,8 @@ classes:
       name: empty
       override: true
       const: true
+      noexcept: true
+      covariant_return: false
       return:
         cxx: bool
       body: |
@@ -945,6 +947,8 @@ classes:
       name: size
       override: true
       const: true
+      noexcept: true
+      covariant_return: false
       return:
         cxx: ::std::size_t
         includes:
@@ -1157,6 +1161,7 @@ classes:
       virtual: true
       const: true
       noexcept: true
+      covariant_return: false
       return:
         cxx: bool
     - type: method
@@ -1164,6 +1169,7 @@ classes:
       virtual: true
       const: true
       noexcept: true
+      covariant_return: false
       return:
         cxx: ::std::size_t
         includes:
@@ -1384,6 +1390,7 @@ classes:
       override: true
       const: true
       noexcept: true
+      covariant_return: false
       return:
         cxx: bool
       body: |
@@ -1393,6 +1400,7 @@ classes:
       override: true
       const: true
       noexcept: true
+      covariant_return: false
       return:
         cxx: ::std::size_t
         includes:
@@ -1599,6 +1607,7 @@ classes:
       override: true
       const: true
       noexcept: true
+      covariant_return: false
       return:
         cxx: bool
       body: |
@@ -1608,6 +1617,7 @@ classes:
       override: true
       const: true
       noexcept: true
+      covariant_return: false
       return:
         cxx: ::std::size_t
         includes:
@@ -1952,11 +1962,10 @@ classes:
       name: empty
       const: true
       override: true
+      noexcept: true
+      covariant_return: false
       return:
-        cxx: ::std::size_t
-        includes:
-          declaration:
-          - cstddef
+        cxx: bool
       body: |
         return size() == 0u;
     # XXX implement to_string logic for objects
@@ -2188,6 +2197,7 @@ classes:
       override: true
       const: true
       noexcept: true
+      covariant_return: false
       return:
         cxx: bool
       body: |
@@ -2197,6 +2207,7 @@ classes:
       virtual: true
       const: true
       noexcept: true
+      covariant_return: false
       return:
         cxx: ::std::size_t
         includes:
@@ -2296,6 +2307,7 @@ classes:
     - type: method
       name: length
       const: true
+      noexcept: true
       return:
         cxx: ::std::size_t
         includes:
@@ -2310,6 +2322,8 @@ classes:
       name: size
       virtual: true
       const: true
+      noexcept: true
+      covariant_return: false
       return:
         cxx: ::std::size_t
         includes:
@@ -2322,6 +2336,8 @@ classes:
       name: empty
       virtual: true
       const: true
+      noexcept: true
+      covariant_return: false
       return:
         cxx: bool
       doc_string: |
@@ -2499,6 +2515,8 @@ classes:
       name: size
       override: true
       const: true
+      noexcept: true
+      covariant_return: false
       return:
         cxx: ::std::size_t
         includes:
@@ -2510,6 +2528,8 @@ classes:
       name: empty
       override: true
       const: true
+      noexcept: true
+      covariant_return: false
       return:
         cxx: bool
       body: |
