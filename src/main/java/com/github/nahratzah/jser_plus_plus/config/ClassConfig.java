@@ -6,10 +6,12 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,8 +58,48 @@ public class ClassConfig {
     }
 
     public void updateWithSuperTypes(boolean isAbstract, boolean isInterface, boolean isEnum, CfgSuperType thisType) {
-        rules = cfg.getRules().stream()
-                .filter(matchMethod -> matchMethod.getPredicate().test(isAbstract, isInterface, isEnum, thisType.getAllParentTypes().stream().map(x -> x.getName()).collect(Collectors.toSet())))
+        final Set<CfgSuperType> allParentTypes = thisType.getAllParentTypes();
+
+        // Decide on which rules have matching predicate.
+        final List<Rule> allMatchingRules = cfg.getRules().stream()
+                .filter(rule -> {
+                    return rule.getPredicate().test(
+                            isAbstract, isInterface, isEnum,
+                            allParentTypes.stream()
+                                    .map(CfgSuperType::getName)
+                                    .collect(Collectors.toSet()));
+                })
+                .collect(Collectors.toList());
+
+        // Decide which rules are supporessed by this type or any type this inherits from.
+        final Set<String> suppressedRulesFromTypes = Stream.of(
+                cfgClass.getLocalSuppressedRules().stream(),
+                cfgClass.getInheritSuppressedRules().stream(),
+                allParentTypes.stream()
+                        .map(parentType -> parentType.getName())
+                        .map(parentName -> {
+                            return cfg.getClasses().entrySet().stream()
+                                    .filter(cls -> Objects.equals(cls.getKey().getName(), parentName))
+                                    .map(Map.Entry::getValue)
+                                    .map(CfgClass::getInheritSuppressedRules)
+                                    .findAny()
+                                    .orElse(null);
+                        })
+                        .filter(Objects::nonNull)
+                        .flatMap(Collection::stream))
+                .flatMap(Function.identity())
+                .collect(Collectors.toSet());
+
+        // Decide which rules suppress other rules.
+        final Set<String> suppressedRulesFromRules = allMatchingRules.stream()
+                .map(rule -> rule.getSuppressedRules())
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+
+        // Filter out all suppressed rules.
+        rules = allMatchingRules.stream()
+                .filter(rule -> !suppressedRulesFromTypes.contains(rule.getId()))
+                .filter(rule -> !suppressedRulesFromRules.contains(rule.getId()))
                 .collect(Collectors.toList());
     }
 

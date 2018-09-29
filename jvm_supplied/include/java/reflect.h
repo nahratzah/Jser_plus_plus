@@ -3,6 +3,7 @@
 
 #include <java/inline.h>
 #include <java/null_error.h>
+#include <java/object_intf.h>
 #include <java/ref.h>
 #include <java/type_traits.h>
 #include <java/lang/Class.h>
@@ -31,6 +32,14 @@ class _reflect_ops {
     return ::java::lang::Class<::java::G::is_t<Tag, Types...>>(
         ::java::_direct(),
         erased_type::__class__());
+  }
+
+  template<template<typename> class PtrImpl, typename Type>
+  static JSER_INLINE auto hash_code(const basic_ref<PtrImpl, Type>& ref, std::size_t max_cascade)
+  -> ::std::size_t {
+    const ::java::object_intf*const objintf = raw_objintf(ref);
+    if (objintf == nullptr) return 0;
+    return objintf->__hash_code__(false, max_cascade);
   }
 };
 

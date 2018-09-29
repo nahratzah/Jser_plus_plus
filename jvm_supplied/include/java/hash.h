@@ -2,7 +2,9 @@
 #define JAVA_HASH_H
 
 #include <cstddef>
+#include <cstdint>
 #include <functional>
+#include <java/reflect.h>
 
 namespace java {
 
@@ -56,7 +58,7 @@ class fnv_hash {
   auto add_hashcode(std::size_t x) noexcept -> fnv_hash& {
     for (unsigned int i = 0; i < sizeof(std::size_t); ++i) {
       const unsigned int shift = (sizeof(std::size_t) - i - 1u) * 8u;
-      const unsigned std::uint8_t byte = ((x >> shift) & 0xffu);
+      const std::uint8_t byte = ((x >> shift) & 0xffu);
 
       h_ ^= byte;
       h_ *= fnv_prime(); // FNV-1a: multiply after XOR
@@ -69,23 +71,23 @@ class fnv_hash {
   ///\brief The offset basis for FNV hash.
   ///\returns A suitable offset basis, for the size of `std::size_t`.
   static constexpr auto offset_basis() noexcept -> std::size_t {
-    if constexpr(sizeof(std::size_t) == 32u) {
+    if constexpr(8u * sizeof(std::size_t) == 32u) {
       // 2166136261
       return std::size_t(0x811c9dc5ull) << 0;
-    } else if constexpr(sizeof(std::size_t) == 64u) {
+    } else if constexpr(8u * sizeof(std::size_t) == 64u) {
       // 14695981039346656037
       return std::size_t(0xcbf29ce484222325ull) << 0;
-    } else if constexpr(sizeof(std::size_t) == 128u) {
+    } else if constexpr(8u * sizeof(std::size_t) == 128u) {
       // 144066263297769815596495629667062367629
       return std::size_t(0x6c62272e07bb0142ull) << 64
           | std::size_t(0x62b821756295c58dull) << 0;
-    } else if constexpr(sizeof(std::size_t) == 256u) {
+    } else if constexpr(8u * sizeof(std::size_t) == 256u) {
       // 100029257958052580907070968620625704837092796014241193945225284501741471925557
       return std::size_t(0xdd268dbcaac55036ull) << 192
           | std::size_t(0x2d98c384c4e576ccull) << 128
           | std::size_t(0xc8b1536847b6bbb3ull) << 64
           | std::size_t(0x1023b4c8caee0535ull) << 0;
-    } else if constexpr(sizeof(std::size_t) == 512u) {
+    } else if constexpr(8u * sizeof(std::size_t) == 512u) {
       // 9659303129496669498009435400716310466090418745672637896108374329434462657994582932197716438449813051892206539805784495328239340083876191928701583869517785
       return std::size_t(0xb86db0b1171f4416ull) << 448
           | std::size_t(0xdca1e50f309990acull) << 384
@@ -95,7 +97,7 @@ class fnv_hash {
           | std::size_t(0x2ea79bc942dbe7ceull) << 128
           | std::size_t(0x182036415f56e34bull) << 64
           | std::size_t(0xac982aac4afe9fd9ull) << 0;
-    } else if constexpr(sizeof(std::size_t) == 1024u) {
+    } else if constexpr(8u * sizeof(std::size_t) == 1024u) {
       // 14197795064947621068722070641403218320880622795441933960878474914617582723252296732303717722150864096521202355549365628174669108571814760471015076148029755969804077320157692458563003215304957150157403644460363550505412711285966361610267868082893823963790439336411086884584107735010676915
       return std::size_t(0x5f7a76758ecc4dull) << 896
           | std::size_t(0x32e56d5a591028b7ull) << 832
@@ -118,36 +120,36 @@ class fnv_hash {
   ///\brief The prime for FNV hash.
   ///\returns A suitable prime, for the size of `std::size_t`.
   static constexpr auto fnv_prime() noexcept -> std::size_t {
-    if constexpr(sizeof(std::size_t) == 32u) {
+    if constexpr(8u * sizeof(std::size_t) == 32u) {
       // 16777619
       return std::size_t(1) << 24
-          + std::size_t(1) << 8
-          + 0x93u;
-    } else if constexpr(sizeof(std::size_t) == 64u) {
+          | std::size_t(1) << 8
+          | 0x93u;
+    } else if constexpr(8u * sizeof(std::size_t) == 64u) {
       // 1099511628211
       return std::size_t(1) << 40
-          + std::size_t(1) << 8
-          + 0xb3u;
-    } else if constexpr(sizeof(std::size_t) == 128u) {
+          | std::size_t(1) << 8
+          | 0xb3u;
+    } else if constexpr(8u * sizeof(std::size_t) == 128u) {
       // 309485009821345068724781371
       return std::size_t(1) << 88
-          + std::size_t(1) << 8
-          + 0x3bu;
-    } else if constexpr(sizeof(std::size_t) == 256u) {
+          | std::size_t(1) << 8
+          | 0x3bu;
+    } else if constexpr(8u * sizeof(std::size_t) == 256u) {
       // 374144419156711147060143317175368453031918731002211
       return std::size_t(1) << 168
-          + std::size_t(1) << 8
-          + 0x63u;
-    } else if constexpr(sizeof(std::size_t) == 512u) {
+          | std::size_t(1) << 8
+          | 0x63u;
+    } else if constexpr(8u * sizeof(std::size_t) == 512u) {
       // 35835915874844867368919076489095108449946327955754392558399825615420669938882575126094039892345713852759
       return std::size_t(1) << 344
-          + std::size_t(1) << 8
-          + 0x57u;
-    } else if constexpr(sizeof(std::size_t) == 1024u) {
+          | std::size_t(1) << 8
+          | 0x57u;
+    } else if constexpr(8u * sizeof(std::size_t) == 1024u) {
       // 5016456510113118655434598811035278955030765345404790744303017523831112055108147451509157692220295382716162651878526895249385292291816524375083746691371804094271873160484737966720260389217684476157468082573
       return std::size_t(1) << 680
-          + std::size_t(1) << 8
-          + 0x8du;
+          | std::size_t(1) << 8
+          | 0x8du;
     }
   }
 
@@ -217,11 +219,21 @@ class fnv_hash {
  */
 class hash_combiner {
  public:
-  constexpr hash_combiner() noexcept = default;
-
-  constexpr hash_combiner(std::size_t parent_hash_code) noexcept
-  : state_(parent_hash_code)
+  constexpr hash_combiner(std::size_t max_cascade) noexcept
+  : max_cascade_(max_cascade)
   {}
+
+  constexpr hash_combiner(std::size_t parent_hash_code, std::size_t max_cascade) noexcept
+  : state_(parent_hash_code),
+    max_cascade_(max_cascade)
+  {}
+
+  template<template<typename> class PtrImpl, typename Type>
+  auto operator<<(const basic_ref<PtrImpl, Type>& ref) noexcept -> hash_combiner& {
+    if (max_cascade_ > 0u)
+      state_.add_hashcode(_reflect_ops::hash_code(ref, max_cascade_ - 1u));
+    return *this;
+  }
 
   /**
    * \brief Permute the hash state based on a field.
@@ -268,7 +280,25 @@ class hash_combiner {
 
  private:
   fnv_hash state_;
+  std::size_t max_cascade_;
 };
+
+/**
+ * \brief Generate a nonce for hash functions.
+ * \details
+ * This random number is used in object_intf::__hash_code__ implementations
+ * to generate a constant that is used during hashing, in order to vary
+ * the hash code between runs of the program.
+ *
+ * By storing the value in a local static variable, the nonce will be
+ * constant during the run of the program.
+ *
+ * \attention
+ * This nonce is not cryptographically secure.
+ * (Although it will be on systems implementing `arc4random`.)
+ * \returns A random number.
+ */
+auto __hash_nonce() noexcept -> std::size_t;
 
 } /* namespace java */
 

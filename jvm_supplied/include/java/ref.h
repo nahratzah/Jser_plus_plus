@@ -784,6 +784,14 @@ noexcept(
   return result;
 }
 
+template<template<typename> class PtrImpl, typename Type>
+struct hash<::java::basic_ref<PtrImpl, Type>> {
+  JSER_INLINE auto operator()(const ::java::basic_ref<PtrImpl, Type>& ref) const noexcept
+  -> std::size_t {
+    return hash<::java::object_intf*>()(::java::raw_objintf(ref));
+  }
+};
+
 } /* namespace std */
 
 #endif /* JAVA_PTR_H */

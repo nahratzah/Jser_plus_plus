@@ -3,8 +3,10 @@ package com.github.nahratzah.jser_plus_plus.config;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Models the configuration of a particular class.
@@ -109,6 +111,36 @@ public class CfgClass {
         this.devMode = devMode;
     }
 
+    /**
+     * Rules that are suppressed in this class, but not in any classes derived
+     * from this class.
+     *
+     * @return {@link Rule#getId() Rule IDs} of all suppressed
+     * {@link Rule rules}.
+     */
+    public Set<String> getLocalSuppressedRules() {
+        return localSuppressedRules;
+    }
+
+    public void setLocalSuppressedRules(Set<String> localSuppressedRules) {
+        this.localSuppressedRules = localSuppressedRules;
+    }
+
+    /**
+     * Rules that are suppressed in this class and any classes derived from this
+     * class.
+     *
+     * @return {@link Rule#getId() Rule IDs} of all suppressed
+     * {@link Rule rules}.
+     */
+    public Set<String> getInheritSuppressedRules() {
+        return inheritSuppressedRules;
+    }
+
+    public void setInheritSuppressedRules(Set<String> inheritSuppressedRules) {
+        this.inheritSuppressedRules = inheritSuppressedRules;
+    }
+
     @JsonProperty("final")
     private Boolean finalVar;
     @JsonProperty("fields")
@@ -123,4 +155,8 @@ public class CfgClass {
     private String docString = null;
     @JsonProperty("dev_mode")
     private Boolean devMode = null;
+    @JsonProperty("suppress_local")
+    private Set<String> localSuppressedRules = new HashSet<>();
+    @JsonProperty("suppress")
+    private Set<String> inheritSuppressedRules = new HashSet<>();
 }

@@ -370,6 +370,14 @@ namespace java {
 
 template<template<class> class PtrImpl, typename Type>
 class basic_ref<PtrImpl, Type*> final {
+  // Be friend with raw_objintf function.
+  template<template<class> class FnPtrImpl, typename FnType>
+  friend auto raw_objintf(const basic_ref<FnPtrImpl, FnType>& r) noexcept
+  -> std::conditional_t<
+      std::is_const_v<FnType>,
+      const object_intf*,
+      object_intf*>;
+
  protected:
   using ptr_type = PtrImpl<::java::_erased::java::array_intf>;
 
@@ -410,6 +418,14 @@ class basic_ref<PtrImpl, Type*> final {
 
 template<template<class> class PtrImpl, typename Type>
 class basic_ref<PtrImpl, Type*const> final {
+  // Be friend with raw_objintf function.
+  template<template<class> class FnPtrImpl, typename FnType>
+  friend auto raw_objintf(const basic_ref<FnPtrImpl, FnType>& r) noexcept
+  -> std::conditional_t<
+      std::is_const_v<FnType>,
+      const object_intf*,
+      object_intf*>;
+
  protected:
   using ptr_type = PtrImpl<::java::_erased::java::array_intf>;
 

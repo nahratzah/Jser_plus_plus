@@ -498,7 +498,7 @@ public class ClassType implements JavaType {
 
     @Override
     public boolean isAbstract() {
-        return Modifier.isAbstract(this.c.getModifiers());
+        return Modifier.isAbstract(this.c.getModifiers()) && !isInterface();
     }
 
     @Override
