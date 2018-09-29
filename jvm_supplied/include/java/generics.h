@@ -331,7 +331,10 @@ struct is_satisfied_by_<X*, Y> {
 // Comparison with array.
 template<typename X, typename Y>
 struct is_satisfied_by_<X*, Y*>
-: is_satisfied_by_<X, Y>
+: std::conditional_t<
+    is_generic_v<X> && is_generic_v<Y>,
+    is_satisfied_by_<X, Y>,
+    std::is_same<X, Y>>
 {};
 
 // Comparison with argument pack on the left.

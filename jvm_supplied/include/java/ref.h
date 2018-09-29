@@ -333,6 +333,18 @@ JSER_INLINE auto raw_ptr(const basic_ref<PtrImpl, Type>& r)
   }
 }
 
+///\brief Gain access to the raw object_intf underlying all java types.
+///\param r A reference from which to extract the object_intf.
+///returns A pointer to object_intf. If r is a null-reference, nullptr will be returned.
+template<template<class> class PtrImpl, typename Type>
+JSER_INLINE auto raw_objintf(const basic_ref<PtrImpl, Type>& r) noexcept
+-> std::conditional_t<
+    std::is_const_v<Type>,
+    const object_intf*,
+    object_intf*> {
+  return r.p_.get();
+}
+
 
 ///\brief Internally used tag type, to support casting.
 struct _cast {};
@@ -379,6 +391,14 @@ class basic_ref final
   -> std::enable_if_t<
       ::java::type_traits::implements_tag_v<FnTag, typename _basic_ref_inheritance<FnType>::accessor_type>,
       cycle_ptr::cycle_gptr<typename FnTag::erased_type>>;
+
+  // Be friend with raw_objintf function.
+  template<template<class> class FnPtrImpl, typename FnType>
+  friend auto raw_objintf(const basic_ref<FnPtrImpl, FnType>& r) noexcept
+  -> std::conditional_t<
+      std::is_const_v<FnType>,
+      const object_intf*,
+      object_intf*>;
 
   // Be friend the cast function.
   template<typename FnRefType, template<class> class FnPtrImpl, typename FnType>

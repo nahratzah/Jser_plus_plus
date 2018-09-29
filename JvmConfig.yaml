@@ -65,14 +65,13 @@ rules:
     interface: false
     abstract: false
     class: true
-    inherits:
-    - java.lang.Object
   members:
   - type: method
     name: __get_class__
     override: true
     const: true
     covariant_return: false
+    visibility: private
     return:
       cxx: ::cycle_ptr::cycle_gptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=erased")$>
       includes:
@@ -80,51 +79,42 @@ rules:
         - cycle_ptr/cycle_ptr.h
     # XXX also add arguments for super type and interfaces!
     body: |
-      using namespace ::std::string_literals;
+      return $erasedType(model)$::__class__();
 
-      return ::java::raw_ptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=tag")$>($boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(
-          ::java::allocate,
-          $u8String(model.name)$));
-
-# Add pure virtual __get_class__ method to all abstract classes and interfaces.
+# Add pure virtual __class__ method to all abstract classes and interfaces.
 - predicate:
     interface: true
     abstract: true
-    class: false
+    class: true
   members:
   - type: method
-    name: __get_class__
-    virtual: true
-    const: true
-    covariant_return: false
+    name: __class__
+    static: true
+    visibility: private
     return:
       cxx: ::cycle_ptr::cycle_gptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=erased")$>
       includes:
         declaration:
         - cycle_ptr/cycle_ptr.h
+    body: |
+      using namespace ::std::string_literals;
+
+      return ::java::raw_ptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=tag")$>($boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(
+          ::java::allocate,
+          $u8String(model.name)$,
+          $if (model.superClass)$::java::get_class<$boundTemplateType(model.superClass, "style=type")$>()$else$nullptr$endif$,
+          ::std::initializer_list<$boundTemplateType(java.("java.lang.Class<?>"), "style=type, class")$>{
+            $model.interfaces: { intf | ::java::get_class<$boundTemplateType(intf, "style=type")$>()}; anchor, separator = ",\n"$
+          }));
+    includes:
+      implementation:
+      - java/reflect.h
+      - initializer_list
 
 
 classes:
   java.lang.Object:
     dev_mode: false
-    members:
-    - type: method
-      name: __get_class__
-      virtual: true
-      const: true
-      covariant_return: false
-      return:
-        cxx: ::cycle_ptr::cycle_gptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=erased")$>
-        includes:
-          declaration:
-          - cycle_ptr/cycle_ptr.h
-      # XXX also add arguments for super type and interfaces!
-      body: |
-        using namespace ::std::string_literals;
-
-        return ::java::raw_ptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=tag")$>($boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(
-            ::java::allocate,
-            $u8String(model.name)$));
 
 
   java.util.Comparator<T>:

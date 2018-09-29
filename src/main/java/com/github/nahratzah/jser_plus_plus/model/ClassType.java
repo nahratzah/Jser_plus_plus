@@ -389,7 +389,6 @@ public class ClassType implements JavaType {
         final Stream<String> memberIncludes;
         if (publicOnly) {
             fieldIncludes = getFields().stream()
-                    .filter(field -> field.isGetterFn() || field.isSetterFn())
                     .map(field -> field.getVarType())
                     .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
             memberIncludes = Stream.concat(
@@ -787,7 +786,8 @@ public class ClassType implements JavaType {
                     declare.getName(),
                     new Includes(
                             declare.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                            Stream.concat(declare.getUnderlyingMethod().getImplementationIncludes(), underlying.getDeclarationIncludes())
+                            Stream.of(declare.getUnderlyingMethod().getImplementationIncludes(), underlying.getDeclarationIncludes(), Stream.of("java/_maybe_cast.h"))
+                                    .flatMap(Function.identity())
                                     .collect(Collectors.toList())),
                     declare.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
                     Stream.concat(declare.getUnderlyingMethod().getImplementationTypes(), underlying.getDeclarationTypes()).collect(Collectors.toSet()),

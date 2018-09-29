@@ -3,8 +3,13 @@
 
 #include <java/serialization/encdec.h>
 
+namespace java::_erased::java::lang {
+class Class;
+} /* namespace java::_erased::java::lang */
+
 namespace java {
 
+class _reflect_ops;
 
 /**
  * \brief Tag a type as a java type.
@@ -13,14 +18,14 @@ namespace java {
  * For now, it just provides tagging.
  */
 class object_intf {
+  friend class ::java::_reflect_ops;
+
  public:
   virtual ~object_intf() noexcept = 0;
 
-#if 0 // Disable until we have proper config handling logic.
  private:
   virtual auto __get_class__() const
-  -> cycle_ptr::cycle_gptr<const java::serialization::stream::new_class_desc__class_desc> = 0;
-#endif
+  -> cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> = 0;
 };
 
 

@@ -104,7 +104,6 @@ public class EnumType extends ClassType {
 
     @Override
     public Stream<String> getImplementationIncludes(boolean publicOnly, Set<JavaType> recursionGuard) {
-        if (!recursionGuard.add(this)) return Stream.empty();
         return Stream.concat(
                 super.getImplementationIncludes(publicOnly, recursionGuard),
                 EXTRA_PUBLIC_INCLUDES.stream());

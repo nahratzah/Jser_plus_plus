@@ -407,7 +407,7 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
                 return config.classType.apply(arrayObj, config);
             if (config.accessorType)
                 throw new IllegalArgumentException("Arrays do not have accessors.");
-            return "::java::type_of<" + arrayObj + ">";
+            return "::java::type_of_t<" + arrayObj + ">";
         }
 
         @Override
