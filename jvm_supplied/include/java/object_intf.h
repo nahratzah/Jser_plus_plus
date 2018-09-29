@@ -45,9 +45,18 @@ class object_intf {
   virtual ~object_intf() noexcept = 0;
 
  private:
+  ///\brief Get the class of this object.
   virtual auto __get_class__() const
   -> cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> = 0;
 
+  /**
+   * \brief Retrieve the hash code for this object.
+   * \param specialized If set, the object_intf base case does not use the
+   * object address in the returned hash code.
+   * \param max_cascade Maximum cascade level. If this becomes 0, the hash code
+   * will not descend into member fields. This parameter exists to guard
+   * against data with infinite recursion.
+   */
   virtual auto __hash_code__(bool specialized, std::size_t max_cascade) const noexcept
   -> ::std::size_t;
 };
