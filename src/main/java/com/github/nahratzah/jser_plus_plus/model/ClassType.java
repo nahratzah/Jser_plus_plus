@@ -833,6 +833,7 @@ public class ClassType implements JavaType {
                     .distinct() // Eliminate duplicates, using the declaring class as support.
                     .map(Map.Entry::getValue) // Undo declaring class introduction.
                     .filter(fn -> fn.getUnderlyingMethod().isVirtual())
+                    .sorted(Comparator.comparing(fn -> fn.getDeclaringType()))
                     .collect(Collectors.toList());
 
             if (!myFn.getUnderlyingMethod().isPureVirtual()) {
