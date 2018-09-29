@@ -62,12 +62,12 @@ $renderDocString(model.docString)$
 class $model.className$$if (model.final)$ final$endif$
 $classInheritance(model)$
 {
-  friend class ::java::_reflect_ops;
 $if (model.friends)$
   $ model.friends
-    : {f| $if (f.unresolvedTemplateNames)$$templateLine(f.unresolvedTemplateNames)$$"\n"$$endif$friend $boundTemplateType(f, "style=erased")$;}$
-$endif$
+    : {f| $if (f.unresolvedTemplateNames)$$templateLine(f.unresolvedTemplateNames)$$"\n"$$endif$friend $boundTemplateType(f, "style=erased")$;}
+    ; anchor, separator = "\n"$
 
+$endif$
 $if (model.enum)$
   $model.className$() = delete; // Enum types are not default constructible.
   $model.className$(const $model.className$&) = delete;

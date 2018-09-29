@@ -94,12 +94,12 @@ public class Config {
         return new ClassConfig(this, cfgClass);
     }
 
-    public List<MatchMethod> getMatchMethods() {
-        return matchMethods;
+    public List<Rule> getRules() {
+        return rules;
     }
 
-    public void setMatchMethods(List<MatchMethod> matchMethods) {
-        this.matchMethods = matchMethods;
+    public void setRules(List<Rule> rules) {
+        this.rules = rules;
     }
 
     public boolean isDevMode() {
@@ -117,7 +117,7 @@ public class Config {
     private Map<ClassName, CfgClass> classes = new HashMap<>();
 
     @JsonProperty("rules")
-    private List<MatchMethod> matchMethods = new ArrayList<>();
+    private List<Rule> rules = new ArrayList<>();
 
     @JsonProperty("dev_mode")
     private boolean devMode = false;

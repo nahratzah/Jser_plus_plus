@@ -86,6 +86,11 @@ rules:
     interface: true
     abstract: true
     class: true
+  friends:
+  - cxx: ::java::_reflect_ops
+    includes:
+      declaration:
+      - java/object_intf.h
   members:
   - type: method
     name: __class__

@@ -33,8 +33,8 @@ public class ClassConfig {
     }
 
     public Stream<ClassMember> getClassMembers() {
-        requireNonNull(matchMethods, "ClassConfig.updateWithSuperTypes() has not been run!");
-        return Stream.concat(cfgClass.getMembers().stream(), matchMethods.stream());
+        requireNonNull(rules, "ClassConfig.updateWithSuperTypes() has not been run!");
+        return Stream.concat(cfgClass.getMembers().stream(), rules.stream().map(Rule::getMembers).flatMap(Collection::stream));
     }
 
     public CfgType getVarType() {
@@ -42,7 +42,9 @@ public class ClassConfig {
     }
 
     public List<CfgType> getFriends() {
-        return cfgClass.getFriends();
+        requireNonNull(rules, "ClassConfig.updateWithSuperTypes() has not been run!");
+        return Stream.concat(cfgClass.getFriends().stream(), rules.stream().map(Rule::getFriends).flatMap(Collection::stream))
+                .collect(Collectors.toList());
     }
 
     public String getDocString() {
@@ -54,10 +56,8 @@ public class ClassConfig {
     }
 
     public void updateWithSuperTypes(boolean isAbstract, boolean isInterface, boolean isEnum, CfgSuperType thisType) {
-        matchMethods = cfg.getMatchMethods().stream()
+        rules = cfg.getRules().stream()
                 .filter(matchMethod -> matchMethod.getPredicate().test(isAbstract, isInterface, isEnum, thisType.getAllParentTypes().stream().map(x -> x.getName()).collect(Collectors.toSet())))
-                .map(matchMethod -> matchMethod.getMembers())
-                .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
 
@@ -114,5 +114,5 @@ public class ClassConfig {
 
     private final Config cfg;
     private final CfgClass cfgClass;
-    private List<ClassMember> matchMethods;
+    private List<Rule> rules;
 }

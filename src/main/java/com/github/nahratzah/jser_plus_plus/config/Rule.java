@@ -10,9 +10,11 @@ import java.util.Set;
  *
  * @author ariane
  */
-public class MatchMethod {
+public class Rule {
     @JsonProperty("predicate")
     private Predicate predicate = new Predicate();
+    @JsonProperty("friends")
+    private List<CfgType> friends = new ArrayList<>();
     @JsonProperty("members")
     private List<ClassMember> members = new ArrayList<>();
 
@@ -20,8 +22,20 @@ public class MatchMethod {
         return predicate;
     }
 
+    public List<CfgType> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(List<CfgType> friends) {
+        this.friends = friends;
+    }
+
     public List<ClassMember> getMembers() {
         return members;
+    }
+
+    public void setMembers(List<ClassMember> members) {
+        this.members = members;
     }
 
     public static class Predicate {
