@@ -1,6 +1,10 @@
 #ifndef JAVA_REFLECT_H
 #define JAVA_REFLECT_H
 
+#include <cstddef>
+#include <tuple>
+#include <type_traits>
+#include <cycle_ptr/cycle_ptr.h>
 #include <java/inline.h>
 #include <java/null_error.h>
 #include <java/object_intf.h>
@@ -14,6 +18,13 @@ namespace java {
 ///\details This class simply exists, so that object_intf can declare it friend.
 class _reflect_ops {
  public:
+  static JSER_INLINE auto get_class(const object_intf& objintf)
+  -> ::java::lang::Class<::java::G::pack<>> {
+    return ::java::lang::Class<::java::G::pack<>>(
+        ::java::_direct(),
+        objintf.__get_class__());
+  }
+
   template<template<typename> class PtrImpl, typename Type>
   static JSER_INLINE auto get_class(const basic_ref<PtrImpl, Type>& ref)
   -> ::java::lang::Class<::java::G::extends<std::remove_const_t<Type>>> {
@@ -60,6 +71,71 @@ JSER_INLINE auto get_class()
 -> auto {
   return _reflect_ops::get_class(Type());
 }
+
+
+///\brief Helper for object equality.
+///\details Protects against infinite loops in the data structure,
+///at the cost of some memory and performance.
+class _equal_helper {
+ private:
+  using pair = std::tuple<
+      cycle_ptr::cycle_gptr<const object_intf>,
+      cycle_ptr::cycle_gptr<const object_intf>>;
+
+  struct hasher {
+    auto operator()(const pair& x) const noexcept -> std::size_t;
+  };
+
+ public:
+  auto fail() noexcept -> void {
+    success_ = false;
+  }
+
+  auto ok() const noexcept -> bool {
+    return success_;
+  }
+
+  template<
+      template<typename> class XPtr, typename XType,
+      template<typename> class YPtr, typename YType>
+  auto operator()(const basic_ref<XPtr, XType>& x, const basic_ref<YPtr, YType>& y)
+  -> _equal_helper& {
+    if (!success_) return *this;
+    return eq_(raw_objintf_ptr(x), raw_objintf_ptr(y));
+  }
+
+  template<template<typename> class XPtr, typename XType>
+  auto operator()(const basic_ref<XPtr, XType>& x, const object_intf& y)
+  -> _equal_helper& {
+    if (!success_) return *this;
+    return eq_(raw_objintf_ptr(x), y);
+  }
+
+  template<typename X, typename Y>
+  auto operator()(const X& x, const Y& y)
+  -> std::enable_if_t<
+      std::is_convertible_v<decltype(std::declval<const X&>() == std::declval<const Y&>()), bool>
+      && !std::is_convertible_v<const X, const_ref<java::lang::Object>>
+      && !std::is_convertible_v<const Y, const_ref<java::lang::Object>>,
+      _equal_helper&> {
+    if (!success_) return *this;
+    success_ = (x == y);
+    return *this;
+  }
+
+ private:
+  auto eq_(cycle_ptr::cycle_gptr<const object_intf> x,
+           cycle_ptr::cycle_gptr<const object_intf> y)
+  -> _equal_helper&;
+
+  auto eq_(cycle_ptr::cycle_gptr<const object_intf> x,
+           const object_intf& y)
+  -> _equal_helper&;
+
+  std::unordered_set<pair, hasher> visited_;
+  bool success_ = true;
+};
+
 
 } /* namespace java */
 

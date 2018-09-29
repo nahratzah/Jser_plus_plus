@@ -31,6 +31,8 @@ struct hash<const ::java::object_intf*>
 namespace java {
 
 
+class _equal_helper;
+
 /**
  * \brief Tag a type as a java type.
  * \details
@@ -40,6 +42,7 @@ namespace java {
 class object_intf {
   friend ::java::_reflect_ops;
   friend ::std::hash<object_intf*>;
+  friend ::java::_equal_helper;
 
  public:
   virtual ~object_intf() noexcept = 0;
@@ -49,6 +52,7 @@ class object_intf {
   virtual auto __get_class__() const
   -> cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> = 0;
 
+ protected:
   /**
    * \brief Retrieve the hash code for this object.
    * \param specialized If set, the object_intf base case does not use the
@@ -59,6 +63,17 @@ class object_intf {
    */
   virtual auto __hash_code__(bool specialized, std::size_t max_cascade) const noexcept
   -> ::std::size_t;
+
+  /**
+   * \brief Test for equality.
+   * \param specialized If set, the object_intf base case does not use the
+   * object address in the equality test.
+   * \param eq A helper object, that keeps track of visited object.
+   * It is used to deal with recursion, at the cost of some memory and
+   * performance.
+   */
+  virtual auto __equal__(bool specialized, _equal_helper& eq, const object_intf& other) const
+  -> void = 0;
 };
 
 

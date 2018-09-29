@@ -377,6 +377,12 @@ class basic_ref<PtrImpl, Type*> final {
       std::is_const_v<FnType>,
       const object_intf*,
       object_intf*>;
+  template<template<class> class FnPtrImpl, typename FnType>
+  friend auto raw_objintf_ptr(const basic_ref<FnPtrImpl, FnType>& r) noexcept
+  -> std::conditional_t<
+      std::is_const_v<FnType>,
+      ::cycle_ptr::cycle_gptr<const object_intf>,
+      ::cycle_ptr::cycle_gptr<object_intf>>;
 
  protected:
   using ptr_type = PtrImpl<::java::_erased::java::array_intf>;
@@ -425,6 +431,12 @@ class basic_ref<PtrImpl, Type*const> final {
       std::is_const_v<FnType>,
       const object_intf*,
       object_intf*>;
+  template<template<class> class FnPtrImpl, typename FnType>
+  friend auto raw_objintf_ptr(const basic_ref<FnPtrImpl, FnType>& r) noexcept
+  -> std::conditional_t<
+      std::is_const_v<FnType>,
+      ::cycle_ptr::cycle_gptr<const object_intf>,
+      ::cycle_ptr::cycle_gptr<object_intf>>;
 
  protected:
   using ptr_type = PtrImpl<::java::_erased::java::array_intf>;

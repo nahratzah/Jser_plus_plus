@@ -70,6 +70,72 @@ rules:
     includes:
       implementation:
       - java/hash.h
+  - type: method
+    name: __equal__
+    override: true
+    const: true
+    visibility: protected
+    covariant_return: false
+    arguments:
+    - name: specialized
+      type:
+        cxx: bool
+    - name: eq
+      type:
+        cxx: ::java::_equal_helper&
+        includes:
+          declaration:
+          - java/object_intf.h
+          implementation:
+          - java/reflect.h
+    - name: other
+      type:
+        cxx: const ::java::object_intf&
+        includes:
+          declaration:
+          - java/object_intf.h
+    body: |
+      eq(::java::_reflect_ops::get_class(*this), ::java::_reflect_ops::get_class(other));
+      if (!eq.ok()) return;
+
+      const $erasedType(model)$& casted_other = dynamic_cast<const $erasedType(model)$&>(other);
+      $erasedType(model)$::__equal_impl__(specialized, eq, *this, casted_other);
+    includes:
+      implementation:
+      - java/reflect.h
+  - type: method
+    name: __equal_impl__
+    static: true
+    visibility: protected
+    arguments:
+    - name: specialized
+      type:
+        cxx: bool
+    - name: eq
+      type:
+        cxx: _equal_helper&
+        includes:
+          declaration:
+          - java/object_intf.h
+          implementation:
+          - java/reflect.h
+    - name: x
+      type:
+        cxx: const $erasedType(model)$&
+    - name: y
+      type:
+        cxx: const $erasedType(model)$&
+    body: |
+      $if (model.superClass)$
+      $boundTemplateType(model.superClass, "style=erased")$::__equal_impl__(
+          $if (model.fields)$true$else$specialized$endif$, eq, x, y);
+      $elseif (!model.fields)$
+      if (!specialized && (&x != &y)) eq.fail();
+      $endif$
+      $model.fields: { f | $f.name$}: { fieldname | eq(x.$fieldname$, y.$fieldname$);}; anchor, separator = "\n"$
+    includes:
+      implementation:
+      - java/reflect.h
 
 # Implement Comparable<> for enums.
 - predicate:
@@ -162,6 +228,11 @@ rules:
 classes:
   java.lang.Object:
     dev_mode: false
+    friends:
+    - cxx: ::java::_equal_helper
+      includes:
+        declaration:
+        - java/object_intf.h
 
 
   java.util.Comparator<T>:
@@ -1095,6 +1166,8 @@ classes:
 
   java.lang.Class<Type>:
     dev_mode: false
+    suppress:
+    - java.lang.Object/equals_and_hashcode
     fields:
       name:
         type:
@@ -1264,6 +1337,74 @@ classes:
       includes:
         implementation:
         - java/hash.h
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        const $erasedType(model)$* casted_other = dynamic_cast<const $erasedType(model)$*>(&other);
+        if (casted_other == nullptr) {
+          eq.fail();
+        } else {
+          $erasedType(model)$::__equal_impl__(specialized, eq, *this, *casted_other);
+        }
+      includes:
+        implementation:
+        - java/reflect.h
+    - type: method
+      name: __equal_impl__
+      static: true
+      visibility: protected
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: _equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: x
+        type:
+          cxx: const $boundTemplateType(java.({java.util.List<E>}), "style=erased")$&
+      - name: y
+        type:
+          cxx: const $boundTemplateType(java.({java.util.List<E>}), "style=erased")$&
+      body: |
+        if (!std::equal(
+            x.begin(), x.end(),
+            y.begin(), y.end(),
+            [&eq](const auto& x, const auto& y) {
+              return eq(x, y).ok(); // By returning the `ok()` state, we can bail out early.
+            }))
+          eq.fail(); // This only makes a difference when there's a length difference.
+      includes:
+        implementation:
+        - java/reflect.h
+        - algorithm
     - type: method
       name: push_front
       virtual: true
@@ -2070,9 +2211,32 @@ classes:
           - cstddef
       body: |
         return this->$boundTemplateType(java.({java.util.List<E>}), "style=erased")$::__hash_code__(specialized, max_cascade);
-      includes:
-        implementation:
-        - java/hash.h
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        return this->$boundTemplateType(java.({java.util.List<E>}), "style=erased")$::__equal__(specialized, eq, other);
 
 
   java.util.AbstractSequentialList<E>:
@@ -2926,6 +3090,32 @@ classes:
         - type_traits
         - functional
     - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        eq(c, other);
+    - type: method
       name: empty
       override: true
       const: true
@@ -3052,6 +3242,32 @@ classes:
         implementation:
         - type_traits
         - functional
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        eq(list, other);
     - type: method
       name: push_front
       override: true
@@ -3274,6 +3490,32 @@ classes:
         implementation:
         - type_traits
         - functional
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        eq(c, other);
 
 
   java.util.Collections$SynchronizedList<E>:
@@ -3328,6 +3570,32 @@ classes:
         implementation:
         - type_traits
         - functional
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        eq(list, other);
 
 
   java.util.Collections$UnmodifiableCollection<E>:
@@ -3385,6 +3653,32 @@ classes:
         implementation:
         - type_traits
         - functional
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        eq(c, other);
 
 
   java.util.Collections$UnmodifiableList<E>:
@@ -3440,6 +3734,32 @@ classes:
         implementation:
         - type_traits
         - functional
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        eq(list, other);
 
 
   java.util.concurrent.CopyOnWriteArrayList<E>:
@@ -3469,6 +3789,32 @@ classes:
           - cstddef
       body: |
         return this->$boundTemplateType(java.({java.util.List<E>}), "style=erased")$::__hash_code__(specialized, max_cascade);
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        this->$boundTemplateType(java.({java.util.List<E>}), "style=erased")$::__equal__(specialized, eq, other);
 
 
   java.util.HashSet<E>:
