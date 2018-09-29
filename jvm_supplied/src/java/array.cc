@@ -9,14 +9,9 @@ namespace java::_erased::java {
 
 array_intf::~array_intf() noexcept = default;
 
-auto array_intf::_virtual___get_class__([[maybe_unused]] ::java::_tags::java::lang::Object _tag_) const
--> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  return array_class_();
-}
-
-auto array_intf::_virtual___get_class__([[maybe_unused]] ::java::_tags::java::io::Serializable _tag_) const
--> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  return array_class_();
+auto array_intf::__get_class__() const
+-> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> {
+  return ::java::raw_ptr<::java::_tags::java::lang::Class>(array_class_());
 }
 
 auto array_intf::array_class_() const

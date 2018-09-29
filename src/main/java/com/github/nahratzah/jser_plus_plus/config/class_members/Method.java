@@ -41,6 +41,8 @@ public class Method implements ClassMember {
     private Visibility visibility = Visibility.PUBLIC;
     @JsonProperty("doc_string")
     private String docString;
+    @JsonProperty("covariant_return")
+    private Boolean covariantReturn = null;
 
     public Method() {
         returnType = new CfgType("void", null);
@@ -213,5 +215,19 @@ public class Method implements ClassMember {
 
     public void setDocString(String docString) {
         this.docString = docString;
+    }
+
+    /**
+     * If the method uses a covariant return value.
+     *
+     * @return True if the method is to use a covariant return type. False if
+     * not. If the return is {@code null}, default rules apply.
+     */
+    public Boolean isCovariantReturn() {
+        return covariantReturn;
+    }
+
+    public void setCovariantReturn(boolean covariantReturn) {
+        this.covariantReturn = covariantReturn;
     }
 }

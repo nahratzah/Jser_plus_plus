@@ -203,6 +203,18 @@ public interface MethodModel {
     public String getDocString();
 
     /**
+     * Test if the method is to apply covariant return logic.
+     *
+     * Only virtual methods can have covariant returns.
+     *
+     * @return True if the method is to use covariant return logic. False
+     * otherwise.
+     */
+    public default boolean isCovariantReturn() {
+        return false;
+    }
+
+    /**
      * Retrieve the override selector of the method.
      *
      * @param ctx Lookup context to resolve classes.

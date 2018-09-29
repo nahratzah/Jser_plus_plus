@@ -253,6 +253,13 @@ public interface ClassMemberModel {
         }
 
         @Override
+        public boolean isCovariantReturn() {
+            final Boolean covariantReturn = method.isCovariantReturn();
+            if (covariantReturn != null) return isVirtual() && covariantReturn;
+            return isVirtual();
+        }
+
+        @Override
         public String getDocString() {
             return method.getDocString();
         }

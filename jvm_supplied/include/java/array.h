@@ -36,11 +36,8 @@ class array_intf
   }
 
  private:
-  auto _virtual___get_class__(::java::_tags::java::lang::Object _tag_) const
-  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override final;
-
-  auto _virtual___get_class__(::java::_tags::java::io::Serializable _tag_) const
-  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override final;
+  auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override final;
 
   auto array_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>>;

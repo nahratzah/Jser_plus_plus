@@ -69,8 +69,13 @@ public class ClassType implements JavaType {
             + "($declare.underlyingMethod.argumentNames: { name | ::std::forward<decltype($name$)>($name$)}; anchor, wrap, separator = \", \"$)"
             + "$if (needCast)$)$endif$;";
     private static final String FORWARDING_BODY_TEMPLATE = "return "
-            + "this->" + VIRTUAL_FUNCTION_PREFIX + "$fn.name$"
-            + "($[{$tagType(model)$()}, fn.underlyingMethod.argumentNames: { name | ::java::_maybe_cast(::std::forward<decltype($name$)>($name$))}]; anchor, wrap, separator = \", \"$)"
+            + "this->"
+            + "$if (covariantReturn)$" + VIRTUAL_FUNCTION_PREFIX + "$endif$"
+            + "$fn.name$"
+            + "("
+            + "$if (covariantReturn)$$tagType(model)$()$endif$$if (covariantReturn && fn.underlyingMethod.argumentNames)$, $endif$"
+            + "$fn.underlyingMethod.argumentNames: { name | ::java::_maybe_cast(::std::forward<decltype($name$)>($name$))}; anchor, wrap, separator = \", \"$"
+            + ")"
             + ";";
 
     public ClassType(Class<?> c) {
@@ -809,6 +814,29 @@ public class ClassType implements JavaType {
      */
     private void postProcessingApplyMyMethods(Context ctx, Map<ClassMemberModel.OverrideSelector, List<ClassMemberModel.OverrideSelector>> myMethods) {
         myMethods.forEach((myFn, overrideFns) -> {
+            final boolean covariantReturn = myFn.getUnderlyingMethod().isCovariantReturn();
+
+            // Ensure all methods agree on whether they use covariant return or not.
+            {
+                final List<ClassMemberModel.OverrideSelector> mismatchedCovariantReturnParents = overrideFns.stream()
+                        .filter(fn -> fn.getUnderlyingMethod().isCovariantReturn() != covariantReturn)
+                        .collect(Collectors.toList());
+                if (!mismatchedCovariantReturnParents.isEmpty()) {
+                    LOG.log(Level.INFO, "{0} has {1}", new Object[]{myFn, covariantReturn ? "covariant return" : "non-covariant return"});
+                    mismatchedCovariantReturnParents.forEach(fn -> {
+                        LOG.log(Level.SEVERE, "{0} has conflicting covariance with {1}", new Object[]{myFn, fn});
+                    });
+                    throw new IllegalStateException("Override method and overriden method have conflicting ideas about covariant returns.");
+                }
+            }
+
+            final boolean someReturnTypesMatch = !overrideFns.isEmpty()
+                    && overrideFns.stream()
+                            .anyMatch(fn -> Objects.equals(fn.getReturnType(), myFn.getReturnType()));
+            final boolean allReturnTypesMatch = !overrideFns.isEmpty()
+                    && overrideFns.stream()
+                            .allMatch(fn -> Objects.equals(fn.getReturnType(), myFn.getReturnType()));
+
             // If the method is not virtual, add it directly.
             if (!myFn.getUnderlyingMethod().isVirtual()) {
                 if (!overrideFns.isEmpty())
@@ -825,6 +853,7 @@ public class ClassType implements JavaType {
             final String forwardingBody = new ST(StCtx.BUILTINS, FORWARDING_BODY_TEMPLATE)
                     .add("model", this)
                     .add("fn", myFn)
+                    .add("covariantReturn", covariantReturn)
                     .render(Locale.ROOT);
 
             // Figure out which super methods we actually have to replace.
@@ -836,7 +865,7 @@ public class ClassType implements JavaType {
                     .sorted(Comparator.comparing(fn -> fn.getDeclaringType()))
                     .collect(Collectors.toList());
 
-            if (!myFn.getUnderlyingMethod().isPureVirtual()) {
+            if (!myFn.getUnderlyingMethod().isPureVirtual() && covariantReturn) {
                 // Emit overrideFns with extra tag argument.
                 superMethods.forEach(superMethod -> {
                     final ClassMemberModel.OverrideSelector overrideFn = superMethod.getErasedMethod(); // We're going to override the original function.
@@ -868,51 +897,56 @@ public class ClassType implements JavaType {
                 });
             }
 
-            // Emit normal forwarder for overrideFns.
-            classMemberFunctions.add(new MethodModel.SimpleMethodModel(
-                    this,
-                    myFn.getName(),
-                    new Includes(
-                            myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                            singletonList("java/_maybe_cast.h")),
-                    myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
-                    myFn.getUnderlyingMethod().getImplementationTypes().collect(Collectors.toSet()),
-                    myFn.getReturnType(),
-                    myFn.getArguments(),
-                    myFn.getUnderlyingMethod().getArgumentNames(),
-                    forwardingBody,
-                    myFn.getUnderlyingMethod().isStatic(),
-                    false, // Forwarding function is never virtual, so we can apply method hiding.
-                    false, // Forwarding function is never pure virtual.
-                    false, // Forwarding function is not overriding, but hiding instead.
-                    myFn.getUnderlyingMethod().isConst(),
-                    false, // Forwarding function is not final, because it is not virtual.
-                    myFn.getUnderlyingMethod().getNoexcept(),
-                    myFn.getUnderlyingMethod().getVisibility(),
-                    myFn.getUnderlyingMethod().getDocString()));
+            if (covariantReturn && (!allReturnTypesMatch || overrideFns.size() > 1)) {
+                // Emit normal forwarder for overrideFns.
+                // We only emit this if the function is covariant return and either has mismatched return types, or would be ambiguous.
+                // XXX overrideFns.size() > 1 does not do the correct job of figuring out ambiguity: it trips too often.
+                classMemberFunctions.add(new MethodModel.SimpleMethodModel(
+                        this,
+                        myFn.getName(),
+                        new Includes(
+                                myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
+                                singletonList("java/_maybe_cast.h")),
+                        myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
+                        myFn.getUnderlyingMethod().getImplementationTypes().collect(Collectors.toSet()),
+                        myFn.getReturnType(),
+                        myFn.getArguments(),
+                        myFn.getUnderlyingMethod().getArgumentNames(),
+                        forwardingBody,
+                        myFn.getUnderlyingMethod().isStatic(),
+                        false, // Forwarding function is never virtual, so we can apply method hiding.
+                        false, // Forwarding function is never pure virtual.
+                        false, // Forwarding function is not overriding, but hiding instead.
+                        myFn.getUnderlyingMethod().isConst(),
+                        false, // Forwarding function is not final, because it is not virtual.
+                        myFn.getUnderlyingMethod().getNoexcept(),
+                        myFn.getUnderlyingMethod().getVisibility(),
+                        myFn.getUnderlyingMethod().getDocString()));
+            }
 
             // Emit actual virtual method.
-            classMemberFunctions.add(new MethodModel.SimpleMethodModel(
-                    this,
-                    VIRTUAL_FUNCTION_PREFIX + myFn.getName(),
-                    new Includes(
-                            myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                            myFn.getUnderlyingMethod().getImplementationIncludes().collect(Collectors.toList())),
-                    myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
-                    myFn.getUnderlyingMethod().getImplementationTypes().collect(Collectors.toSet()),
-                    myFn.getReturnType(),
-                    Stream.concat(Stream.of(myTag), myFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch.
-                    Stream.concat(Stream.of("_tag_"), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type.
-                    myFn.getUnderlyingMethod().getBody(),
-                    myFn.getUnderlyingMethod().isStatic(),
-                    myFn.getUnderlyingMethod().isVirtual(),
-                    myFn.getUnderlyingMethod().isPureVirtual(),
-                    false, // XXX: *do* override if we have the same return type, thus not requiring conversion.
-                    myFn.getUnderlyingMethod().isConst(),
-                    myFn.getUnderlyingMethod().isFinal(),
-                    myFn.getUnderlyingMethod().getNoexcept(),
-                    Visibility.PRIVATE, // Make actual virtual method private: it's only accessed via the untagged forwarding function.
-                    myFn.getUnderlyingMethod().getDocString()));
+            if (covariantReturn || !myFn.getUnderlyingMethod().isPureVirtual() || !allReturnTypesMatch)
+                classMemberFunctions.add(new MethodModel.SimpleMethodModel(
+                        this,
+                        (covariantReturn ? VIRTUAL_FUNCTION_PREFIX : "") + myFn.getName(),
+                        new Includes(
+                                myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
+                                myFn.getUnderlyingMethod().getImplementationIncludes().collect(Collectors.toList())),
+                        myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
+                        myFn.getUnderlyingMethod().getImplementationTypes().collect(Collectors.toSet()),
+                        myFn.getReturnType(),
+                        Stream.concat((covariantReturn ? Stream.of(myTag) : Stream.empty()), myFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch, iff covariant.
+                        Stream.concat((covariantReturn ? Stream.of("_tag_") : Stream.empty()), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type, iff covariant.
+                        myFn.getUnderlyingMethod().getBody(),
+                        myFn.getUnderlyingMethod().isStatic(),
+                        myFn.getUnderlyingMethod().isVirtual(),
+                        myFn.getUnderlyingMethod().isPureVirtual(),
+                        !covariantReturn && (myFn.getUnderlyingMethod().isOverride() || someReturnTypesMatch),
+                        myFn.getUnderlyingMethod().isConst(),
+                        myFn.getUnderlyingMethod().isFinal(),
+                        myFn.getUnderlyingMethod().getNoexcept(),
+                        Visibility.PRIVATE, // Make actual virtual method private: it's only accessed via the untagged forwarding function.
+                        myFn.getUnderlyingMethod().getDocString()));
         });
     }
 

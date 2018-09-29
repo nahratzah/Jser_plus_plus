@@ -72,16 +72,19 @@ rules:
     name: __get_class__
     override: true
     const: true
+    covariant_return: false
     return:
-      # Change this to model with parameters.
-      java: java.lang.Class<?>
+      cxx: ::cycle_ptr::cycle_gptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=erased")$>
+      includes:
+        declaration:
+        - cycle_ptr/cycle_ptr.h
     # XXX also add arguments for super type and interfaces!
     body: |
       using namespace ::std::string_literals;
 
-      return $boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(
+      return ::java::raw_ptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=tag")$>($boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(
           ::java::allocate,
-          $u8String(model.name)$);
+          $u8String(model.name)$));
 
 # Add pure virtual __get_class__ method to all abstract classes and interfaces.
 - predicate:
@@ -93,9 +96,12 @@ rules:
     name: __get_class__
     virtual: true
     const: true
+    covariant_return: false
     return:
-      # Change this to model with parameters.
-      java: java.lang.Class<?>
+      cxx: ::cycle_ptr::cycle_gptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=erased")$>
+      includes:
+        declaration:
+        - cycle_ptr/cycle_ptr.h
 
 
 classes:
@@ -106,16 +112,19 @@ classes:
       name: __get_class__
       virtual: true
       const: true
+      covariant_return: false
       return:
-        # Change this to model with parameters.
-        java: java.lang.Class<?>
+        cxx: ::cycle_ptr::cycle_gptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=erased")$>
+        includes:
+          declaration:
+          - cycle_ptr/cycle_ptr.h
       # XXX also add arguments for super type and interfaces!
       body: |
         using namespace ::std::string_literals;
 
-        return $boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(
+        return ::java::raw_ptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=tag")$>($boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(
             ::java::allocate,
-            $u8String(model.name)$);
+            $u8String(model.name)$));
 
 
   java.util.Comparator<T>:
@@ -2722,3 +2731,22 @@ classes:
         \returns True if the element is present in the set. False otherwise.
       body: |
         return find(std::move(e)) != end();
+
+
+  java.util.HashSet<E>:
+    dev_mode: true
+    doc_string: |
+      \brief Unordered set.
+      \details This implementation is based on std::unordered_set.
+#    fields:
+#      data_:
+#        type:
+#          cxx: ::std::unordered_set<$boundTemplateType(java.({E}), "style=type, class")$, ::std::hash<$boundTemplateType(java.({const E}), "style=type, class")$>, ::std::equal_to<$boundTemplateType(java.({const E}), "style=type, class")$>, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>>
+#          includes:
+#            declaration:
+#            - unordered_set
+#            - functional
+#        default: |
+#          ::std::hash<$boundTemplateType(java.({const E}), "style=type, class")$>(),
+#          ::std::equal_to<$boundTemplateType(java.({const E}), "style=type, class")$>(),
+#          ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
