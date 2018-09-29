@@ -3822,15 +3822,56 @@ classes:
     doc_string: |
       \brief Unordered set.
       \details This implementation is based on std::unordered_set.
-#    fields:
-#      data_:
-#        type:
-#          cxx: ::std::unordered_set<$boundTemplateType(java.({E}), "style=type, class")$, ::std::hash<$boundTemplateType(java.({const E}), "style=type, class")$>, ::std::equal_to<$boundTemplateType(java.({const E}), "style=type, class")$>, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>>
-#          includes:
-#            declaration:
-#            - unordered_set
-#            - functional
-#        default: |
-#          ::std::hash<$boundTemplateType(java.({const E}), "style=type, class")$>(),
-#          ::std::equal_to<$boundTemplateType(java.({const E}), "style=type, class")$>(),
-#          ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
+    fields:
+      data_:
+        type:
+          cxx: ::std::unordered_set<$boundTemplateType(java.({E}), "style=type, class")$, ::std::hash<$boundTemplateType(java.({const E}), "style=type, class")$>, ::std::equal_to<$boundTemplateType(java.({const E}), "style=type, class")$>, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>>
+          includes:
+            declaration:
+            - unordered_set
+            - functional
+        visibility: private
+        default: 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
+    members:
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.begin());
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.end());
+    - type: method
+      name: begin
+      const: true
+      override: true
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::forward_iterator<const $boundTemplateType(java.("E"), "style=type")$>(data_.begin());
+    - type: method
+      name: end
+      const: true
+      override: true
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::forward_iterator<const $boundTemplateType(java.("E"), "style=type")$>(data_.end());
