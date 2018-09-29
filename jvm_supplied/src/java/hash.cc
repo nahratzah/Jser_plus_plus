@@ -20,7 +20,7 @@ struct has_arc4random_buf_
 // Because Buf and Size are template arguments, SFINAE applies
 // and the lack of arc4random_buf() is not an error.
 template<typename Buf, typename Size>
-struct has_arc4random_buf_<Buf, Size, std::void_t<decltype(arc4random(std::declval<Buf>(), std::declval<Size>()))>>
+struct has_arc4random_buf_<Buf, Size, std::void_t<decltype(arc4random_buf(std::declval<Buf>(), std::declval<Size>()))>>
 : std::true_type
 {};
 
