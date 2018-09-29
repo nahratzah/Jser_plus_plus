@@ -2630,3 +2630,95 @@ classes:
         return $boundTemplateType(java.({java.lang.StringBuffer}), "style=type, class")$(
             ::java::allocate,
             std::string_view(this->value).substr(pos, count));
+
+
+  java.util.Set<E>:
+    dev_mode: false
+    doc_string: |
+      \brief Java Set interface.
+      \details Models a set.
+    members:
+    - type: method
+      name: contains
+      virtual: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: bool
+      doc_string: |
+        \brief Test if element is present in this set.
+        \param e An element to find.
+        \returns True if the element is present in the set. False otherwise.
+    - type: method
+      name: find
+      virtual: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      doc_string: |
+        \brief Find element in the set.
+        \param e An element to find.
+        \returns Iterator to the element, or if the element is absent, an iterator to end.
+    - type: method
+      name: find
+      virtual: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      doc_string: |
+        \brief Find element in the set.
+        \param e An element to find.
+        \returns Iterator to the element, or if the element is absent, an iterator to end.
+    - type: method
+      name: erase
+      virtual: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      doc_string: |
+        \brief Remove element from the set.
+        \param e The element to remove.
+        \returns Number of items removed from the set.
+
+
+  java.util.AbstractSet<E>:
+    dev_mode: false
+    members:
+    - type: method
+      name: contains
+      override: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: bool
+      doc_string: |
+        \brief Test if element is present in this set.
+        \param e An element to find.
+        \returns True if the element is present in the set. False otherwise.
+      body: |
+        return find(std::move(e)) != end();
