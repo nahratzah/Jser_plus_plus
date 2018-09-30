@@ -1301,16 +1301,20 @@ classes:
         interfaces: $boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=type, class")$(::java::allocate, interfaces.begin(), interfaces.end())
         allTypes: ::java::allocate
       body: |
-        // We are part of our own allTypes set.
-        allTypes->insert($boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(::java::_direct(), this->shared_from_this(this)));
+        // While we're part of our own type set, we can't add ourselves.
+        // Because we're still under construction, thus the `shared_from_this` mechanic is unavailable.
 
-        // Add super types' allTypes set.
-        if (this->super) allTypes->insert(this->super->allTypes()->begin(), this->super->allTypes()->end());
+        // Add super type and its allTypes set.
+        if (this->super) {
+          allTypes->insert(this->super);
+          allTypes->insert(this->super->allTypes()->begin(), this->super->allTypes()->end());
+        }
 
         // Add each interface's allTypes set.
         std::for_each(
             this->interfaces->begin(), this->interfaces->end(),
             [this](const auto& i) {
+              allTypes->insert(i);
               allTypes->insert(i->allTypes()->begin(), i->allTypes()->end());
             });
       includes:
@@ -1331,8 +1335,9 @@ classes:
         \return True if the argument class is derived from this class, false otherwise.
         \throws ::java::null_error if \p cls is a null-reference.
       body: |
-        return cls->allTypes()->contains(
-            ::java::const_ref<$boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$>(::java::_direct(), this->shared_from_this(this)));
+        const auto this_ptr = ::java::const_ref<$boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$>(::java::_direct(), this->shared_from_this(this));
+        return this_ptr == cls // We must test same-class outside of the allTypes() set, since we could not add this during our constructor.
+            || cls->allTypes()->contains(this_ptr);
     - type: method
       name: isInstance
       const: true
