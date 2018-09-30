@@ -12,6 +12,7 @@
 #include <cycle_ptr/allocator.h>
 #include <cycle_ptr/cycle_ptr.h>
 #include <java/io/Serializable.h>
+#include <java/lang/Cloneable.h>
 #include <java/lang/Object.h>
 
 namespace java::_erased::java {
@@ -22,7 +23,8 @@ namespace java::_erased::java {
  */
 class array_intf
 : public ::java::_erased::java::lang::Object,
-  public virtual ::java::_erased::java::io::Serializable
+  public virtual ::java::_erased::java::io::Serializable,
+  public virtual ::java::_erased::java::lang::Cloneable
 {
  public:
   virtual ~array_intf() noexcept override = 0;
