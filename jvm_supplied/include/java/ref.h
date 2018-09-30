@@ -455,7 +455,7 @@ class basic_ref final
 
   template<typename... Args, typename = std::void_t<decltype(std::declval<::java::_constructor<Type>>()(std::declval<Args>()...))>>
   explicit JSER_INLINE basic_ref([[maybe_unused]] allocate_t a, Args&&... args)
-  : basic_ref(_direct(), ::java::_constructor<Type>()(std::forward<Args>(args)...))
+  : basic_ref(_direct(), ::java::_constructor<std::remove_const_t<Type>>()(std::forward<Args>(args)...))
   {}
 
  private:
