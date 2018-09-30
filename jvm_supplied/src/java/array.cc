@@ -2,7 +2,10 @@
 #include <java/serialization/encdec.h>
 #include <codecvt>
 #include <locale>
+#include <java/reflect.h>
 #include <java/lang/Class.h>
+#include <java/lang/Object.h>
+#include <java/io/Serializable.h>
 
 namespace java::_erased::java {
 
@@ -34,7 +37,11 @@ auto array_intf::array_class_(std::size_t dimensions) const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(utf16_element_class_name, dimensions)));
+      to_string(field_descriptor(utf16_element_class_name, dimensions)),
+      ::java::get_class<::java::lang::Object>(),
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
+        ::java::get_class<::java::io::Serializable>()
+      });
 }
 
 
@@ -54,7 +61,9 @@ auto array<::java::boolean_t>::element_class_() const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::bool_type)));
+      to_string(field_descriptor(primitive_type::bool_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
 }
 
 auto array<::java::boolean_t>::array_class_(std::size_t dimensions) const
@@ -63,7 +72,11 @@ auto array<::java::boolean_t>::array_class_(std::size_t dimensions) const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::bool_type, dimensions)));
+      to_string(field_descriptor(primitive_type::bool_type, dimensions)),
+      ::java::get_class<::java::lang::Object>(),
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
+        ::java::get_class<::java::io::Serializable>()
+      });
 }
 
 
@@ -83,7 +96,9 @@ auto array<::java::byte_t>::element_class_() const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::byte_type)));
+      to_string(field_descriptor(primitive_type::byte_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
 }
 
 auto array<::java::byte_t>::array_class_(std::size_t dimensions) const
@@ -92,7 +107,11 @@ auto array<::java::byte_t>::array_class_(std::size_t dimensions) const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::byte_type, dimensions)));
+      to_string(field_descriptor(primitive_type::byte_type, dimensions)),
+      ::java::get_class<::java::lang::Object>(),
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
+        ::java::get_class<::java::io::Serializable>()
+      });
 }
 
 
@@ -112,7 +131,9 @@ auto array<::java::short_t>::element_class_() const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::short_type)));
+      to_string(field_descriptor(primitive_type::short_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
 }
 
 auto array<::java::short_t>::array_class_(std::size_t dimensions) const
@@ -121,7 +142,11 @@ auto array<::java::short_t>::array_class_(std::size_t dimensions) const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::short_type, dimensions)));
+      to_string(field_descriptor(primitive_type::short_type, dimensions)),
+      ::java::get_class<::java::lang::Object>(),
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
+        ::java::get_class<::java::io::Serializable>()
+      });
 }
 
 
@@ -141,7 +166,9 @@ auto array<::java::int_t>::element_class_() const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::int_type)));
+      to_string(field_descriptor(primitive_type::int_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
 }
 
 auto array<::java::int_t>::array_class_(std::size_t dimensions) const
@@ -150,7 +177,11 @@ auto array<::java::int_t>::array_class_(std::size_t dimensions) const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::int_type, dimensions)));
+      to_string(field_descriptor(primitive_type::int_type, dimensions)),
+      ::java::get_class<::java::lang::Object>(),
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
+        ::java::get_class<::java::io::Serializable>()
+      });
 }
 
 
@@ -170,7 +201,9 @@ auto array<::java::long_t>::element_class_() const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::long_type)));
+      to_string(field_descriptor(primitive_type::long_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
 }
 
 auto array<::java::long_t>::array_class_(std::size_t dimensions) const
@@ -179,7 +212,11 @@ auto array<::java::long_t>::array_class_(std::size_t dimensions) const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::long_type, dimensions)));
+      to_string(field_descriptor(primitive_type::long_type, dimensions)),
+      ::java::get_class<::java::lang::Object>(),
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
+        ::java::get_class<::java::io::Serializable>()
+      });
 }
 
 
@@ -199,7 +236,9 @@ auto array<::java::float_t>::element_class_() const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::float_type)));
+      to_string(field_descriptor(primitive_type::float_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
 }
 
 auto array<::java::float_t>::array_class_(std::size_t dimensions) const
@@ -208,7 +247,11 @@ auto array<::java::float_t>::array_class_(std::size_t dimensions) const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::float_type, dimensions)));
+      to_string(field_descriptor(primitive_type::float_type, dimensions)),
+      ::java::get_class<::java::lang::Object>(),
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
+        ::java::get_class<::java::io::Serializable>()
+      });
 }
 
 
@@ -228,7 +271,9 @@ auto array<::java::double_t>::element_class_() const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::double_type)));
+      to_string(field_descriptor(primitive_type::double_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
 }
 
 auto array<::java::double_t>::array_class_(std::size_t dimensions) const
@@ -237,7 +282,11 @@ auto array<::java::double_t>::array_class_(std::size_t dimensions) const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::double_type, dimensions)));
+      to_string(field_descriptor(primitive_type::double_type, dimensions)),
+      ::java::get_class<::java::lang::Object>(),
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
+        ::java::get_class<::java::io::Serializable>()
+      });
 }
 
 
@@ -257,7 +306,9 @@ auto array<::java::char_t>::element_class_() const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::char_type)));
+      to_string(field_descriptor(primitive_type::char_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
 }
 
 auto array<::java::char_t>::array_class_(std::size_t dimensions) const
@@ -266,7 +317,11 @@ auto array<::java::char_t>::array_class_(std::size_t dimensions) const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::char_type, dimensions)));
+      to_string(field_descriptor(primitive_type::char_type, dimensions)),
+      ::java::get_class<::java::lang::Object>(),
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
+        ::java::get_class<::java::io::Serializable>()
+      });
 }
 
 
