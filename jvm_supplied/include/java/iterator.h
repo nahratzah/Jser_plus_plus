@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <type_traits>
-#include <java/lang/Object.h>
+#include <java/fwd/java/lang/Object.h>
 #include <java/ref.h>
 
 namespace java::type_traits {
@@ -1331,5 +1331,7 @@ inline auto operator!=(const bidirectional_iterator<X>& x, const bidirectional_i
 
 
 } /* namespace java */
+
+#include <java/lang/Object.h>
 
 #endif /* JAVA_ITERATOR_H */
