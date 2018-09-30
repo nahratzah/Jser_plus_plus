@@ -36,7 +36,7 @@ class _reflect_ops {
   }
 
   template<typename Tag, typename... Types>
-  static JSER_INLINE auto get_class([[maybe_unused]] ::java::G::is_t<Tag, Types...> type)
+  static JSER_INLINE auto noarg_get_class([[maybe_unused]] ::java::G::is_t<Tag, Types...> type)
   -> ::java::lang::Class<::java::G::is_t<Tag, Types...>> {
     using erased_type = typename Tag::erased_type;
 
@@ -69,7 +69,7 @@ JSER_INLINE auto get_class(const basic_ref<PtrImpl, Type>& ref)
 template<typename Type>
 JSER_INLINE auto get_class()
 -> auto {
-  return _reflect_ops::get_class(Type());
+  return _reflect_ops::noarg_get_class(typename ::java::maybe_unpack_type_<Type>::type());
 }
 
 
