@@ -886,7 +886,7 @@ public class ClassType implements JavaType {
                             myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
                             overrideFn.getReturnType(),
                             Stream.concat(Stream.of(overrideTag), overrideFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch.
-                            Stream.concat(Stream.of((String) null), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type.
+                            Stream.concat(Stream.of("_tag_"), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type.
                             forwardingBody, // Apply forwarding rule.
                             overrideFn.getUnderlyingMethod().isStatic(),
                             overrideFn.getUnderlyingMethod().isVirtual(),
@@ -939,7 +939,7 @@ public class ClassType implements JavaType {
                         myFn.getUnderlyingMethod().getImplementationTypes().collect(Collectors.toSet()),
                         myFn.getReturnType(),
                         Stream.concat((covariantReturn ? Stream.of(myTag) : Stream.empty()), myFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch, iff covariant.
-                        Stream.concat((covariantReturn ? Stream.of((String) null) : Stream.empty()), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type, iff covariant.
+                        Stream.concat((covariantReturn ? Stream.of("_tag_") : Stream.empty()), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type, iff covariant.
                         myFn.getUnderlyingMethod().getBody(),
                         myFn.getUnderlyingMethod().isStatic(),
                         myFn.getUnderlyingMethod().isVirtual(),

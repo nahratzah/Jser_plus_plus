@@ -83,7 +83,7 @@ $endif$
 
 
 functionArguments(argumentTypes, argumentNames) ::= <%
-($argumentTypes, argumentNames:{type, name | $if (!name)$[[maybe_unused]] $endif$$type; format="style=type, class=param"$$if (name)$ $name$$endif$}; anchor, wrap, separator = ", "$)
+($argumentTypes, argumentNames:{type, name | $if (argNameIsMaybeUnused_.(name))$[[maybe_unused]] $endif$$type; format="style=type, class=param"$$if (name)$ $name$$endif$}; anchor, wrap, separator = ", "$)
 %>
 
 

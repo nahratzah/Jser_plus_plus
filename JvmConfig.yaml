@@ -3552,7 +3552,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: null # argument `specialized` is not used
+      - name: _specialized_
         type:
           cxx: bool
       - name: max_cascade
@@ -3579,7 +3579,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: null # argument `specialized` is not used
+      - name: _specialized_
         type:
           cxx: bool
       - name: eq
@@ -4122,7 +4122,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: null # argument `specialized` not used
+      - name: _specialized_
         type:
           cxx: bool
       - name: max_cascade
@@ -4149,7 +4149,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: null # argument `specialized` not used
+      - name: _specialized_
         type:
           cxx: bool
       - name: eq
@@ -4329,7 +4329,7 @@ classes:
       name: insert
       override: true
       arguments:
-      - name: e
+      - name: _e_
         type:
           java: E
       body: |
@@ -4342,7 +4342,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: null # argument `specialized` not used
+      - name: _specialized_
         type:
           cxx: bool
       - name: max_cascade
@@ -4368,7 +4368,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: null # argument `specialized` not used
+      - name: _specialized_
         type:
           cxx: bool
       - name: eq

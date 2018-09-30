@@ -74,6 +74,7 @@ public class StCtx {
 
         BUILTINS.defineDictionary("cxxString_", new FunctionAttrMap(CxxUtil::plainStringLiteral));
         BUILTINS.defineDictionary("renderDocString_", new FunctionAttrMap(StCtx::renderDocString));
+        BUILTINS.defineDictionary("argNameIsMaybeUnused_", new FunctionAttrMap(StCtx::argNameIsMaybeUnused));
         BUILTINS.registerRenderer(BoundTemplateRenderer.ATTRIBUTE_CLASS, new BoundTemplateRenderer());
         BUILTINS.registerRenderer(CxxTypeRenderer.ATTRIBUTE_CLASS, new CxxTypeRenderer());
         BUILTINS.registerRenderer(ConstTypeRenderer.ATTRIBUTE_CLASS, new ConstTypeRenderer());
@@ -91,5 +92,9 @@ public class StCtx {
         return Arrays.stream(lines)
                 .map(line -> line.isEmpty() ? " *" : " * " + line)
                 .collect(Collectors.joining("\n", "/**\n", "\n */"));
+    }
+
+    private static Boolean argNameIsMaybeUnused(String name) {
+        return name == null || (name.startsWith("_") && name.endsWith("_"));
     }
 }
