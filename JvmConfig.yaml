@@ -61,8 +61,9 @@ rules:
     body: |
       static const ::std::size_t nonce = ::java::__hash_nonce();
 
+      $if (model.fields)$specialized = true;$endif$
       $if (model.superClass)$
-      return ::java::hash_combiner($boundTemplateType(model.superClass, "style=erased")$::__hash_code__($if (model.fields)$true$else$specialized$endif$, max_cascade), max_cascade)
+      return ::java::hash_combiner($boundTemplateType(model.superClass, "style=erased")$::__hash_code__(specialized, max_cascade), max_cascade)
       $else$
       return ::java::hash_combiner(max_cascade)
       $endif$
@@ -126,10 +127,11 @@ rules:
       type:
         cxx: const $erasedType(model)$&
     body: |
+      $if (model.fields)$specialized = true;$endif$
       $if (model.superClass)$
       $boundTemplateType(model.superClass, "style=erased")$::__equal_impl__(
-          $if (model.fields)$true$else$specialized$endif$, eq, x, y);
-      $elseif (!model.fields)$
+          specialized, eq, x, y);
+      $else$
       if (!specialized && (&x != &y)) eq.fail();
       $endif$
       $model.fields: { f | $f.name$}: { fieldname | eq(x.$fieldname$, y.$fieldname$);}; anchor, separator = "\n"$
@@ -228,11 +230,101 @@ rules:
 classes:
   java.lang.Object:
     dev_mode: false
+    suppress_local:
+    - java.lang.Object/equals_and_hashcode
     friends:
     - cxx: ::java::_equal_helper
       includes:
         declaration:
         - java/object_intf.h
+    members:
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return this->::java::object_intf::__hash_code__(specialized, max_cascade);
+      includes:
+        implementation:
+        - java/object_intf.h
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        const $erasedType(model)$* casted_other = dynamic_cast<const $erasedType(model)$*>(&other);
+        if (casted_other == nullptr)
+          eq.fail();
+        else
+          __equal_impl__(specialized, eq, *this, *casted_other);
+      includes:
+        implementation:
+        - java/object_intf.h
+    - type: method
+      name: __equal_impl__
+      static: true
+      visibility: protected
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: x
+        type:
+          cxx: const $erasedType(model)$&
+      - name: y
+        type:
+          cxx: const $erasedType(model)$&
+      body: |
+        if (!specialized && (&x != &y)) eq.fail();
+      includes:
+        implementation:
+        - java/reflect.h
 
 
   java.util.Comparator<T>:
