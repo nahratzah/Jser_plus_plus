@@ -1346,9 +1346,9 @@ classes:
         \brief Test if the \p obj is an instance of this class.
         \param obj The object to test.
         \return True if \p obj is an instance of this class.
-        \throws ::java::null_error if \p obj is a null-reference.
+        \note The function returns false for null-references.
       body: |
-        return isAssignableFrom(::java::get_class(obj));
+        return obj != nullptr && isAssignableFrom(::java::get_class(obj));
       includes:
         implementation:
         - java/reflect.h
@@ -1363,14 +1363,19 @@ classes:
         java: Type
       doc_string: |
         \brief Cast the \p obj to this class.
+        \details
+        Verifies that \p obj is an instance of this class, then returns it.
         \attention
         Generics parameters are not validated.
         This may lead to errors during use, if they are wrongly constrained.
         (And it may happen in other types, if you modify the returned value.)
-        \return \p obj casted to the class type.
+        \return \p obj casted to the class type. Or `nullptr` if \p obj is a null-reference.
         \throws std::bad_cast If the object is not an instance of this class.
       body: |
         // Actual casting is handled by generic accessor.
+        // But we must validate, in case the accessor is using erased types.
+        if (obj != nullptr && !isInstance(obj)) throw std::bad_cast();
+
         return ::java::_maybe_cast(::std::move(obj));
       includes:
         implementation:
@@ -1386,14 +1391,19 @@ classes:
         java: const Type
       doc_string: |
         \brief Cast the \p obj to this class.
+        \details
+        Verifies that \p obj is an instance of this class, then returns it.
         \attention
         Generics parameters are not validated.
         This may lead to errors during use, if they are wrongly constrained.
         (And it may happen in other types, if you modify the returned value.)
-        \return \p obj casted to the class type.
+        \return \p obj casted to the class type. Or `nullptr` if \p obj is a null-reference.
         \throws std::bad_cast If the object is not an instance of this class.
       body: |
         // Actual casting is handled by generic accessor.
+        // But we must validate, in case the accessor is using erased types.
+        if (obj != nullptr && !isInstance(obj)) throw std::bad_cast();
+
         return ::java::_maybe_cast(::std::move(obj));
       includes:
         implementation:
@@ -3414,8 +3424,7 @@ classes:
         \throws std::bad_cast if \p e is not an instance of the type of this collection.
       # XXX implement check in the body.
       body: |
-        // XXX implement
-        return e;
+        return type->cast(e);
     - type: method
       name: __hash_code__
       noexcept: true
