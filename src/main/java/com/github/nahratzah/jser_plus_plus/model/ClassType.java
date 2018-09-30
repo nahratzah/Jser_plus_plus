@@ -524,6 +524,7 @@ public class ClassType implements JavaType {
                 .filter(member -> !member.isStatic())
                 .filter(MethodModel.class::isInstance)
                 .map(MethodModel.class::cast)
+                .filter(((Predicate<MethodModel>) suppressedAccessorMethods::contains).negate())
                 .collect(Collectors.toList());
     }
 
@@ -836,6 +837,9 @@ public class ClassType implements JavaType {
             final boolean allReturnTypesMatch = !overrideFns.isEmpty()
                     && overrideFns.stream()
                             .allMatch(fn -> Objects.equals(fn.getReturnType(), myFn.getReturnType()));
+
+            if (allReturnTypesMatch)
+                suppressedAccessorMethods.add(myFn.getUnderlyingMethod());
 
             // If the method is not virtual, add it directly.
             if (!myFn.getUnderlyingMethod().isVirtual()) {
@@ -1410,4 +1414,9 @@ public class ClassType implements JavaType {
      * things to compile.
      */
     private boolean devMode = false;
+    /**
+     * List of methods which, due to overriding from base and not changing
+     * signature, do not require redeclaration.
+     */
+    private final Set<MethodModel> suppressedAccessorMethods = new HashSet<>();
 }
