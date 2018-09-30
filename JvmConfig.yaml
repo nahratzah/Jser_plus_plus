@@ -4314,6 +4314,13 @@ classes:
             - initializer_list
       initializers:
         data_: std::move(init), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          java: java.lang.Iterable<? extends E>
+      initializers:
+        data_: init->begin(), init->end(), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
     - type: method
       name: begin
       override: true
