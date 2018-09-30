@@ -4287,6 +4287,33 @@ classes:
         visibility: private
         default: 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
     members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: b
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      initializers:
+        data_: std::move(b), std::move(e), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          cxx: ::std::initializer_list<$boundTemplateType(java.({E}), "style=type, class")$>
+          includes:
+            declaration:
+            - initializer_list
+      initializers:
+        data_: std::move(init), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
     - type: method
       name: begin
       override: true
@@ -4329,3 +4356,83 @@ classes:
           - java/iterator.h
       body: |
         return ::java::forward_iterator<const $boundTemplateType(java.("E"), "style=type")$>(data_.end());
+    - type: method
+      name: empty
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+      body: |
+        return data_.empty();
+    - type: method
+      name: size
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return data_.size();
+    - type: method
+      name: clear
+      override: true
+      body: |
+        data_.clear();
+    - type: method
+      name: insert
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        data_.insert(std::move(e));
+    - type: method
+      name: erase
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return data_.erase(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e)));
+    - type: method
+      name: find
+      virtual: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::forward_iterator<const $boundTemplateType(java.({E}), "style=type")$>(data_.find(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e))));
+    - type: method
+      name: find
+      virtual: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>(data_.find(std::move(e)));
