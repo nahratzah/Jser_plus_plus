@@ -1269,16 +1269,17 @@ classes:
         type:
           java: java.lang.Class<?>
         final: true
-        default: nullptr
       interfaces:
         visibility: private
         type:
           java: java.lang.Iterable<java.lang.Class<?>>
         final: true
       allTypes:
+        visibility: private
         type:
           java: java.util.HashSet<java.lang.Class<?>>
         final: true
+        getter: true
     members:
     - type: constructor
       arguments:
