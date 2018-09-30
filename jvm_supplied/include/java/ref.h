@@ -437,7 +437,7 @@ class basic_ref final
       noexcept(std::is_nothrow_move_constructible_v<ptr_type>) = default;
 
   template<typename... Args, typename = std::void_t<decltype(std::declval<::java::_constructor<Type>>()(std::declval<Args>()...))>>
-  explicit JSER_INLINE basic_ref(allocate_t a, Args&&... args)
+  explicit JSER_INLINE basic_ref([[maybe_unused]] allocate_t a, Args&&... args)
   : basic_ref(_direct(), ::java::_constructor<Type>()(std::forward<Args>(args)...))
   {}
 
@@ -458,7 +458,7 @@ class basic_ref final
   }
 
   template<typename X>
-  JSER_INLINE basic_ref([[maybe_unused]] _direct d, const cycle_ptr::cycle_gptr<X>& p, java::G::pack_t<> my_type) {
+  JSER_INLINE basic_ref([[maybe_unused]] _direct d, const cycle_ptr::cycle_gptr<X>& p, [[maybe_unused]] java::G::pack_t<> my_type) {
     if constexpr(std::is_convertible_v<cycle_ptr::cycle_gptr<X>, ptr_type>) {
       p_ = p; // Implicit cast.
     } else {
@@ -507,7 +507,7 @@ class basic_ref final
 
  private:
   template<template<class> class XImpl, typename XType>
-  JSER_INLINE basic_ref([[maybe_unused]] _cast c, const basic_ref<XImpl, XType>& x, java::G::pack_t<> my_type)
+  JSER_INLINE basic_ref([[maybe_unused]] _cast c, const basic_ref<XImpl, XType>& x, [[maybe_unused]] java::G::pack_t<> my_type)
   : p_(std::dynamic_pointer_cast<erased_type>(x.p_))
   {
     // Error out if the cast failed.
@@ -614,7 +614,7 @@ class basic_ref final
    * \returns *this
    * \post `*this == nullptr`
    */
-  JSER_INLINE auto operator=(std::nullptr_t np) noexcept -> basic_ref& {
+  JSER_INLINE auto operator=([[maybe_unused]] std::nullptr_t np) noexcept -> basic_ref& {
     p_ = nullptr;
     return *this;
   }
@@ -707,7 +707,7 @@ class basic_ref final
    * \param np nullptr
    * \returns True if this is a null-reference, false otherwise.
    */
-  JSER_INLINE auto operator==(std::nullptr_t np) const noexcept -> bool {
+  JSER_INLINE auto operator==([[maybe_unused]] std::nullptr_t np) const noexcept -> bool {
     return p_ == nullptr;
   }
 
@@ -716,7 +716,7 @@ class basic_ref final
    * \param np nullptr
    * \returns False if this is a null-reference, true otherwise.
    */
-  JSER_INLINE auto operator!=(std::nullptr_t np) const noexcept -> bool {
+  JSER_INLINE auto operator!=([[maybe_unused]] std::nullptr_t np) const noexcept -> bool {
     return p_ != nullptr;
   }
 
@@ -739,13 +739,13 @@ class basic_ref final
 };
 
 template<template<typename> class Base, typename P>
-JSER_INLINE auto operator==(std::nullptr_t np, const basic_ref<Base, P>& b) noexcept
+JSER_INLINE auto operator==([[maybe_unused]] std::nullptr_t np, const basic_ref<Base, P>& b) noexcept
 -> bool {
   return b == nullptr;
 }
 
 template<template<typename> class Base, typename P>
-JSER_INLINE auto operator!=(std::nullptr_t np, const basic_ref<Base, P>& b) noexcept
+JSER_INLINE auto operator!=([[maybe_unused]] std::nullptr_t np, const basic_ref<Base, P>& b) noexcept
 -> bool {
   return b != nullptr;
 }

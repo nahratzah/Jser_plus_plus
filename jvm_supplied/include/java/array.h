@@ -405,11 +405,11 @@ class basic_ref<PtrImpl, Type*> final {
     return !p_;
   }
 
-  JSER_INLINE auto operator==(::std::nullptr_t np) const noexcept -> bool {
+  JSER_INLINE auto operator==([[maybe_unused]] ::std::nullptr_t np) const noexcept -> bool {
     return p_ == nullptr;
   }
 
-  JSER_INLINE auto operator!=(::std::nullptr_t np) const noexcept -> bool {
+  JSER_INLINE auto operator!=([[maybe_unused]] ::std::nullptr_t np) const noexcept -> bool {
     return p_ != nullptr;
   }
 
@@ -459,11 +459,11 @@ class basic_ref<PtrImpl, Type*const> final {
     return !p_;
   }
 
-  JSER_INLINE auto operator==(::std::nullptr_t np) const noexcept -> bool {
+  JSER_INLINE auto operator==([[maybe_unused]] ::std::nullptr_t np) const noexcept -> bool {
     return p_ == nullptr;
   }
 
-  JSER_INLINE auto operator!=(::std::nullptr_t np) const noexcept -> bool {
+  JSER_INLINE auto operator!=([[maybe_unused]] ::std::nullptr_t np) const noexcept -> bool {
     return p_ != nullptr;
   }
 

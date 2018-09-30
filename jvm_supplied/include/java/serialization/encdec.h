@@ -906,40 +906,40 @@ struct new_array
   {}
 
   template<typename T, typename Iter>
-  explicit new_array(std::in_place_type_t<T> ip, cycle_ptr::cycle_gptr<const class_desc> type, Iter b, Iter e)
+  explicit new_array([[maybe_unused]] std::in_place_type_t<T> ip, cycle_ptr::cycle_gptr<const class_desc> type, Iter b, Iter e)
   : type(std::move(type)),
     data(std::in_place_type<std::vector<T>>, b, e)
   {}
 
   template<typename Iter>
-  explicit new_array(std::in_place_type_t<referent> ip, cycle_ptr::cycle_gptr<const class_desc> type, Iter b, Iter e)
+  explicit new_array([[maybe_unused]] std::in_place_type_t<referent> ip, cycle_ptr::cycle_gptr<const class_desc> type, Iter b, Iter e)
   : type(std::move(type)),
     data(std::in_place_type<object_array>, b, e, object_array::allocator_type(*this))
   {}
 
   template<typename T, typename Iter>
-  auto assign(std::in_place_type_t<T> ip, cycle_ptr::cycle_gptr<const class_desc> type, Iter b, Iter e)
+  auto assign([[maybe_unused]] std::in_place_type_t<T> ip, cycle_ptr::cycle_gptr<const class_desc> type, Iter b, Iter e)
   -> void {
     this->type = std::move(type);
     this->data.emplace<std::vector<T>>(b, e);
   }
 
   template<typename T, typename Iter>
-  auto assign(std::in_place_type_t<referent> ip, cycle_ptr::cycle_gptr<const class_desc> type, Iter b, Iter e)
+  auto assign([[maybe_unused]] std::in_place_type_t<referent> ip, cycle_ptr::cycle_gptr<const class_desc> type, Iter b, Iter e)
   -> void {
     this->type = std::move(type);
     this->data.emplace<std::vector<object_array>>(b, e, object_array::allocator_type(*this));
   }
 
   template<typename T, typename U>
-  auto assign(std::in_place_type_t<T> ip, cycle_ptr::cycle_gptr<const class_desc> type, const U& values)
+  auto assign([[maybe_unused]] std::in_place_type_t<T> ip, cycle_ptr::cycle_gptr<const class_desc> type, const U& values)
   -> void {
     this->type = std::move(type);
     this->data.emplace<std::vector<T>>(values.begin(), values.end());
   }
 
   template<typename T, typename U>
-  auto assign(std::in_place_type_t<referent> ip, cycle_ptr::cycle_gptr<const class_desc> type, U&& values)
+  auto assign([[maybe_unused]] std::in_place_type_t<referent> ip, cycle_ptr::cycle_gptr<const class_desc> type, U&& values)
   -> void {
     this->type = std::move(type);
     this->data.emplace<std::vector<object_array>>(std::make_move_iterator(values.begin()), std::make_move_iterator(values.end()), object_array::allocator_type(*this));
