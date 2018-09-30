@@ -1274,28 +1274,13 @@ classes:
         visibility: private
         type:
           java: java.lang.Iterable<java.lang.Class<?>>
+        final: true
+      allTypes:
+        type:
+          java: java.util.HashSet<java.lang.Class<?>>
+        final: true
+        default: ::java::allocate
     members:
-    - type: constructor
-      arguments:
-      - name: name
-        type:
-          cxx: ::std::string
-      initializers:
-        name: std::move(name)
-        super: nullptr
-        interfaces: $boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=type, class")$(::java::allocate)
-    - type: constructor
-      arguments:
-      - name: name
-        type:
-          cxx: ::std::string
-      - name: super
-        type:
-          java: java.lang.Class<?>
-      initializers:
-        name: std::move(name)
-        super: std::move(super)
-        interfaces: $boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=type, class")$(::java::allocate)
     - type: constructor
       arguments:
       - name: name
@@ -1314,6 +1299,55 @@ classes:
         name: std::move(name)
         super: std::move(super)
         interfaces: $boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=type, class")$(::java::allocate, interfaces.begin(), interfaces.end())
+      body: |
+        // We are part of our own allTypes set.
+        allTypes->insert($boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(::java::_direct(), this->shared_from_this(this)));
+
+        // Add super types' allTypes set.
+        if (this->super) allTypes->insert(this->super->allTypes()->begin(), this->super->allTypes()->end());
+
+        // Add each interface's allTypes set.
+        std::for_each(
+            this->interfaces->begin(), this->interfaces->end(),
+            [this](const auto& i) {
+              allTypes->insert(i->allTypes()->begin(), i->allTypes()->end());
+            });
+      includes:
+        implementation:
+        - algorithm
+    - type: method
+      name: isAssignableFrom
+      const: true
+      arguments:
+      - name: cls
+        type:
+          java: const java.lang.Class<?>
+      return:
+        cxx: bool
+      doc_string: |
+        \brief Test if the argument class is derived from this class.
+        \param cls A class.
+        \return True if the argument class is derived from this class, false otherwise.
+      body: |
+        return allTypes->contains(cls);
+    - type: method
+      name: isInstance
+      const: true
+      arguments:
+      - name: obj
+        type:
+          java: const java.lang.Object
+      return:
+        cxx: bool
+      doc_string: |
+        \brief Test if the \p obj is an instance of this class.
+        \param obj The object to test.
+        \return True if \p obj is an instance of this class.
+      body: |
+        return isAssignableFrom(::java::get_class(obj));
+      includes:
+        implementation:
+        - java/reflect.h
 
 
   java.lang.Iterable<T>:
@@ -1391,6 +1425,30 @@ classes:
           java: E
       doc_string: |
         \brief Add an element to the collection.
+        \note Exact position depends on implementation.
+    - type: method
+      name: insert
+      virtual: true
+      arguments:
+      - name: b
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      body: |
+        std::for_each(std::move(b), std::move(e),
+            [this](const auto& i) {
+              insert(i);
+            });
+      doc_string: |
+        \brief Add elements to the collection.
         \note Exact position depends on implementation.
 
 
