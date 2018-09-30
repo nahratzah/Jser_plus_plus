@@ -1210,6 +1210,27 @@ classes:
         return $boundTemplateType(java.("java.lang.String"), "style=type, class")$(
             ::java::allocate, value.substr(pos, count));
     - type: method
+      name: subSequence
+      virtual: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: count
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: java.lang.String
+      body: |
+        return substr(pos, count);
+    - type: method
       name: str
       override: true
       const: true
@@ -2595,7 +2616,7 @@ classes:
             declaration:
             - initializer_list
       initializers:
-        data_: init.begin(), init.end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        data_: init, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
       body: |
         std::make_heap(data_.begin(), data_.end(),
                        [this](const auto& x, const auto& y) {
@@ -2644,7 +2665,7 @@ classes:
         type:
           java: java.util.Comparator<? super E>
       initializers:
-        data_: init.begin(), init.end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        data_: init, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
         comparator: std::move(comparator)
       body: |
         std::make_heap(data_.begin(), data_.end(),
@@ -2899,6 +2920,63 @@ classes:
             declaration:
             - cstddef
       return:
+        java: java.lang.String
+      doc_string: |
+        \brief Retrieve a substring.
+        \details: Returns the substring starting at \p pos.
+        \param pos Starting index for the substring.
+        \return String containing everything from \p pos until the end.
+        \throws std::out_of_range if \p pos larger than `size()`.
+      body: |
+        return substr(pos, std::size_t(-1));
+    - type: method
+      name: substr
+      virtual: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: count
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: java.lang.String
+      doc_string: |
+        \brief Retrieve a substring.
+        \details: Returns the substring starting at \p pos.
+        The substring will be at most \p count characters.
+        \param pos Starting index for the substring.
+        \param count Number of characters to include in the returned string.
+        \return String containing up to \p count characters starting at \p pos.
+        \throws std::out_of_range if \p pos larger than `size()`.
+    - type: method
+      name: str
+      virtual: true
+      const: true
+      return:
+        cxx: ::std::string
+        includes:
+          declaration:
+          - string
+    - type: method
+      name: subSequence
+      virtual: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
         java: java.lang.CharSequence
       doc_string: |
         \brief Retrieve a substring.
@@ -2907,9 +2985,9 @@ classes:
         \return CharSequence containing everything from \p pos until the end.
         \throws std::out_of_range if \p pos larger than `size()`.
       body: |
-        return substr(pos, std::size_t(-1));
+        return subSequence(pos, std::size_t(-1));
     - type: method
-      name: substr
+      name: subSequence
       virtual: true
       const: true
       arguments:
@@ -2935,15 +3013,6 @@ classes:
         \param count Number of characters to include in the returned string.
         \return CharSequence containing up to \p count characters starting at \p pos.
         \throws std::out_of_range if \p pos larger than `size()`.
-    - type: method
-      name: str
-      virtual: true
-      const: true
-      return:
-        cxx: ::std::string
-        includes:
-          declaration:
-          - string
 
 
   java.lang.Appendable:
@@ -3082,21 +3151,6 @@ classes:
           - string
       body: |
         return value;
-
-
-  java.lang.StringBuilder:
-    dev_mode: false
-    members:
-    - type: constructor
-    - type: constructor
-      arguments:
-      - name: s
-        type:
-          cxx: ::std::string_view
-          includes:
-            declaration:
-            - string_view
-      super: s
     - type: method
       name: substr
       override: true
@@ -3115,7 +3169,45 @@ classes:
             declaration:
             - cstddef
       return:
-        java: java.lang.CharSequence
+        java: java.lang.String
+      body: |
+        return $boundTemplateType(java.({java.lang.String}), "style=type, class")$(
+            ::java::allocate,
+            std::string_view(this->value).substr(pos, count));
+
+
+  java.lang.StringBuilder:
+    dev_mode: false
+    members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: s
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      super: s
+    - type: method
+      name: subSequence
+      override: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: count
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: java.lang.StringBuilder
       body: |
         return $boundTemplateType(java.({java.lang.StringBuilder}), "style=type, class")$(
             ::java::allocate,
@@ -3141,7 +3233,7 @@ classes:
             - string_view
       super: s
     - type: method
-      name: substr
+      name: subSequence
       override: true
       const: true
       arguments:
@@ -3158,7 +3250,7 @@ classes:
             declaration:
             - cstddef
       return:
-        java: java.lang.CharSequence
+        java: java.lang.StringBuffer
       body: |
         return $boundTemplateType(java.({java.lang.StringBuffer}), "style=type, class")$(
             ::java::allocate,
