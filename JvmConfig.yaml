@@ -1349,6 +1349,52 @@ classes:
       includes:
         implementation:
         - java/reflect.h
+    - type: method
+      name: cast
+      const: true
+      arguments:
+      - name: obj
+        type:
+          java: java.lang.Object
+      return:
+        java: Type
+      doc_string: |
+        \brief Cast the \p obj to this class.
+        \attention
+        Generics parameters are not validated.
+        This may lead to errors during use, if they are wrongly constrained.
+        (And it may happen in other types, if you modify the returned value.)
+        \return \p obj casted to the class type.
+        \throws std::bad_cast If the object is not an instance of this class.
+      body: |
+        // Actual casting is handled by generic accessor.
+        return ::java::_maybe_cast(::std::move(obj));
+      includes:
+        implementation:
+        - java/_maybe_cast.h
+    - type: method
+      name: cast
+      const: true
+      arguments:
+      - name: obj
+        type:
+          java: const java.lang.Object
+      return:
+        java: const Type
+      doc_string: |
+        \brief Cast the \p obj to this class.
+        \attention
+        Generics parameters are not validated.
+        This may lead to errors during use, if they are wrongly constrained.
+        (And it may happen in other types, if you modify the returned value.)
+        \return \p obj casted to the class type.
+        \throws std::bad_cast If the object is not an instance of this class.
+      body: |
+        // Actual casting is handled by generic accessor.
+        return ::java::_maybe_cast(::std::move(obj));
+      includes:
+        implementation:
+        - java/_maybe_cast.h
 
 
   java.lang.Iterable<T>:
