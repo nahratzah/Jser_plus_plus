@@ -1329,8 +1329,10 @@ classes:
         \brief Test if the argument class is derived from this class.
         \param cls A class.
         \return True if the argument class is derived from this class, false otherwise.
+        \throws ::java::null_error if \p cls is a null-reference.
       body: |
-        return allTypes->contains(cls);
+        return cls->allTypes()->contains(
+            ::java::const_ref<$boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$>(::java::_direct(), this->shared_from_this(this)));
     - type: method
       name: isInstance
       const: true
@@ -1344,6 +1346,7 @@ classes:
         \brief Test if the \p obj is an instance of this class.
         \param obj The object to test.
         \return True if \p obj is an instance of this class.
+        \throws ::java::null_error if \p obj is a null-reference.
       body: |
         return isAssignableFrom(::java::get_class(obj));
       includes:
