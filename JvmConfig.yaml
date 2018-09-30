@@ -1381,7 +1381,7 @@ classes:
           cxx: bool
       - name: eq
         type:
-          cxx: _equal_helper&
+          cxx: ::java::_equal_helper&
           includes:
             declaration:
             - java/object_intf.h
@@ -2934,6 +2934,110 @@ classes:
       \details Models a set.
     members:
     - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        static const ::std::size_t nonce = ::java::__hash_nonce();
+
+        // We use XOR combining.
+        // It's a really bad algorithm, due to collisions.
+        // But it's the only way to keep the computation agnostic of the ordering.
+        ::std::size_t h = 0;
+        for (const auto& i : *this) h ^= ::std::size_t(hash_combiner(max_cascade) << i);
+
+        return hash_combiner(h, max_cascade)
+            << nonce;
+      includes:
+        implementation:
+        - functional
+        - cstddef
+        - java/hash.h
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        const $erasedType(model)$* casted_other = dynamic_cast<const $erasedType(model)$*>(&other);
+
+        if (casted_other == nullptr) {
+          eq.fail();
+        } else {
+          $erasedType(model)$::__equal_impl__(specialized, eq, *this, *casted_other);
+        }
+    - type: method
+      name: __equal_impl__
+      static: true
+      visibility: protected
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: x
+        type:
+          cxx: const $boundTemplateType(java.({java.util.Set<E>}), "style=erased")$&
+      - name: y
+        type:
+          cxx: const $boundTemplateType(java.({java.util.Set<E>}), "style=erased")$&
+      body: |
+        if (!std::is_permutation(
+            x.begin(), x.end(),
+            y.begin(), y.end(),
+            [&eq](const auto& x, const auto& y) {
+              return eq.test(x, y);
+            }))
+          eq.fail();
+      includes:
+        implementation:
+        - java/reflect.h
+        - algorithm
+    - type: method
       name: contains
       virtual: true
       const: true
@@ -3001,6 +3105,57 @@ classes:
   java.util.AbstractSet<E>:
     dev_mode: false
     members:
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      final: true
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return this->$boundTemplateType(java.({java.util.Set<E>}), "style=erased")$::__hash_code__(specialized, max_cascade);
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        return this->$boundTemplateType(java.({java.util.Set<E>}), "style=erased")$::__equal__(specialized, eq, other);
     - type: method
       name: contains
       override: true
@@ -3237,11 +3392,7 @@ classes:
           declaration:
           - cstddef
       body: |
-        return std::hash<${::std::remove_const_t<decltype(list)>}$>()(list);
-      includes:
-        implementation:
-        - type_traits
-        - functional
+        return this->$boundTemplateType(java.({java.util.Collections\$CheckedCollection<E>}), "style=erased")$::__hash_code__(specialized, max_cascade);
     - type: method
       name: __equal__
       override: true
@@ -3267,7 +3418,7 @@ classes:
             declaration:
             - java/object_intf.h
       body: |
-        eq(list, other);
+        return this->$boundTemplateType(java.({java.util.Collections\$CheckedCollection<E>}), "style=erased")$::__equal__(specialized, eq, other);
     - type: method
       name: push_front
       override: true
@@ -3445,6 +3596,70 @@ classes:
         return queue->insert(check_(std::move(e)));
 
 
+  java.util.Collections$CheckedSet<E>:
+    dev_mode: true
+    members:
+    - type: constructor
+      arguments:
+      - name: set
+        type:
+          java: java.util.Set<E>
+      - name: type
+        type:
+          java: java.lang.Class<E>
+      super: std::move(set), std::move(type)
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return this->$boundTemplateType(java.({java.util.Collections\$CheckedCollection<E>}), "style=erased")$::__hash_code__(specialized, max_cascade);
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        return this->$boundTemplateType(java.({java.util.Collections\$CheckedCollection<E>}), "style=erased")$::__equal__(specialized, eq, other);
+
+
   java.util.Collections$SynchronizedCollection<E>:
     dev_mode: true
     fields:
@@ -3565,11 +3780,7 @@ classes:
           declaration:
           - cstddef
       body: |
-        return std::hash<${::std::remove_const_t<decltype(list)>}$>()(list);
-      includes:
-        implementation:
-        - type_traits
-        - functional
+        return this->$boundTemplateType(java.({java.util.Collections\$SynchronizedCollection<E>}), "style=erased")$::__hash_code__(specialized, max_cascade);
     - type: method
       name: __equal__
       override: true
@@ -3595,7 +3806,68 @@ classes:
             declaration:
             - java/object_intf.h
       body: |
-        eq(list, other);
+        return this->$boundTemplateType(java.({java.util.Collections\$SynchronizedCollection<E>}), "style=erased")$::__equal__(specialized, eq, other);
+
+
+  java.util.Collections$SynchronizedSet<E>:
+    dev_mode: true
+    members:
+    - type: constructor
+      arguments:
+      - name: set
+        type:
+          java: java.util.Set<E>
+      super: std::move(set)
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return this->$boundTemplateType(java.({java.util.Collections\$SynchronizedCollection<E>}), "style=erased")$::__hash_code__(specialized, max_cascade);
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        return this->$boundTemplateType(java.({java.util.Collections\$SynchronizedCollection<E>}), "style=erased")$::__equal__(specialized, eq, other);
 
 
   java.util.Collections$UnmodifiableCollection<E>:
@@ -3729,7 +4001,7 @@ classes:
           declaration:
           - cstddef
       body: |
-        return std::hash<${::std::remove_const_t<decltype(list)>}$>()(list);
+        return this->$boundTemplateType(java.({java.util.Collections\$UnmodifiableCollection}), "style=erased")$::__hash_code__(specialized, max_cascade);
       includes:
         implementation:
         - type_traits
@@ -3759,7 +4031,77 @@ classes:
             declaration:
             - java/object_intf.h
       body: |
-        eq(list, other);
+        this->$boundTemplateType(java.({java.util.Collections\$UnmodifiableCollection}), "style=erased")$::__equal__(specialized, eq, other);
+
+
+  java.util.Collections$UnmodifiableSet<E>:
+    dev_mode: true
+    fields:
+      list:
+        final: true
+        const: true
+        visibility: private
+    members:
+    - type: constructor
+      arguments:
+      - name: set
+        type:
+          java: const java.util.Set<E>
+      super: std::move(set)
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return this->$boundTemplateType(java.({java.util.Collections\$UnmodifiableCollection}), "style=erased")$::__hash_code__(specialized, max_cascade);
+      includes:
+        implementation:
+        - type_traits
+        - functional
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        this->$boundTemplateType(java.({java.util.Collections\$UnmodifiableCollection}), "style=erased")$::__equal__(specialized, eq, other);
 
 
   java.util.concurrent.CopyOnWriteArrayList<E>:
@@ -3815,6 +4157,118 @@ classes:
             - java/object_intf.h
       body: |
         this->$boundTemplateType(java.({java.util.List<E>}), "style=erased")$::__equal__(specialized, eq, other);
+
+
+  java.util.concurrent.ConcurrentHashMap$KeySetView<K, V>:
+    dev_mode: true
+    members:
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      final: true
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return this->$boundTemplateType(java.({java.util.Set<K>}), "style=erased")$::__hash_code__(specialized, max_cascade);
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        return this->$boundTemplateType(java.({java.util.Set<K>}), "style=erased")$::__equal__(specialized, eq, other);
+
+
+  java.util.concurrent.ConcurrentHashMap$EntrySetView<K, V>:
+    dev_mode: true
+    members:
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      final: true
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return this->$boundTemplateType(java.({java.util.Set<java.util.Map\$Entry<K, V>>}), "style=erased")$::__hash_code__(specialized, max_cascade);
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        return this->$boundTemplateType(java.({java.util.Set<java.util.Map\$Entry<K, V>>}), "style=erased")$::__equal__(specialized, eq, other);
 
 
   java.util.HashSet<E>:

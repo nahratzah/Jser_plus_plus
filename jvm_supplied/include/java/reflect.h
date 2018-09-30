@@ -87,14 +87,20 @@ class _equal_helper {
   };
 
  public:
+  ///\brief Mark the equality as failed.
   auto fail() noexcept -> void {
     success_ = false;
   }
 
+  ///\brief Test if the equality still holds.
   auto ok() const noexcept -> bool {
     return success_;
   }
 
+  ///\brief Compare two references and update the state.
+  ///\details If the comparison doesn't hold, this function does nothing.
+  ///\param x,y Two references to compare.
+  ///\returns `*this`
   template<
       template<typename> class XPtr, typename XType,
       template<typename> class YPtr, typename YType>
@@ -104,6 +110,13 @@ class _equal_helper {
     return eq_(raw_objintf_ptr(x), raw_objintf_ptr(y));
   }
 
+  ///\brief Compare two references and update the state.
+  ///\details If the comparison doesn't hold, this function does nothing.
+  ///
+  ///This function can be used if the comparison is not field based.
+  ///\param x A references to compare.
+  ///\param y An object_intf to compare against.
+  ///\returns `*this`
   template<template<typename> class XPtr, typename XType>
   auto operator()(const basic_ref<XPtr, XType>& x, const object_intf& y)
   -> _equal_helper& {
@@ -111,6 +124,13 @@ class _equal_helper {
     return eq_(raw_objintf_ptr(x), y);
   }
 
+  ///\brief Compare two ordinary types.
+  ///\details If the comparison doesn't hold, this function does nothing.
+  ///
+  ///This function only participates in overload resolution,
+  ///if neither \p x nor \p y are references.
+  ///\param x,y Two values to compare.
+  ///\returns `*this`
   template<typename X, typename Y>
   auto operator()(const X& x, const Y& y)
   -> std::enable_if_t<
@@ -125,6 +145,10 @@ class _equal_helper {
     return *this;
   }
 
+  ///\brief Compare two references and update the state.
+  ///\details If the comparison doesn't hold, this function does nothing.
+  ///\param x,y Two references to compare.
+  ///\returns `*this`
   auto operator()(::cycle_ptr::cycle_gptr<const object_intf> x,
                   ::cycle_ptr::cycle_gptr<const object_intf> y)
   -> _equal_helper& {
@@ -132,7 +156,69 @@ class _equal_helper {
     return eq_(x, y);
   }
 
+  ///\brief Test comparison.
+  ///\details Comparison state is restored when this function returns.
+  ///\param x,y Two references to compare.
+  ///\returns Boolean indicating if the two are compared equal.
+  template<
+      template<typename> class XPtr, typename XType,
+      template<typename> class YPtr, typename YType>
+  auto test(const basic_ref<XPtr, XType>& x, const basic_ref<YPtr, YType>& y)
+  -> bool {
+    return test_(raw_objintf_ptr(x), raw_objintf_ptr(y));
+  }
+
+  ///\brief Test comparison.
+  ///\details Comparison state is restored when this function returns.
+  ///
+  ///This function can be used if the comparison is not field based.
+  ///\param x A references to compare.
+  ///\param y An object_intf to compare against.
+  ///\returns Boolean indicating if the two are compared equal.
+  template<template<typename> class XPtr, typename XType>
+  auto test(const basic_ref<XPtr, XType>& x, const object_intf& y)
+  -> bool {
+    return test_(raw_objintf_ptr(x), y);
+  }
+
+  ///\brief Test comparison.
+  ///\details Comparison state is restored when this function returns.
+  ///
+  ///This function only participates in overload resolution,
+  ///if neither \p x nor \p y are references.
+  ///\param x,y Two values to compare.
+  ///\returns Boolean indicating if the two are compared equal.
+  template<typename X, typename Y>
+  auto test(const X& x, const Y& y)
+  -> std::enable_if_t<
+      std::is_convertible_v<decltype(std::declval<const X&>() == std::declval<const Y&>()), bool>
+      && !std::is_convertible_v<const X, const_ref<java::lang::Object>>
+      && !std::is_convertible_v<const Y, const_ref<java::lang::Object>>
+      && !std::is_convertible_v<const X, ::cycle_ptr::cycle_gptr<const void>>
+      && !std::is_convertible_v<const Y, ::cycle_ptr::cycle_gptr<const void>>,
+      bool> {
+    return (x == y);
+  }
+
+  ///\brief Test comparison.
+  ///\details Comparison state is restored when this function returns.
+  ///\param x,y Two references to compare.
+  ///\returns Boolean indicating if the two are compared equal.
+  auto test(::cycle_ptr::cycle_gptr<const object_intf> x,
+            ::cycle_ptr::cycle_gptr<const object_intf> y)
+  -> bool {
+    return test_(x, y);
+  }
+
  private:
+  auto test_(cycle_ptr::cycle_gptr<const object_intf> x,
+             cycle_ptr::cycle_gptr<const object_intf> y)
+  -> bool;
+
+  auto test_(cycle_ptr::cycle_gptr<const object_intf> x,
+             const object_intf& y)
+  -> bool;
+
   auto eq_(cycle_ptr::cycle_gptr<const object_intf> x,
            cycle_ptr::cycle_gptr<const object_intf> y)
   -> _equal_helper&;
@@ -141,7 +227,9 @@ class _equal_helper {
            const object_intf& y)
   -> _equal_helper&;
 
+  ///\brief Set of visited pairs, for which equality holds.
   std::unordered_set<pair, hasher> visited_;
+  ///\brief Internal comparison state.
   bool success_ = true;
 };
 
