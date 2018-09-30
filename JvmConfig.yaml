@@ -4272,7 +4272,7 @@ classes:
 
 
   java.util.HashSet<E>:
-    dev_mode: true
+    dev_mode: false
     doc_string: |
       \brief Unordered set.
       \details This implementation is based on std::unordered_set.
