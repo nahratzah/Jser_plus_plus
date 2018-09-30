@@ -2509,13 +2509,30 @@ classes:
     doc_string: |
       \brief Priority queue.
       \attention Java's priority queue is a min-heap, in contrast to the one in C++, which is a max heap.
+    fields:
+      size:
+        visibility: private
+        # XXX implement field removal
+        rename: xxx_implement_remove_
+      data_:
+        visibility: private
+        type:
+          cxx: ::std::vector<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>
+          includes:
+            declaration:
+            - vector
+        default: |
+          ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+      comparator:
+        final: true
+        const: true
     members:
     - type: constructor
     - type: constructor
       arguments:
       - name: comparator
         type:
-          java: java.util.Comparator<? super E>
+          java: const java.util.Comparator<? super E>
       initializers:
         comparator: std::move(comparator)
     - type: constructor
@@ -2754,22 +2771,6 @@ classes:
         java: E
       body: |
         return data_.back();
-    fields:
-      size:
-        visibility: private
-        # XXX implement field removal
-        rename: xxx_implement_remove_
-      data_:
-        visibility: private
-        type:
-          cxx: ::std::vector<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>
-          includes:
-            declaration:
-            - vector
-        default: |
-          ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
-      comparator:
-        final: true
 
 
   java.lang.CharSequence:
