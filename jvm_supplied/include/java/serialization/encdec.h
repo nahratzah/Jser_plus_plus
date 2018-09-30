@@ -206,8 +206,8 @@ struct stream_string
   static auto decode(reader& r, basic_read_wrapper& read, std::uint8_t hdr) -> cycle_ptr::cycle_gptr<const stream_string>;
   static auto decode(reader& r, basic_read_wrapper& read) -> cycle_ptr::cycle_gptr<const stream_string>;
 
-  static auto read_utf(basic_read_wrapper& read, allocator_type alloc) -> stream_string;
-  static auto read_long_utf(basic_read_wrapper& read, allocator_type alloc) -> stream_string;
+  static auto read_utf(basic_read_wrapper& read) -> stream_string;
+  static auto read_long_utf(basic_read_wrapper& read) -> stream_string;
 
   auto to_out_(std::ostream& out, str_ctx& ctx) const -> void override;
   auto eq_(const stream_element& y, [[maybe_unused]] eq_ctx& ctx) const -> bool override;

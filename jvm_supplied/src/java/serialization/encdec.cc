@@ -93,7 +93,7 @@ auto stream_string::decode(reader& r, basic_read_wrapper& read)
   }
 }
 
-auto stream_string::read_utf(basic_read_wrapper& read, allocator_type alloc) -> stream_string {
+auto stream_string::read_utf(basic_read_wrapper& read) -> stream_string {
   using boost::asio::buffer;
 
   std::vector<std::uint8_t> data_buffer;
@@ -112,7 +112,7 @@ auto stream_string::read_utf(basic_read_wrapper& read, allocator_type alloc) -> 
   return result;
 }
 
-auto stream_string::read_long_utf(basic_read_wrapper& read, allocator_type alloc) -> stream_string {
+auto stream_string::read_long_utf(basic_read_wrapper& read) -> stream_string {
   using boost::asio::buffer;
 
   std::vector<std::uint8_t> data_buffer;
@@ -341,7 +341,7 @@ auto to_string(const blockdata& data)
 }
 
 
-auto primitive_desc::decode(reader& r, basic_read_wrapper& read, std::uint8_t hdr)
+auto primitive_desc::decode([[maybe_unused]] reader& r, basic_read_wrapper& read, std::uint8_t hdr)
 -> primitive_desc& {
   switch (hdr) {
     default:
@@ -365,7 +365,7 @@ auto primitive_desc::decode(reader& r, basic_read_wrapper& read, std::uint8_t hd
       break;
   }
 
-  field_name = stream_string::read_utf(read, r.get_allocator());
+  field_name = stream_string::read_utf(read);
 
   return *this;
 }
@@ -523,7 +523,7 @@ auto object_desc::decode(reader& r, basic_read_wrapper& read, std::uint8_t hdr)
       break;
   }
 
-  field_name = stream_string::read_utf(read, r.get_allocator());
+  field_name = stream_string::read_utf(read);
   const auto field_type_str = stream_string::decode(r, read);
 
   try {
@@ -1233,7 +1233,7 @@ auto new_class_desc__class_desc::decode(reader& r, basic_read_wrapper& read, std
 
   auto result = cycle_ptr::allocate_cycle<new_class_desc__class_desc>(r.get_allocator());
 
-  const auto class_name = stream_string::read_utf(read, r.get_allocator());
+  const auto class_name = stream_string::read_utf(read);
   if (!class_name.empty() && class_name.front() == u'[')
     result->class_name = field_descriptor::from_string(class_name, u'.');
   else
@@ -1287,7 +1287,7 @@ auto proxy_class_desc_info::decode(reader& r, basic_read_wrapper& read)
   std::generate_n(
       std::back_inserter(proxy_interface_names),
       interface_count,
-      [&r, &read]() { return stream_string::read_utf(read, r.get_allocator()); });
+      [&r, &read]() { return stream_string::read_utf(read); });
 
   annotation.decode(r, read);
   super = class_desc::decode(r, read);
