@@ -1279,7 +1279,6 @@ classes:
         type:
           java: java.util.HashSet<java.lang.Class<?>>
         final: true
-        default: ::java::allocate
     members:
     - type: constructor
       arguments:
@@ -1299,6 +1298,7 @@ classes:
         name: std::move(name)
         super: std::move(super)
         interfaces: $boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=type, class")$(::java::allocate, interfaces.begin(), interfaces.end())
+        allTypes: ::java::allocate
       body: |
         // We are part of our own allTypes set.
         allTypes->insert($boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(::java::_direct(), this->shared_from_this(this)));
