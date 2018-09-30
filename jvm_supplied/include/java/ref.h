@@ -385,8 +385,8 @@ JSER_INLINE auto cast(const basic_ref<PtrImpl, Type>& r)
  * \param r Reference that is to be casted.
  * \returns Casted pointer.
  */
-template<typename RefType, template<class> class PtrImpl>
-JSER_INLINE auto constcast(const basic_ref<PtrImpl, std::add_const_t<type_of_t<RefType>>>& r)
+template<typename RefType>
+JSER_INLINE auto constcast(const basic_ref<::cycle_ptr::cycle_gptr, std::add_const_t<type_of_t<RefType>>>& r)
 -> var_ref<type_of_t<RefType>> {
   return var_ref<type_of_t<RefType>>(
       _direct(),
@@ -436,8 +436,8 @@ class basic_ref final
   template<typename FnRefType, template<class> class FnPtrImpl, typename FnType>
   friend auto cast(const basic_ref<FnPtrImpl, FnType>&)
   -> var_ref<type_of_t<FnRefType>>;
-  template<typename FnRefType, template<class> class FnPtrImpl>
-  friend auto constcast(const basic_ref<FnPtrImpl, std::add_const_t<type_of_t<FnRefType>>>& r)
+  template<typename FnRefType>
+  friend auto constcast(const basic_ref<::cycle_ptr::cycle_gptr, std::add_const_t<type_of_t<FnRefType>>>& r)
   -> var_ref<type_of_t<FnRefType>>;
 
  protected:
