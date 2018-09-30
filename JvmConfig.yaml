@@ -1408,6 +1408,28 @@ classes:
       includes:
         implementation:
         - java/_maybe_cast.h
+    - type: method
+      name: getSuperClass
+      const: true
+      return:
+        java: java.lang.Class<?>
+      doc_string: |
+        \brief Get the super class of this class.
+        \return The class object describing the super class of this class.
+        A null-reference is returned if this type has no super class
+        (such as in the case of interfaces and \ref ::java::lang::Object "java.lang.Object").
+      body: |
+        return ::java::constcast<$boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$>(super);
+    - type: method
+      name: getInterfaces
+      const: true
+      return:
+        java: java.lang.Iterable<java.lang.Class<?>>
+      doc_string:
+        \brief Get the interfaces implemented by this class.
+        \returns An \ref ::java::lang::Iterable "iterable" over the interfaces implemented by this class.
+      body: |
+        return ::java::constcast<$boundTemplateType(java.({java.lang.Iterable<java.lang.Class<?>>}), "style=type, class")$>(interfaces);
 
 
   java.lang.Iterable<T>:
