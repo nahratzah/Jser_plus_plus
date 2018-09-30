@@ -34,6 +34,8 @@ $templateLine(["Base_", model.templateArgumentNames], true)$
 class _accessor$templateArgs(["Base_", tagType(model), model.templateArgumentNames], true)$
 $accessorInheritance(model, "Base_")$
 {
+  friend $erasedType(model)$;
+
  protected:
   JSER_INLINE _accessor() = default;
   JSER_INLINE _accessor(const _accessor&) = default;
@@ -42,7 +44,6 @@ $accessorInheritance(model, "Base_")$
   _accessor& operator=(_accessor&&) = delete;
   JSER_INLINE ~_accessor() = default;
 
- public:
 $if (model.fields)$
   // field accessors
   $model.fields:{f|$fieldAccessors(model, f, false)$}; anchor, separator = "\n"$
@@ -62,6 +63,7 @@ $renderDocString(model.docString)$
 class $model.className$$if (model.final)$ final$endif$
 $classInheritance(model)$
 {
+  template<typename Base, typename Tag, typename... Arguments> friend class ::java::_accessor;
 $if (model.friends)$
   $ model.friends
     : {f| $if (f.unresolvedTemplateNames)$$templateLine(f.unresolvedTemplateNames)$$"\n"$$endif$friend $boundTemplateType(f, "style=erased")$;}
@@ -211,7 +213,8 @@ $ model.constructors
 
 accessorClassMembers(model, doImplement) ::= <<
 $ model.accessorMethods
-  : {m | $function(
+  : {m | $if (!doImplement)$$m.visibility$:$"\n"$$endif$$\\$
+         $function(
               name=m.name,
               doImplement=doImplement,
               return=m.returnType,
@@ -262,6 +265,7 @@ $if (f.default)${ $f.default; anchor$ }$endif$
 
 
 fieldAccessors(model, f, doImplement) ::= <%
+$if (!doImplement && (f.getterFn || f.setterFn))$$f.visibility$:$"\n"$$endif$
 $if (f.getterFn)$$fieldGetter(model, f, doImplement)$$endif$
 $if (f.getterFn && f.setterFn)$$"\n"$$endif$
 $if (f.setterFn)$$fieldSetter(model, f, doImplement)$$endif$
