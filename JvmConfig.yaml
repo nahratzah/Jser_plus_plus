@@ -3422,7 +3422,6 @@ classes:
       doc_string: |
         \brief Validate the type of E.
         \throws std::bad_cast if \p e is not an instance of the type of this collection.
-      # XXX implement check in the body.
       body: |
         return type->cast(e);
     - type: method
@@ -3433,7 +3432,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: specialized
+      - name: null # argument `specialized` is not used
         type:
           cxx: bool
       - name: max_cascade
@@ -3448,7 +3447,7 @@ classes:
           declaration:
           - cstddef
       body: |
-        return std::hash<${::std::remove_const_t<decltype(c)>}$>()(c);
+        return ::java::_reflect_ops::hash_code(c, max_cascade);
       includes:
         implementation:
         - type_traits
@@ -3460,7 +3459,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: specialized
+      - name: null # argument `specialized` is not used
         type:
           cxx: bool
       - name: eq
@@ -4003,7 +4002,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: specialized
+      - name: null # argument `specialized` not used
         type:
           cxx: bool
       - name: max_cascade
@@ -4018,7 +4017,7 @@ classes:
           declaration:
           - cstddef
       body: |
-        return std::hash<${::std::remove_const_t<decltype(c)>}$>()(c);
+        return ::java::_reflect_ops::hash_code(c, max_cascade);
       includes:
         implementation:
         - type_traits
@@ -4030,7 +4029,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: specialized
+      - name: null # argument `specialized` not used
         type:
           cxx: bool
       - name: eq
@@ -4223,7 +4222,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: specialized
+      - name: null # argument `specialized` not used
         type:
           cxx: bool
       - name: max_cascade
@@ -4238,11 +4237,10 @@ classes:
           declaration:
           - cstddef
       body: |
-        return std::hash<${::std::remove_const_t<decltype(c)>}$>()(c);
+        return ::java::_reflect_ops::hash_code(c, max_cascade);
       includes:
         implementation:
-        - type_traits
-        - functional
+        - java/reflect.h
     - type: method
       name: __equal__
       override: true
@@ -4250,7 +4248,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: specialized
+      - name: null # argument `specialized` not used
         type:
           cxx: bool
       - name: eq
