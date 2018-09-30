@@ -113,7 +113,7 @@ rules:
         cxx: bool
     - name: eq
       type:
-        cxx: _equal_helper&
+        cxx: ::java::_equal_helper&
         includes:
           declaration:
           - java/object_intf.h
