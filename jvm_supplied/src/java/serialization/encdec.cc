@@ -273,7 +273,7 @@ auto field_descriptor::path() const
 }
 
 
-auto blockdata::decode(reader& r, basic_read_wrapper& read, std::uint8_t hdr)
+auto blockdata::decode([[maybe_unused]] reader& r, basic_read_wrapper& read, std::uint8_t hdr)
 -> blockdata {
   using boost::asio::buffer;
   using boost::endian::big_to_native;
