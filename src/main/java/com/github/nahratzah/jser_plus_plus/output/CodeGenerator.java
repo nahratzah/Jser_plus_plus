@@ -97,7 +97,7 @@ public class CodeGenerator {
 
     public String headerFile() {
         final Collection<String> includes = Stream.concat(
-                Stream.of("java/inline.h", "java/object_intf.h"),
+                Stream.of("java/inline.h", "java/object_intf.h", "java/_maybe_cast.h"),
                 types.stream()
                         .flatMap(type -> {
                             return Stream.of(

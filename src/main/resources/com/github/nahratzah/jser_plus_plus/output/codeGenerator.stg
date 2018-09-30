@@ -197,7 +197,7 @@ $ model.constructors
               name="operator()",
               doImplement=doImplement,
               return={::cycle_ptr::cycle_gptr<$erasedType(model)$>},
-              body={return ::cycle_ptr::make_cycle<$erasedType(model)$>($m.argumentNames: {name | ::std::forward<decltype($name$)>($name$)}; separator = ", "$);},
+              body={return ::cycle_ptr::make_cycle<$erasedType(model)$>($m.argumentNames: {name | ::java::_maybe_cast(::std::forward<decltype($name$)>($name$))}; separator = ", "$);},
               argumentNames=m.argumentNames,
               argumentTypes=m.argumentTypes,
               containingClass="_constructor",
