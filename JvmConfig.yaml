@@ -1064,6 +1064,7 @@ classes:
       visibility: private
       virtual: true
       const: true
+      covariant_return: false
       return:
         cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
       arguments:
@@ -1247,10 +1248,11 @@ classes:
       override: true
       final: true
       const: true
+      covariant_return: false
       return:
         cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
       arguments:
-      - name: hander_
+      - name: _hander_
         type:
           cxx: ::java::serialization::cycle_handler&
       body: |
