@@ -139,6 +139,96 @@ rules:
       implementation:
       - java/reflect.h
 
+- id: java.io.Serializable/do_encode_
+  predicate:
+    interface: false
+    abstract: true
+    class: true
+    inherits:
+    - java.io.Serializable
+  members:
+  - type: method
+    name: __serializable_class__
+    visibility: protected
+    static: true
+    return:
+      cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::new_class_desc__class_desc>
+      includes:
+        declaration:
+        - java/serialization/encdec.h
+        - cycle_ptr/cycle_ptr.h
+    body: |
+      using namespace ::std::string_view_literals;
+      using namespace ::java::serialization::stream;
+
+      const cycle_ptr::cycle_gptr<new_class_desc__class_desc> result = cycle_ptr::make_cycle<new_class_desc__class_desc>(
+          field_descriptor($u16StringView(model.name)$),
+          $model.serialVersionUID_string$, // serialVersionUID
+          $if (model.superClass.type.testInherits.({java.io.Serializable}))$$boundTemplateType(model.superClass, "style=erased")$::__serializable_class__(),$else$nullptr, // No serializable super class.$endif$
+          SC_SERIALIZABLE, // flags (XXX actual flags)
+          ::std::initializer_list<field_desc>{
+            $ model.serializationFields
+            : { f | $\\$
+                $if (f.serializationType.primitive)$$\\$
+                $if (f.serializationExtents)$object_desc$else$primitive_desc$endif$$\\$
+                (primitive_type::$f.serializationType.name$_type, $u16StringView(f.serializationName)$, $f.serializationExtents$)$\\$
+                $else$$\\$
+                object_desc($u16StringView(f.serializationType.name)$, $u16StringView(f.serializationName)$, $f.serializationExtents$)$\\$
+                $endif$$\\$
+              }
+            ; anchor, separator = ",\n"$
+          });
+
+      return result;
+    includes:
+      implementation:
+      - initializer_list
+      - java/serialization/encdec.h
+  - type: method
+    name: do_encode_fields_
+    visibility: private
+    static: true
+    arguments:
+    - name: handler_
+      type:
+        cxx: ::java::serialization::cycle_handler&
+        includes:
+          declaration:
+          - java/serialization/type_def_fwd.h
+    - name: out
+      # replace with object type!
+      type:
+        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+        includes:
+          declaration:
+          - java/serialization/type_def_fwd.h
+    body:
+      // XXX implement
+  - type: method
+    name: do_encode_
+    visibility: private
+    override: true
+    const: true
+    covariant_return: false
+    return:
+      cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+    arguments:
+    - name: _hander_
+      type:
+        cxx: ::java::serialization::cycle_handler&
+    # XXX implement
+    body: |
+      return nullptr; // XXX
+    includes:
+      declaration:
+      - java/serialization/type_def_fwd.h
+      - java/serialization/encdec.h
+      - cycle_ptr/cycle_ptr.h
+      implementation:
+      - java/serialization/encdec.h
+      - cycle_ptr/cycle_ptr.h
+      - java/serialization/type_def.h
+
 # Implement Comparable<> for enums.
 - predicate:
     interface: false
@@ -1085,6 +1175,8 @@ classes:
 
   java.lang.String:
     dev_mode: false
+    suppress:
+    - java.io.Serializable/do_encode_
     var_type:
       cxx: ::std::string
       includes:

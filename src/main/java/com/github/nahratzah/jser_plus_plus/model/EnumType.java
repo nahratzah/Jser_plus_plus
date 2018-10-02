@@ -53,6 +53,8 @@ public class EnumType extends ClassType {
     private void initEnumFieldAndConstructor(Context ctx, Config cfg) {
         // Declare the enum field.
         final FieldType enumField = new FieldType(
+                ctx,
+                this,
                 "value",
                 new CxxType(enumTypeTemplate, new Includes())
                         .prerender(ctx, EMPTY_MAP, getTemplateArgumentNames()));

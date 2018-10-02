@@ -14,6 +14,7 @@ import com.github.nahratzah.jser_plus_plus.java.ReflectUtil;
 import com.github.nahratzah.jser_plus_plus.misc.SimpleMapEntry;
 import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
 import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
+import com.github.nahratzah.jser_plus_plus.output.builtins.FunctionAttrMap;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.io.ObjectStreamClass;
 import java.lang.reflect.Field;
@@ -202,7 +203,7 @@ public class ClassType implements JavaType {
                     final Type visitType = iField.reflectType != null ? iField.reflectType : iField.classType;
                     final BoundTemplate type = ReflectUtil.visitType(visitType, new BoundsMapping(ctx, argRename));
 
-                    final FieldType fieldType = new FieldType(iField.name, type);
+                    final FieldType fieldType = new FieldType(ctx, this, iField.name, type);
                     if (iField.reflectField != null) {
                         fieldType.setFinal(Modifier.isFinal(iField.reflectField.getModifiers()));
                     }
@@ -222,7 +223,7 @@ public class ClassType implements JavaType {
                     final CfgField fieldCfg = entry.getValue();
                     final BoundTemplate type = new BoundTemplate.Any(); // XXX figure out how to configure a synthetic field!
 
-                    return new FieldType(name, type, false);
+                    return new FieldType(ctx, this, name, type, false);
                 })
                 .collect(Collectors.toList());
 
@@ -250,7 +251,7 @@ public class ClassType implements JavaType {
                         iField.setName(fieldCfg.getRename());
                 })
                 .peek(iField -> {
-                    iField.prerender(ctx, singletonMap("model", this), getTemplateArgumentNames());
+                    iField.prerender(singletonMap("model", this), getTemplateArgumentNames());
                 })
                 .collect(Collectors.toList());
     }
@@ -482,6 +483,27 @@ public class ClassType implements JavaType {
         return serialVersionUID;
     }
 
+    public String getSerialVersionUID_string() {
+        return String.format("%#x", getSerialVersionUID()) + "ULL";
+    }
+
+    private Stream<ClassType> findAllInherits() {
+        return Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull), getInterfaces().stream())
+                .map(BoundTemplate.ClassBinding::getType)
+                .flatMap((ClassType parentType) -> {
+                    return Stream.concat(Stream.of(parentType), parentType.findAllInherits());
+                });
+    }
+
+    public Map<String, Object> getTestInherits() {
+        return new FunctionAttrMap((String clsName) -> {
+            return Objects.equals(getName(), clsName)
+                    || findAllInherits()
+                            .map(ClassType::getName)
+                            .anyMatch(clsName::equals);
+        });
+    }
+
     /**
      * Retrieve the fields of this type.
      *
@@ -489,6 +511,17 @@ public class ClassType implements JavaType {
      */
     public List<FieldType> getFields() {
         return fields;
+    }
+
+    /**
+     * Retrieve the fields that have serialization enabled.
+     *
+     * @return List of fields for which serialization is enabled.
+     */
+    public List<FieldType> getSerializationFields() {
+        return getFields().stream()
+                .filter(f -> f.isDecodeEnabled() || f.isEncodeEnabled())
+                .collect(Collectors.toList());
     }
 
     @Override

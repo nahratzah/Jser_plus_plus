@@ -185,7 +185,7 @@ auto field_descriptor::from_string(std::u16string_view s, char16_t sep)
       return field_descriptor(primitive_type::short_type, extents);
     case u'Z':
       if (name.length() != 1) throw std::invalid_argument("invalid field descriptor");
-      return field_descriptor(primitive_type::bool_type, extents);
+      return field_descriptor(primitive_type::boolean_type, extents);
     case u'L':
       break;
   }
@@ -243,7 +243,7 @@ auto field_descriptor::to_string() const
       case primitive_type::short_type:
         result.append(1, u'S');
         break;
-      case primitive_type::bool_type:
+      case primitive_type::boolean_type:
         result.append(1, u'Z');
         break;
     }
@@ -360,7 +360,7 @@ auto primitive_desc::decode([[maybe_unused]] reader& r, basic_read_wrapper& read
       [[fallthrough]];
     case static_cast<std::uint8_t>(primitive_type::short_type):
       [[fallthrough]];
-    case static_cast<std::uint8_t>(primitive_type::bool_type):
+    case static_cast<std::uint8_t>(primitive_type::boolean_type):
       type = static_cast<primitive_type>(hdr);
       break;
   }
@@ -432,7 +432,7 @@ auto primitive_desc::decode_field(primitive_type type, [[maybe_unused]] reader& 
       read(buffer(&std::get<std::int16_t>(result), sizeof(std::int16_t)));
       big_to_native_inplace(std::get<std::int16_t>(result));
       break;
-    case primitive_type::bool_type:
+    case primitive_type::boolean_type:
       {
         std::uint8_t tmp;
         read(buffer(&tmp, sizeof(tmp)));
@@ -474,7 +474,7 @@ auto primitive_desc::to_out_(std::ostream& out, str_ctx& ctx) const
     case primitive_type::short_type:
       out << "type: short";
       break;
-    case primitive_type::bool_type:
+    case primitive_type::boolean_type:
       out << "type: bool";
       break;
   }
@@ -658,7 +658,7 @@ auto field_desc::decode(reader& r, basic_read_wrapper& read)
       [[fallthrough]];
     case static_cast<std::uint8_t>(primitive_type::short_type):
       [[fallthrough]];
-    case static_cast<std::uint8_t>(primitive_type::bool_type):
+    case static_cast<std::uint8_t>(primitive_type::boolean_type):
       this->template emplace<primitive_desc>();
       std::get<primitive_desc>(*this)
           .decode(r, read, type_hdr);
@@ -1224,6 +1224,12 @@ auto class_desc::decode(reader& r, basic_read_wrapper& read)
 }
 
 
+new_class_desc__class_desc::new_class_desc__class_desc(field_descriptor class_name, std::uint64_t serial_version_uid, cycle_ptr::cycle_gptr<const class_desc> super, std::uint8_t flags, std::initializer_list<field_desc> fields)
+: class_name(std::move(class_name)),
+  serial_version_uid(serial_version_uid),
+  info(std::move(super), flags, std::move(fields))
+{}
+
 auto new_class_desc__class_desc::decode(reader& r, basic_read_wrapper& read, std::uint8_t hdr)
 -> cycle_ptr::cycle_gptr<new_class_desc__class_desc> {
   using boost::asio::buffer;
@@ -1536,7 +1542,7 @@ auto new_array::decode(reader& r, basic_read_wrapper& read, std::uint8_t hdr)
               [&r, &read]() { return std::get<std::int16_t>(primitive_desc::decode_field(primitive_type::short_type, r, read)); });
         }
         break;
-      case primitive_type::bool_type:
+      case primitive_type::boolean_type:
         {
           result->data.template emplace<bool_array>(r.get_allocator());
           auto& vec = std::get<bool_array>(result->data);
@@ -1544,7 +1550,7 @@ auto new_array::decode(reader& r, basic_read_wrapper& read, std::uint8_t hdr)
           std::generate_n(
               std::back_inserter(vec),
               size,
-              [&r, &read]() { return std::get<bool>(primitive_desc::decode_field(primitive_type::bool_type, r, read)); });
+              [&r, &read]() { return std::get<bool>(primitive_desc::decode_field(primitive_type::boolean_type, r, read)); });
         }
         break;
     }

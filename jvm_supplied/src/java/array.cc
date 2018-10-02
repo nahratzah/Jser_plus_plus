@@ -61,7 +61,7 @@ auto array<::java::boolean_t>::element_class_() const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::bool_type)),
+      to_string(field_descriptor(primitive_type::boolean_type)),
       nullptr,
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
 }
@@ -72,7 +72,7 @@ auto array<::java::boolean_t>::array_class_(std::size_t dimensions) const
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::bool_type, dimensions)),
+      to_string(field_descriptor(primitive_type::boolean_type, dimensions)),
       ::java::get_class<::java::lang::Object>(),
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()

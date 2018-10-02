@@ -174,7 +174,7 @@ enum class primitive_type : std::uint8_t {
   int_type = u8'I',
   long_type = u8'J',
   short_type = u8'S',
-  bool_type = u8'Z'
+  boolean_type = u8'Z'
 };
 
 enum class object_type : std::uint8_t {
@@ -722,6 +722,14 @@ struct class_desc_info {
   using field_map = std::vector<std::pair<stream_string, field_desc::value_type>>;
   using obj_content = std::vector<std::variant<cycle_ptr::cycle_gptr<const stream_element>, blockdata>>;
 
+  class_desc_info() = default;
+
+  explicit class_desc_info(cycle_ptr::cycle_gptr<const class_desc> super, std::uint8_t flags = 0, std::initializer_list<field_desc> fields = {})
+  : super(std::move(super)),
+    flags(flags),
+    fields(std::move(fields))
+  {}
+
   auto decode(reader& r, basic_read_wrapper& read) -> class_desc_info&;
   auto decode_fields(reader& r, basic_read_wrapper& read) const -> field_map;
   auto decode_annotation(reader& r, basic_read_wrapper& read) const -> obj_content;
@@ -766,17 +774,14 @@ struct new_class_desc__class_desc
 {
   new_class_desc__class_desc() = default;
 
-  explicit new_class_desc__class_desc(field_descriptor class_name, std::uint64_t serial_version_uid)
-  : class_name(std::move(class_name)),
-    serial_version_uid(serial_version_uid)
-  {}
+  new_class_desc__class_desc(field_descriptor class_name, std::uint64_t serial_version_uid, cycle_ptr::cycle_gptr<const class_desc> super = nullptr, std::uint8_t flags = 0u, std::initializer_list<field_desc> fields = {});
 
-  explicit new_class_desc__class_desc(std::u16string_view class_name, std::uint64_t serial_version_uid, std::uint32_t extents)
+  new_class_desc__class_desc(std::u16string_view class_name, std::uint64_t serial_version_uid, std::uint32_t extents)
   : class_name(class_name, extents),
     serial_version_uid(serial_version_uid)
   {}
 
-  explicit new_class_desc__class_desc(primitive_type class_name, std::uint64_t serial_version_uid, std::uint32_t extents)
+  new_class_desc__class_desc(primitive_type class_name, std::uint64_t serial_version_uid, std::uint32_t extents)
   : class_name(class_name, extents),
     serial_version_uid(serial_version_uid)
   {}

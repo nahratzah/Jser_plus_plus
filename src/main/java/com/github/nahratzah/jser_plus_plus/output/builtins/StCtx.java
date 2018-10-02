@@ -72,7 +72,7 @@ public class StCtx {
             throw new IllegalStateException("unable to load accessor template", ex);
         }
 
-        BUILTINS.defineDictionary("cxxString_", new FunctionAttrMap(CxxUtil::plainStringLiteral));
+        BUILTINS.defineDictionary("cxxString_", new FunctionAttrMap(StCtx::plainStringLiteral));
         BUILTINS.defineDictionary("renderDocString_", new FunctionAttrMap(StCtx::renderDocString));
         BUILTINS.defineDictionary("argNameIsMaybeUnused_", new FunctionAttrMap(StCtx::argNameIsMaybeUnused));
         BUILTINS.registerRenderer(BoundTemplateRenderer.ATTRIBUTE_CLASS, new BoundTemplateRenderer());
@@ -96,5 +96,12 @@ public class StCtx {
 
     private static Boolean argNameIsMaybeUnused(String name) {
         return name == null || (name.startsWith("_") && name.endsWith("_"));
+    }
+
+    private static String plainStringLiteral(String s) {
+        if (s.length() < 4 || !s.startsWith("__") || !s.endsWith("__"))
+            throw new IllegalArgumentException("We're expecting two underscores at the begin and end, to evade member methods of the property map.");
+
+        return CxxUtil.plainStringLiteral(s.substring(2, s.length() - 2));
     }
 }

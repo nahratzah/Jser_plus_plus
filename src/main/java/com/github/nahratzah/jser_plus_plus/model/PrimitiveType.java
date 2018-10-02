@@ -134,6 +134,10 @@ public enum PrimitiveType implements JavaType {
         return false;
     }
 
+    public boolean isPrimitive() {
+        return true;
+    }
+
     private final String name;
     private final Class<?> c;
 }

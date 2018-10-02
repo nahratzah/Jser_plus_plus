@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -18,15 +19,16 @@ import org.stringtemplate.v4.ST;
  * @author ariane
  */
 public class FieldType {
-    public FieldType(String name, Type type) {
-        this(name, type, true);
+    public FieldType(Context ctx, ClassType declaringClass, String name, Type type) {
+        this(ctx, declaringClass, name, type, true);
     }
 
-    public FieldType(String name, Type type, boolean enableSerialization) {
-        this.name = requireNonNull(name);
+    public FieldType(Context ctx, ClassType declaringClass, String name, Type type, boolean enableSerialization) {
+        this.ctx = requireNonNull(ctx);
+        this.declaringClass = requireNonNull(declaringClass);
+        this.serializationName = this.name = requireNonNull(name);
         this.type = requireNonNull(type);
         this.encodeEnabled = this.decodeEnabled = enableSerialization;
-        this.serializationName = name;
     }
 
     public String getSerializationName() {
@@ -236,11 +238,10 @@ public class FieldType {
     /**
      * Prerender the types.
      *
-     * @param ctx Context for type lookups.
      * @param renderArgs Arguments to the renderer.
      * @param variables List of type variables in this context.
      */
-    public void prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
+    public void prerender(Map<String, ?> renderArgs, Collection<String> variables) {
         if (type != null)
             type = type.prerender(ctx, renderArgs, variables);
         if (varType != null)
@@ -252,11 +253,10 @@ public class FieldType {
     /**
      * Prerender the types.
      *
-     * @param ctx Context for type lookups.
      * @param renderArgs Arguments to the renderer.
      * @param variables List of type variables in this context.
      */
-    public void prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
+    public void prerender(Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
         if (type != null)
             type = type.prerender(ctx, renderArgs, variables);
         if (varType != null)
@@ -280,11 +280,95 @@ public class FieldType {
         return stringTemplate.render(Locale.ROOT);
     }
 
+    /**
+     * Get the serialization type.
+     *
+     * @return The serialization type, without array extents.
+     */
+    public JavaType getSerializationType() {
+        if (!(type instanceof BoundTemplate))
+            throw new IllegalStateException("Type is not a java type.");
+
+        return ((BoundTemplate) type).visit(new BoundTemplate.Visitor<JavaType>() {
+            @Override
+            public JavaType apply(BoundTemplate.VarBinding b) {
+                return declaringClass.getTemplateArguments().stream()
+                        .filter(cta -> Objects.equals(cta.getName(), b.getName()))
+                        .map(ClassTemplateArgument::getExtendBounds)
+                        .map(BoundTemplate.MultiType::maybeMakeMultiType)
+                        .findAny()
+                        .orElseThrow(() -> new IllegalStateException("unable to find template variable " + b.getName()))
+                        .visit(this);
+            }
+
+            @Override
+            public JavaType apply(BoundTemplate.ClassBinding<?> b) {
+                return b.getType();
+            }
+
+            @Override
+            public JavaType apply(BoundTemplate.ArrayBinding b) {
+                return b.getType().visit(this);
+            }
+
+            @Override
+            public JavaType apply(BoundTemplate.Any b) {
+                return ctx.resolveClass(Object.class.getName());
+            }
+
+            @Override
+            public JavaType apply(BoundTemplate.MultiType b) {
+                if (b.getTypes().size() == 1)
+                    return b.getTypes().iterator().next().visit(this);
+
+                return ctx.resolveClass(Object.class.getName());
+            }
+        });
+    }
+
+    /**
+     * Get array extents of the serialization type.
+     *
+     * @return The number of array extents of the serialization type.
+     */
+    public int getSerializationExtents() {
+        if (!(type instanceof BoundTemplate)) return 0;
+
+        return ((BoundTemplate) type).visit(new BoundTemplate.Visitor<Integer>() {
+            @Override
+            public Integer apply(BoundTemplate.VarBinding b) {
+                return 0;
+            }
+
+            @Override
+            public Integer apply(BoundTemplate.ClassBinding<?> b) {
+                return 0;
+            }
+
+            @Override
+            public Integer apply(BoundTemplate.ArrayBinding b) {
+                return b.getExtents();
+            }
+
+            @Override
+            public Integer apply(BoundTemplate.Any b) {
+                return 0;
+            }
+
+            @Override
+            public Integer apply(BoundTemplate.MultiType b) {
+                return 0;
+            }
+        });
+    }
+
     @Override
     public String toString() {
         return "FieldType{" + "name=" + name + ", type=" + type + ", varType=" + varType + ", encodeEnabled=" + encodeEnabled + ", decodeEnabled=" + decodeEnabled + '}';
     }
 
+    private final Context ctx;
+    private final ClassType declaringClass;
     private String serializationName;
     private String name;
     private Type type;
