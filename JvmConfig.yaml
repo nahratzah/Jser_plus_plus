@@ -313,6 +313,31 @@ rules:
           $erasedType(model)$::__serializable_class__(),
           ::cycle_ptr::make_cycle<stream_string>(conversion.from_bytes(value_str.data(), value_str.data() + value_str.size())));
 
+# Implement values() for enums.
+- predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.lang.Enum
+  members:
+  - type: method
+    name: values
+    static: true
+    return:
+      cxx: std::vector<$boundTemplateType(java.(model.name), "style=type, class")$>
+      includes:
+        declaration:
+        - vector
+    doc_string: |
+      \brief Retrieve all enum values.
+      \details All values of this enum.
+      \returns Vector of enums.
+    body: |
+      return { $ model.enumValues
+               : {v | $v.remappedName$()}
+               ; anchor, wrap = "\n", separator = ", "$ };
+
 # Add implemented __get_class__ method to all concrete classes.
 - predicate:
     interface: false
