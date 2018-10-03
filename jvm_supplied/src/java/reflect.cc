@@ -93,7 +93,7 @@ auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::boolean_t type)
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::boolean_type)),
+      u8"boolean",
       nullptr,
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
       nullptr);
@@ -104,7 +104,7 @@ auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::char_t type)
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::char_type)),
+      u8"char",
       nullptr,
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
       nullptr);
@@ -115,7 +115,7 @@ auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::byte_t type)
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::byte_type)),
+      u8"byte",
       nullptr,
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
       nullptr);
@@ -126,7 +126,7 @@ auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::short_t type)
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::short_type)),
+      u8"short",
       nullptr,
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
       nullptr);
@@ -137,7 +137,7 @@ auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::int_t type)
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::int_type)),
+      u8"int",
       nullptr,
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
       nullptr);
@@ -148,7 +148,7 @@ auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::long_t type)
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::long_type)),
+      u8"long",
       nullptr,
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
       nullptr);
@@ -159,7 +159,7 @@ auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::float_t type)
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::float_type)),
+      u8"float",
       nullptr,
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
       nullptr);
@@ -170,7 +170,7 @@ auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::double_t type)
 
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::allocate,
-      to_string(field_descriptor(primitive_type::double_type)),
+      u8"double",
       nullptr,
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
       nullptr);
