@@ -55,19 +55,38 @@ public class FieldType {
         this.type = type;
     }
 
-    public Type getVarType() {
-        Type result = (varType != null ? varType : getType());
+    private Type getRawVarType() {
+        if (varType != null) {
+            if (constVar)
+                return new ConstType(varType);
+            return varType;
+        }
+
+        Type result = getType();
+        boolean makeConst = constVar;
+        if (result instanceof ConstType) {
+            makeConst = true;
+            result = ((ConstType) result).getType();
+        }
 
         if (result instanceof BoundTemplate.ClassBinding) {
-            final Type varTypeOfResult = ((BoundTemplate.ClassBinding<?>) result).getType().getVarType();
-            if (varTypeOfResult != null) result = varTypeOfResult;
+            Type varTypeOfResult = ((BoundTemplate.ClassBinding<?>) result).getType().getVarType();
+            if (varTypeOfResult != null) {
+                if (varTypeOfResult instanceof ConstType) {
+                    makeConst = true;
+                    varTypeOfResult = ((ConstType) varTypeOfResult).getType();
+                }
+
+                if (varTypeOfResult instanceof BoundTemplate) {
+                    result = ((BoundTemplate) varTypeOfResult).rebind(((BoundTemplate.ClassBinding<?>) result).getBindingsMap());
+                } else {
+                    result = varTypeOfResult;
+                }
+            }
         }
 
-        if (isConst()
-                && !(result instanceof CxxType)
-                && !(result instanceof BoundTemplate.ClassBinding && ((BoundTemplate.ClassBinding<?>) result).getType() instanceof PrimitiveType)) {
+        if (makeConst)
             result = new ConstType(result);
-        }
 
         return result;
     }
@@ -75,6 +94,18 @@ public class FieldType {
     public Type getFieldType() {
         Type result = getVarType();
         if (isConst()) result = new ConstType(result);
+        return result;
+    }
+
+    public Type getVarType() {
+        final Type result = getRawVarType();
+        if (result instanceof ConstType) {
+            final ConstType constType = (ConstType) result;
+            final Type rawType = constType.getType();
+            if ((rawType instanceof CxxType)
+                    || (rawType instanceof BoundTemplate.ClassBinding && ((BoundTemplate.ClassBinding<?>) rawType).getType() instanceof PrimitiveType))
+                return rawType;
+        }
         return result;
     }
 
@@ -197,7 +228,7 @@ public class FieldType {
      * @return True is the element type if const.
      */
     public boolean isConst() {
-        return constVar;
+        return constVar || (getRawVarType() instanceof ConstType);
     }
 
     /**
