@@ -1,4 +1,5 @@
 #include <java/serialization/encdec.h>
+#include <algorithm>
 #include <cassert>
 #include <iomanip>
 
