@@ -724,11 +724,7 @@ struct class_desc_info {
 
   class_desc_info() = default;
 
-  explicit class_desc_info(cycle_ptr::cycle_gptr<const class_desc> super, std::uint8_t flags = 0, std::initializer_list<field_desc> fields = {})
-  : super(std::move(super)),
-    flags(flags),
-    fields(std::move(fields))
-  {}
+  explicit class_desc_info(cycle_ptr::cycle_gptr<const class_desc> super, std::uint8_t flags = 0, std::initializer_list<field_desc> fields = {});
 
   auto decode(reader& r, basic_read_wrapper& read) -> class_desc_info&;
   auto decode_fields(reader& r, basic_read_wrapper& read) const -> field_map;

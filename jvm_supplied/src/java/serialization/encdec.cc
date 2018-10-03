@@ -986,6 +986,25 @@ auto operator<<(std::ostream& out, const class_annotation& data)
 }
 
 
+class_desc_info::class_desc_info(cycle_ptr::cycle_gptr<const class_desc> super, std::uint8_t flags, std::initializer_list<field_desc> fields)
+: super(std::move(super)),
+  flags(flags),
+  fields(std::move(fields))
+{
+  std::sort(
+      this->fields.begin(), this->fields.end(),
+      [](const field_desc& x, const field_desc& y) {
+        if (x.index() != y.index())
+          return x.index() < y.index();
+
+        return std::visit(
+            [](const auto& x, const auto& y) {
+              return x.field_name < y.field_name;
+            },
+            x, y);
+      });
+}
+
 auto class_desc_info::decode(reader& r, basic_read_wrapper& read)
 -> class_desc_info& {
   using boost::asio::buffer;
