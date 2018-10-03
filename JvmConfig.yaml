@@ -281,7 +281,8 @@ rules:
   - type: method
     name: do_encode_
     visibility: private
-    virtual: true
+    override: true
+    final: true
     const: true
     covariant_return: false
     return:
