@@ -322,12 +322,12 @@ template<typename Tag, template<class> class PtrImpl, typename Type>
 JSER_INLINE auto raw_ptr(const basic_ref<PtrImpl, Type>& r)
 -> std::enable_if_t<
     ::java::type_traits::implements_tag_v<Tag, typename _basic_ref_inheritance<Type>::accessor_type>,
-    cycle_ptr::cycle_gptr<typename Tag::erased_type>> {
+    cycle_ptr::cycle_gptr<std::conditional_t<std::is_const_v<Type>, const typename Tag::erased_type, typename Tag::erased_type>>> {
   if constexpr(std::is_convertible_v<decltype(r.p_), cycle_ptr::cycle_gptr<typename Tag::erased_type>>) {
     return r.p_;
   } else {
     if (r == nullptr) return nullptr;
-    auto result = std::dynamic_pointer_cast<typename Tag::erased_type>(r.p_);
+    auto result = std::dynamic_pointer_cast<std::conditional_t<std::is_const_v<Type>, const typename Tag::erased_type, typename Tag::erased_type>>(r.p_);
     if (result == nullptr) throw std::bad_cast();
     return result;
   }
@@ -416,7 +416,7 @@ class basic_ref final
   friend auto raw_ptr(const basic_ref<FnPtrImpl, FnType>&)
   -> std::enable_if_t<
       ::java::type_traits::implements_tag_v<FnTag, typename _basic_ref_inheritance<FnType>::accessor_type>,
-      cycle_ptr::cycle_gptr<typename FnTag::erased_type>>;
+      cycle_ptr::cycle_gptr<std::conditional_t<std::is_const_v<FnType>, const typename FnTag::erased_type, typename FnTag::erased_type>>>;
 
   // Be friend with raw_objintf function.
   template<template<class> class FnPtrImpl, typename FnType>
