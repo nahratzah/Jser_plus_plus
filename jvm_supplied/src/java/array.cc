@@ -42,10 +42,7 @@ auto array_intf::array_class_(std::size_t dimensions) const
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
       },
-      [utf16_element_class_name, dimensions]() {
-        using namespace ::std::string_view_literals;
-        using namespace ::java::serialization::stream;
-
+      [utf16_element_class_name, dimensions]([[maybe_unused]] ::java::serialization::cycle_handler& handler) {
         return cycle_ptr::make_cycle<new_class_desc__class_desc>(
             field_descriptor(utf16_element_class_name, dimensions),
             0, // serialVersionUID
@@ -81,10 +78,7 @@ auto array<::java::boolean_t>::array_class_(std::size_t dimensions) const
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
       },
-      [dimensions]() {
-        using namespace ::std::string_view_literals;
-        using namespace ::java::serialization::stream;
-
+      [dimensions]([[maybe_unused]] ::java::serialization::cycle_handler& handler) {
         return cycle_ptr::make_cycle<new_class_desc__class_desc>(
             field_descriptor(primitive_type::boolean_type, dimensions),
             0, // serialVersionUID
@@ -120,10 +114,7 @@ auto array<::java::byte_t>::array_class_(std::size_t dimensions) const
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
       },
-      [dimensions]() {
-        using namespace ::std::string_view_literals;
-        using namespace ::java::serialization::stream;
-
+      [dimensions]([[maybe_unused]] ::java::serialization::cycle_handler& handler) {
         return cycle_ptr::make_cycle<new_class_desc__class_desc>(
             field_descriptor(primitive_type::byte_type, dimensions),
             0, // serialVersionUID
@@ -159,10 +150,7 @@ auto array<::java::short_t>::array_class_(std::size_t dimensions) const
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
       },
-      [dimensions]() {
-        using namespace ::std::string_view_literals;
-        using namespace ::java::serialization::stream;
-
+      [dimensions]([[maybe_unused]] ::java::serialization::cycle_handler& handler) {
         return cycle_ptr::make_cycle<new_class_desc__class_desc>(
             field_descriptor(primitive_type::short_type, dimensions),
             0, // serialVersionUID
@@ -198,10 +186,7 @@ auto array<::java::int_t>::array_class_(std::size_t dimensions) const
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
       },
-      [dimensions]() {
-        using namespace ::std::string_view_literals;
-        using namespace ::java::serialization::stream;
-
+      [dimensions]([[maybe_unused]] ::java::serialization::cycle_handler& handler) {
         return cycle_ptr::make_cycle<new_class_desc__class_desc>(
             field_descriptor(primitive_type::int_type, dimensions),
             0, // serialVersionUID
@@ -237,10 +222,7 @@ auto array<::java::long_t>::array_class_(std::size_t dimensions) const
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
       },
-      [dimensions]() {
-        using namespace ::std::string_view_literals;
-        using namespace ::java::serialization::stream;
-
+      [dimensions]([[maybe_unused]] ::java::serialization::cycle_handler& handler) {
         return cycle_ptr::make_cycle<new_class_desc__class_desc>(
             field_descriptor(primitive_type::long_type, dimensions),
             0, // serialVersionUID
@@ -276,10 +258,7 @@ auto array<::java::float_t>::array_class_(std::size_t dimensions) const
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
       },
-      [dimensions]() {
-        using namespace ::std::string_view_literals;
-        using namespace ::java::serialization::stream;
-
+      [dimensions]([[maybe_unused]] ::java::serialization::cycle_handler& handler) {
         return cycle_ptr::make_cycle<new_class_desc__class_desc>(
             field_descriptor(primitive_type::float_type, dimensions),
             0, // serialVersionUID
@@ -315,10 +294,7 @@ auto array<::java::double_t>::array_class_(std::size_t dimensions) const
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
       },
-      [dimensions]() {
-        using namespace ::std::string_view_literals;
-        using namespace ::java::serialization::stream;
-
+      [dimensions]([[maybe_unused]] ::java::serialization::cycle_handler& handler) {
         return cycle_ptr::make_cycle<new_class_desc__class_desc>(
             field_descriptor(primitive_type::double_type, dimensions),
             0, // serialVersionUID
@@ -354,10 +330,7 @@ auto array<::java::char_t>::array_class_(std::size_t dimensions) const
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
       },
-      [dimensions]() {
-        using namespace ::std::string_view_literals;
-        using namespace ::java::serialization::stream;
-
+      [dimensions]([[maybe_unused]] ::java::serialization::cycle_handler& handler) {
         return cycle_ptr::make_cycle<new_class_desc__class_desc>(
             field_descriptor(primitive_type::char_type, dimensions),
             0, // serialVersionUID

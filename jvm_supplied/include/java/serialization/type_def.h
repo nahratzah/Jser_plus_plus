@@ -127,6 +127,16 @@ class cycle_handler {
     return result;
   }
 
+  template<typename Fn>
+  auto encode_class_desc(std::string name, Fn&& fn)
+  -> cycle_ptr::cycle_gptr<::java::serialization::stream::new_class_desc__class_desc> {
+    const auto cd_iter = class_descs_.find(name);
+    if (cd_iter != class_descs_.end())
+      return cd_iter->second;
+
+    return class_descs_.emplace(std::move(name), std::invoke(fn, *this)).first->second;
+  }
+
  private:
   auto register_value(typename visit_done::key_type addr, typename visit_done::mapped_type result)
   -> void {
@@ -137,6 +147,7 @@ class cycle_handler {
   }
 
   visit_done visit_done_;
+  std::unordered_map<std::string, cycle_ptr::cycle_gptr<::java::serialization::stream::new_class_desc__class_desc>> class_descs_;
 };
 
 
