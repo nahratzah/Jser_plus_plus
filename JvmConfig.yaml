@@ -471,6 +471,15 @@ classes:
         - java/reflect.h
 
 
+  java.lang.Enum<E>:
+    dev_mode: false
+    suppress:
+    - java.io.Serializable/do_encode_
+    members:
+    - type: constructor
+      visibility: protected
+
+
   java.util.Comparator<T>:
     dev_mode: false
     members:
