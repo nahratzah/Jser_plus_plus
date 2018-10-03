@@ -8,6 +8,7 @@
 #include <java/inline.h>
 #include <java/null_error.h>
 #include <java/object_intf.h>
+#include <java/primitives.h>
 #include <java/ref.h>
 #include <java/type_traits.h>
 #include <java/lang/Class.h>
@@ -45,6 +46,25 @@ class _reflect_ops {
         erased_type::__class__());
   }
 
+  static auto noarg_get_class([[maybe_unused]] ::java::boolean_t type)
+  -> ::java::lang::Class<java::G::pack<>>;
+  static auto noarg_get_class([[maybe_unused]] ::java::char_t type)
+  -> ::java::lang::Class<java::G::pack<>>;
+  static auto noarg_get_class([[maybe_unused]] ::java::byte_t type)
+  -> ::java::lang::Class<java::G::pack<>>;
+  static auto noarg_get_class([[maybe_unused]] ::java::short_t type)
+  -> ::java::lang::Class<java::G::pack<>>;
+  static auto noarg_get_class([[maybe_unused]] ::java::int_t type)
+  -> ::java::lang::Class<java::G::pack<>>;
+  static auto noarg_get_class([[maybe_unused]] ::java::long_t type)
+  -> ::java::lang::Class<java::G::pack<>>;
+  static auto noarg_get_class([[maybe_unused]] ::java::float_t type)
+  -> ::java::lang::Class<java::G::pack<>>;
+  static auto noarg_get_class([[maybe_unused]] ::java::double_t type)
+  -> ::java::lang::Class<java::G::pack<>>;
+  static auto noarg_get_class_void()
+  -> ::java::lang::Class<java::G::pack<>>;
+
   template<template<typename> class PtrImpl, typename Type>
   static JSER_INLINE auto hash_code(const basic_ref<PtrImpl, Type>& ref, std::size_t max_cascade)
   -> ::std::size_t {
@@ -69,7 +89,10 @@ JSER_INLINE auto get_class(const basic_ref<PtrImpl, Type>& ref)
 template<typename Type>
 JSER_INLINE auto get_class()
 -> auto {
-  return _reflect_ops::noarg_get_class(typename ::java::maybe_unpack_type_<Type>::type());
+  if constexpr(std::is_void_v<Type>)
+    return _reflect_ops::noarg_get_class_void();
+  else
+    return _reflect_ops::noarg_get_class(typename ::java::maybe_unpack_type_<Type>::type());
 }
 
 

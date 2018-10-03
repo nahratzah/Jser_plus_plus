@@ -67,14 +67,7 @@ auto array<::java::boolean_t>::dimensions_() const noexcept -> std::size_t {
 
 auto array<::java::boolean_t>::element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  using namespace ::java::serialization::stream;
-
-  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
-      ::java::allocate,
-      to_string(field_descriptor(primitive_type::boolean_type)),
-      nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
-      nullptr);
+  return ::java::get_class<::java::boolean_t>();
 }
 
 auto array<::java::boolean_t>::array_class_(std::size_t dimensions) const
@@ -113,14 +106,7 @@ auto array<::java::byte_t>::dimensions_() const noexcept -> std::size_t {
 
 auto array<::java::byte_t>::element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  using namespace ::java::serialization::stream;
-
-  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
-      ::java::allocate,
-      to_string(field_descriptor(primitive_type::byte_type)),
-      nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
-      nullptr);
+  return ::java::get_class<::java::byte_t>();
 }
 
 auto array<::java::byte_t>::array_class_(std::size_t dimensions) const
@@ -159,14 +145,7 @@ auto array<::java::short_t>::dimensions_() const noexcept -> std::size_t {
 
 auto array<::java::short_t>::element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  using namespace ::java::serialization::stream;
-
-  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
-      ::java::allocate,
-      to_string(field_descriptor(primitive_type::short_type)),
-      nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
-      nullptr);
+  return ::java::get_class<::java::short_t>();
 }
 
 auto array<::java::short_t>::array_class_(std::size_t dimensions) const
@@ -205,14 +184,7 @@ auto array<::java::int_t>::dimensions_() const noexcept -> std::size_t {
 
 auto array<::java::int_t>::element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  using namespace ::java::serialization::stream;
-
-  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
-      ::java::allocate,
-      to_string(field_descriptor(primitive_type::int_type)),
-      nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
-      nullptr);
+  return ::java::get_class<::java::int_t>();
 }
 
 auto array<::java::int_t>::array_class_(std::size_t dimensions) const
@@ -251,14 +223,7 @@ auto array<::java::long_t>::dimensions_() const noexcept -> std::size_t {
 
 auto array<::java::long_t>::element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  using namespace ::java::serialization::stream;
-
-  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
-      ::java::allocate,
-      to_string(field_descriptor(primitive_type::long_type)),
-      nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
-      nullptr);
+  return ::java::get_class<::java::long_t>();
 }
 
 auto array<::java::long_t>::array_class_(std::size_t dimensions) const
@@ -297,14 +262,7 @@ auto array<::java::float_t>::dimensions_() const noexcept -> std::size_t {
 
 auto array<::java::float_t>::element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  using namespace ::java::serialization::stream;
-
-  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
-      ::java::allocate,
-      to_string(field_descriptor(primitive_type::float_type)),
-      nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
-      nullptr);
+  return ::java::get_class<::java::float_t>();
 }
 
 auto array<::java::float_t>::array_class_(std::size_t dimensions) const
@@ -343,14 +301,7 @@ auto array<::java::double_t>::dimensions_() const noexcept -> std::size_t {
 
 auto array<::java::double_t>::element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  using namespace ::java::serialization::stream;
-
-  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
-      ::java::allocate,
-      to_string(field_descriptor(primitive_type::double_type)),
-      nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
-      nullptr);
+  return ::java::get_class<::java::double_t>();
 }
 
 auto array<::java::double_t>::array_class_(std::size_t dimensions) const
@@ -389,14 +340,7 @@ auto array<::java::char_t>::dimensions_() const noexcept -> std::size_t {
 
 auto array<::java::char_t>::element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  using namespace ::java::serialization::stream;
-
-  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
-      ::java::allocate,
-      to_string(field_descriptor(primitive_type::char_type)),
-      nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
-      nullptr);
+  return ::java::get_class<::java::char_t>();
 }
 
 auto array<::java::char_t>::array_class_(std::size_t dimensions) const

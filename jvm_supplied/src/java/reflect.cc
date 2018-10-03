@@ -86,4 +86,105 @@ auto _equal_helper::test_(cycle_ptr::cycle_gptr<const object_intf> x,
   return test_(std::move(x), y_obj->shared_from_this(&y));
 }
 
+
+auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::boolean_t type)
+-> ::java::lang::Class<java::G::pack<>> {
+  using namespace ::java::serialization::stream;
+
+  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
+      ::java::allocate,
+      to_string(field_descriptor(primitive_type::boolean_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
+}
+auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::char_t type)
+-> ::java::lang::Class<java::G::pack<>> {
+  using namespace ::java::serialization::stream;
+
+  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
+      ::java::allocate,
+      to_string(field_descriptor(primitive_type::char_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
+}
+auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::byte_t type)
+-> ::java::lang::Class<java::G::pack<>> {
+  using namespace ::java::serialization::stream;
+
+  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
+      ::java::allocate,
+      to_string(field_descriptor(primitive_type::byte_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
+}
+auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::short_t type)
+-> ::java::lang::Class<java::G::pack<>> {
+  using namespace ::java::serialization::stream;
+
+  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
+      ::java::allocate,
+      to_string(field_descriptor(primitive_type::short_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
+}
+auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::int_t type)
+-> ::java::lang::Class<java::G::pack<>> {
+  using namespace ::java::serialization::stream;
+
+  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
+      ::java::allocate,
+      to_string(field_descriptor(primitive_type::int_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
+}
+auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::long_t type)
+-> ::java::lang::Class<java::G::pack<>> {
+  using namespace ::java::serialization::stream;
+
+  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
+      ::java::allocate,
+      to_string(field_descriptor(primitive_type::long_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
+}
+auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::float_t type)
+-> ::java::lang::Class<java::G::pack<>> {
+  using namespace ::java::serialization::stream;
+
+  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
+      ::java::allocate,
+      to_string(field_descriptor(primitive_type::float_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
+}
+auto _reflect_ops::noarg_get_class([[maybe_unused]] ::java::double_t type)
+-> ::java::lang::Class<java::G::pack<>> {
+  using namespace ::java::serialization::stream;
+
+  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
+      ::java::allocate,
+      to_string(field_descriptor(primitive_type::double_type)),
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
+}
+auto _reflect_ops::noarg_get_class_void()
+-> ::java::lang::Class<java::G::pack<>> {
+  using namespace ::java::serialization::stream;
+
+  return ::java::lang::Class<::java::type<::java::G::pack<>>>(
+      ::java::allocate,
+      u8"void",
+      nullptr,
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
+}
+
 } /* namespace java */
