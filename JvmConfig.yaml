@@ -268,6 +268,50 @@ rules:
       implementation:
       - java/primitives.h
 
+# Implement do_encode_ for enums.
+- predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.lang.Enum
+  suppress:
+  - java.io.Serializable/do_encode_
+  members:
+  - type: method
+    name: do_encode_
+    visibility: private
+    virtual: true
+    const: true
+    covariant_return: false
+    return:
+      cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+    arguments:
+    - name: hander_
+      type:
+        cxx: ::java::serialization::cycle_handler&
+    includes:
+      declaration:
+      - java/serialization/encdec.h
+      - cycle_ptr/cycle_ptr.h
+      - java/serialization/type_def_fwd.h
+      implementation:
+      - java/serialization/type_def.h
+      - java/serialization/encdec.h
+    body: |
+      using namespace ::java::serialization::stream;
+      using conversion_type = ::std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>,
+            char16_t>;
+
+      conversion_type conversion;
+      const auto& value_str = to_string(value);
+
+      // Note: no call to super, as enum encoding is specialized.
+      return cycle_ptr::make_cycle<new_enum>(
+          $erasedType(model)$::__serializable_class__(),
+          ::cycle_ptr::make_cycle<stream_string>(conversion.from_bytes(value_str.data(), value_str.data() + value_str.size())));
+
 # Add implemented __get_class__ method to all concrete classes.
 - predicate:
     interface: false
