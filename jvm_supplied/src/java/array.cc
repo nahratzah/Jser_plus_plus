@@ -41,6 +41,16 @@ auto array_intf::array_class_(std::size_t dimensions) const
       ::java::get_class<::java::lang::Object>(),
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
+      },
+      [utf16_element_class_name, dimensions]() {
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+
+        return cycle_ptr::make_cycle<new_class_desc__class_desc>(
+            field_descriptor(utf16_element_class_name, dimensions),
+            0, // serialVersionUID
+            nullptr, // No serializable super class.
+            SC_SERIALIZABLE);
       });
 }
 
@@ -63,7 +73,8 @@ auto array<::java::boolean_t>::element_class_() const
       ::java::allocate,
       to_string(field_descriptor(primitive_type::boolean_type)),
       nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
 }
 
 auto array<::java::boolean_t>::array_class_(std::size_t dimensions) const
@@ -76,6 +87,16 @@ auto array<::java::boolean_t>::array_class_(std::size_t dimensions) const
       ::java::get_class<::java::lang::Object>(),
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
+      },
+      [dimensions]() {
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+
+        return cycle_ptr::make_cycle<new_class_desc__class_desc>(
+            field_descriptor(primitive_type::boolean_type, dimensions),
+            0, // serialVersionUID
+            nullptr, // No serializable super class.
+            SC_SERIALIZABLE);
       });
 }
 
@@ -98,7 +119,8 @@ auto array<::java::byte_t>::element_class_() const
       ::java::allocate,
       to_string(field_descriptor(primitive_type::byte_type)),
       nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
 }
 
 auto array<::java::byte_t>::array_class_(std::size_t dimensions) const
@@ -111,6 +133,16 @@ auto array<::java::byte_t>::array_class_(std::size_t dimensions) const
       ::java::get_class<::java::lang::Object>(),
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
+      },
+      [dimensions]() {
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+
+        return cycle_ptr::make_cycle<new_class_desc__class_desc>(
+            field_descriptor(primitive_type::byte_type, dimensions),
+            0, // serialVersionUID
+            nullptr, // No serializable super class.
+            SC_SERIALIZABLE);
       });
 }
 
@@ -133,7 +165,8 @@ auto array<::java::short_t>::element_class_() const
       ::java::allocate,
       to_string(field_descriptor(primitive_type::short_type)),
       nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
 }
 
 auto array<::java::short_t>::array_class_(std::size_t dimensions) const
@@ -146,6 +179,16 @@ auto array<::java::short_t>::array_class_(std::size_t dimensions) const
       ::java::get_class<::java::lang::Object>(),
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
+      },
+      [dimensions]() {
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+
+        return cycle_ptr::make_cycle<new_class_desc__class_desc>(
+            field_descriptor(primitive_type::short_type, dimensions),
+            0, // serialVersionUID
+            nullptr, // No serializable super class.
+            SC_SERIALIZABLE);
       });
 }
 
@@ -168,7 +211,8 @@ auto array<::java::int_t>::element_class_() const
       ::java::allocate,
       to_string(field_descriptor(primitive_type::int_type)),
       nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
 }
 
 auto array<::java::int_t>::array_class_(std::size_t dimensions) const
@@ -181,6 +225,16 @@ auto array<::java::int_t>::array_class_(std::size_t dimensions) const
       ::java::get_class<::java::lang::Object>(),
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
+      },
+      [dimensions]() {
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+
+        return cycle_ptr::make_cycle<new_class_desc__class_desc>(
+            field_descriptor(primitive_type::int_type, dimensions),
+            0, // serialVersionUID
+            nullptr, // No serializable super class.
+            SC_SERIALIZABLE);
       });
 }
 
@@ -203,7 +257,8 @@ auto array<::java::long_t>::element_class_() const
       ::java::allocate,
       to_string(field_descriptor(primitive_type::long_type)),
       nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
 }
 
 auto array<::java::long_t>::array_class_(std::size_t dimensions) const
@@ -216,6 +271,16 @@ auto array<::java::long_t>::array_class_(std::size_t dimensions) const
       ::java::get_class<::java::lang::Object>(),
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
+      },
+      [dimensions]() {
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+
+        return cycle_ptr::make_cycle<new_class_desc__class_desc>(
+            field_descriptor(primitive_type::long_type, dimensions),
+            0, // serialVersionUID
+            nullptr, // No serializable super class.
+            SC_SERIALIZABLE);
       });
 }
 
@@ -238,7 +303,8 @@ auto array<::java::float_t>::element_class_() const
       ::java::allocate,
       to_string(field_descriptor(primitive_type::float_type)),
       nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
 }
 
 auto array<::java::float_t>::array_class_(std::size_t dimensions) const
@@ -251,6 +317,16 @@ auto array<::java::float_t>::array_class_(std::size_t dimensions) const
       ::java::get_class<::java::lang::Object>(),
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
+      },
+      [dimensions]() {
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+
+        return cycle_ptr::make_cycle<new_class_desc__class_desc>(
+            field_descriptor(primitive_type::float_type, dimensions),
+            0, // serialVersionUID
+            nullptr, // No serializable super class.
+            SC_SERIALIZABLE);
       });
 }
 
@@ -273,7 +349,8 @@ auto array<::java::double_t>::element_class_() const
       ::java::allocate,
       to_string(field_descriptor(primitive_type::double_type)),
       nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
 }
 
 auto array<::java::double_t>::array_class_(std::size_t dimensions) const
@@ -286,6 +363,16 @@ auto array<::java::double_t>::array_class_(std::size_t dimensions) const
       ::java::get_class<::java::lang::Object>(),
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
+      },
+      [dimensions]() {
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+
+        return cycle_ptr::make_cycle<new_class_desc__class_desc>(
+            field_descriptor(primitive_type::double_type, dimensions),
+            0, // serialVersionUID
+            nullptr, // No serializable super class.
+            SC_SERIALIZABLE);
       });
 }
 
@@ -308,7 +395,8 @@ auto array<::java::char_t>::element_class_() const
       ::java::allocate,
       to_string(field_descriptor(primitive_type::char_type)),
       nullptr,
-      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{});
+      ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{},
+      nullptr);
 }
 
 auto array<::java::char_t>::array_class_(std::size_t dimensions) const
@@ -321,6 +409,16 @@ auto array<::java::char_t>::array_class_(std::size_t dimensions) const
       ::java::get_class<::java::lang::Object>(),
       ::std::initializer_list<::java::lang::Class<::java::G::pack<>>>{
         ::java::get_class<::java::io::Serializable>()
+      },
+      [dimensions]() {
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+
+        return cycle_ptr::make_cycle<new_class_desc__class_desc>(
+            field_descriptor(primitive_type::char_type, dimensions),
+            0, // serialVersionUID
+            nullptr, // No serializable super class.
+            SC_SERIALIZABLE);
       });
 }
 

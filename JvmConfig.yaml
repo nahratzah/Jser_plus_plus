@@ -139,8 +139,8 @@ rules:
       implementation:
       - java/reflect.h
 
-- id: java.io.Serializable/do_encode_
-  predicate:
+# Create serializable class description.
+- predicate:
     interface: false
     abstract: true
     class: true
@@ -182,6 +182,16 @@ rules:
       implementation:
       - initializer_list
       - java/serialization/encdec.h
+
+# Implement default do_encode_ implementation.
+- id: java.io.Serializable/do_encode_
+  predicate:
+    interface: false
+    abstract: true
+    class: true
+    inherits:
+    - java.io.Serializable
+  members:
   - type: method
     name: do_encode_fields_
     visibility: private
@@ -279,7 +289,7 @@ rules:
     body: |
       return $erasedType(model)$::__class__();
 
-# Add pure virtual __class__ method to all abstract classes and interfaces.
+# Add __class__ method to all types.
 - predicate:
     interface: true
     abstract: true
@@ -308,7 +318,8 @@ rules:
           $if (model.superClass)$::java::get_class<$boundTemplateType(model.superClass, "style=type")$>()$else$nullptr$endif$,
           ::std::initializer_list<$boundTemplateType(java.("java.lang.Class<?>"), "style=type, class")$>{
             $model.interfaces: { intf | ::java::get_class<$boundTemplateType(intf, "style=type")$>()}; anchor, separator = ",\n"$
-          }));
+          },
+          $if (!model.interface && model.testInherits.({java.io.Serializable}))$&$erasedType(model)$::__serializable_class__$else$nullptr$endif$));
     includes:
       implementation:
       - java/reflect.h
@@ -1373,6 +1384,7 @@ classes:
     dev_mode: false
     suppress:
     - java.lang.Object/equals_and_hashcode
+    - java.io.Serializable/do_encode_
     fields:
       name:
         type:
@@ -1393,6 +1405,16 @@ classes:
           java: java.util.HashSet<java.lang.Class<?>>
         final: true
         getter: true
+      serialization_fn:
+        visibility: private
+        type:
+          cxx: std::function<::cycle_ptr::cycle_gptr<::java::serialization::stream::new_class_desc__class_desc>()>
+          includes:
+            declaration:
+            - functional
+            - cycle_ptr/cycle_ptr.h
+            - java/serialization/encdec.h
+        const: true
     members:
     - type: constructor
       arguments:
@@ -1408,11 +1430,20 @@ classes:
           includes:
             declaration:
             - initializer_list
+      - name: serialization_fn
+        type:
+          cxx: std::function<::cycle_ptr::cycle_gptr<::java::serialization::stream::new_class_desc__class_desc>()>
+          includes:
+            declaration:
+            - functional
+            - cycle_ptr/cycle_ptr.h
+            - java/serialization/encdec.h
       initializers:
         name: std::move(name)
         super: std::move(super)
         interfaces: $boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=type, class")$(::java::allocate, interfaces.begin(), interfaces.end())
         allTypes: ::java::allocate
+        serialization_fn: std::move(serialization_fn)
       body: |
         // While we're part of our own type set, we can't add ourselves.
         // Because we're still under construction, thus the `shared_from_this` mechanic is unavailable.
@@ -1548,6 +1579,50 @@ classes:
         \returns An \ref ::java::lang::Iterable "iterable" over the interfaces implemented by this class.
       body: |
         return ::java::constcast<$boundTemplateType(java.({java.lang.Iterable<java.lang.Class<?>>}), "style=type, class")$>(interfaces);
+    - type: method
+      name: do_encode_
+      visibility: private
+      override: true
+      const: true
+      final: true
+      covariant_return: false
+      return:
+        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+        includes:
+          declaration:
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+      arguments:
+      - name: _handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+          includes:
+            declaration:
+            - java/serialization/type_def_fwd.h
+      body: |
+        using namespace ::java::serialization::stream;
+        using conversion_type = ::std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>,
+            char16_t>;
+
+        auto result = ::cycle_ptr::make_cycle<new_class>();
+
+        if (serialization_fn) {
+          (*result) = serialization_fn();
+        } else {
+          conversion_type conversion;
+
+          (*result) = cycle_ptr::make_cycle<new_class_desc__class_desc>(
+              field_descriptor(conversion.from_bytes(name)),
+              0); // serialVersionUID for non-serializable class.
+        }
+
+        // Note: No invocation of super.do_encode_,
+        // because classes are special case encoded.
+        return result;
+      includes:
+        implementation:
+        - java/serialization/encdec.h
 
 
   java.lang.Iterable<T>:
