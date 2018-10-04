@@ -134,6 +134,7 @@ public enum PrimitiveType implements JavaType {
         return false;
     }
 
+    @Override
     public boolean isPrimitive() {
         return true;
     }

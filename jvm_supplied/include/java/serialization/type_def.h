@@ -77,65 +77,52 @@ class cycle_handler {
   auto serializable_do_encode_(const java::_tags::java::io::Serializable::erased_type& s)
   -> cycle_ptr::cycle_gptr<const stream::stream_element>;
 
-  JSER_INLINE auto serializable_do_encode_(java::io::Serializable s)
+  JSER_INLINE auto serializable_do_encode_(::java::const_ref<::java::io::Serializable> s)
   -> cycle_ptr::cycle_gptr<const stream::stream_element>;
 
  public:
-  template<typename Defn = void, typename T>
+  cycle_handler();
+  ~cycle_handler() noexcept;
+
+  template<typename T>
   auto encode_field_unshared(const T& v)
-  -> encode_result_t<
-      Defn,
-      std::enable_if_t<
-          !std::is_convertible_v<T, cycle_ptr::cycle_gptr<const void>>,
-          T>>;
+  -> cycle_ptr::cycle_gptr<const stream::stream_element>;
 
-  template<typename Defn = void, typename T>
-  auto encode_field_unshared(const cycle_ptr::cycle_gptr<T>& v)
-  -> encode_result_t<Defn, T> {
-    return (v == nullptr ? nullptr : encode_field_unshared<Defn>(*v));
-  }
-
-  template<typename Defn = void, typename T>
-  auto encode_field_unshared(const cycle_ptr::cycle_member_ptr<T>& v)
-  -> encode_result_t<Defn, T> {
-    return (v == nullptr ? nullptr : encode_field_unshared<Defn>(*v));
-  }
-
-  template<typename Defn = void, typename T>
+  template<typename T>
   auto encode_field(const T& v)
-  -> encode_result_t<
-      Defn,
-      std::enable_if_t<
-          !std::is_convertible_v<T, cycle_ptr::cycle_gptr<const void>>,
-          T>> {
-    return this->encode_field_unshared<Defn>(v);
-  }
-
-  template<typename Defn = void, typename T>
-  auto encode_field(const T& v)
-  -> encode_result_t<Defn,
-      typename std::enable_if_t<
-          std::is_convertible_v<T, cycle_ptr::cycle_gptr<const void>>,
-          T>::element_type>;
-
-  template<typename Defn = void, typename Iter>
-  auto encode_obj_vector(Iter b, Iter e)
-  -> std::vector<cycle_ptr::cycle_gptr<const stream::stream_element>> {
-    std::vector<cycle_ptr::cycle_gptr<const stream::stream_element>> result;
-    std::transform(b, e, std::back_inserter(result),
-        [this](const auto& x) { return encode_field<Defn>(x); });
-    return result;
-  }
+  -> cycle_ptr::cycle_gptr<const stream::stream_element>;
 
   template<typename Fn>
   auto encode_class_desc(std::string name, Fn&& fn)
-  -> cycle_ptr::cycle_gptr<::java::serialization::stream::new_class_desc__class_desc> {
+  -> cycle_ptr::cycle_gptr<stream::new_class_desc__class_desc> {
     const auto cd_iter = class_descs_.find(name);
     if (cd_iter != class_descs_.end())
       return cd_iter->second;
 
-    return class_descs_.emplace(std::move(name), std::invoke(fn, *this)).first->second;
+    return class_descs_.emplace(std::move(name), std::invoke(std::forward<Fn>(fn), *this)).first->second;
   }
+
+  template<typename ElementType, typename T, typename Fn>
+  auto encode_obj(cycle_ptr::cycle_gptr<const T> obj, Fn&& fn)
+  -> cycle_ptr::cycle_gptr<const stream::stream_element> {
+    assert(obj != nullptr);
+
+    const auto new_obj = cycle_ptr::make_cycle<ElementType>();
+    const auto ins = visit_done_.emplace(std::move(obj), new_obj);
+
+    if (!ins.second) {
+      try {
+        std::invoke(std::forward<Fn>(fn), *this, *new_obj);
+      } catch (...) {
+        visit_done_.erase(ins.first);
+        throw;
+      }
+    }
+    return ins.first->second;
+  }
+
+  auto encode_str(std::string s)
+  -> cycle_ptr::cycle_gptr<const stream::stream_string>;
 
  private:
   auto register_value(typename visit_done::key_type addr, typename visit_done::mapped_type result)
@@ -148,6 +135,7 @@ class cycle_handler {
 
   visit_done visit_done_;
   std::unordered_map<std::string, cycle_ptr::cycle_gptr<::java::serialization::stream::new_class_desc__class_desc>> class_descs_;
+  std::unordered_map<std::string, cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_string>> string_table_;
 };
 
 
@@ -162,61 +150,21 @@ auto get_non_serializable_class(std::u16string_view class_name)
 namespace java::serialization {
 
 
-template<typename Defn, typename T>
+template<typename T>
 auto cycle_handler::encode_field_unshared(const T& v)
--> encode_result_t<
-    Defn,
-    std::enable_if_t<
-        !std::is_convertible_v<T, cycle_ptr::cycle_gptr<const void>>,
-        T>> {
-  using defn = select_defn_t<Defn, T>;
-
-  if constexpr(std::is_void_v<defn>) {
-    return serializable_do_encode_(::java::cast<java::io::Serializable>(v));
-  } else {
-    return defn::encode(v);
-  }
+-> cycle_ptr::cycle_gptr<const stream::stream_element> {
+  return cycle_handler().template encode_field<T>(v);
 }
 
-template<typename Defn, typename T>
+template<typename T>
 auto cycle_handler::encode_field(const T& v)
--> encode_result_t<Defn,
-    typename std::enable_if_t<
-        std::is_convertible_v<T, cycle_ptr::cycle_gptr<const void>>,
-        T>::element_type> {
-  using defn = select_defn_t<Defn, typename T::element_type>;
-  using element_t = encode_element_t<Defn, typename T::element_type>;
-
-  static_assert(std::is_base_of_v<java::serialization::stream::stream_element, element_t>,
-      "Must be invoked for a stream_element derived type.");
-
+-> cycle_ptr::cycle_gptr<const stream::stream_element> {
   if (v == nullptr) return nullptr;
 
-  auto vdone = visit_done_.find(v);
-  if (vdone != visit_done_.end()) {
-    // If already present, bypass encoding.
-    auto result = std::dynamic_pointer_cast<const element_t>(vdone->second);
-    if (result == nullptr) throw std::bad_cast();
-    return result;
-  }
-
-  if constexpr(std::is_void_v<defn>) {
-    return serializable_do_encode_(::java::cast<java::io::Serializable>(*v));
-  } else {
-    // Allocate result into separate pointer, to keep it mutable.
-    auto result = cycle_ptr::make_cycle<element_t>();
-    // Register result, so that future invocations will bypass the encoder.
-    // (This is how recursion is broken.)
-    register_value(v, result);
-
-    // Perform encoding operation.
-    defn::encode(*v, result, *this);
-
-    return result;
-  }
+  return serializable_do_encode_(::java::cast<::java::const_ref<java::io::Serializable>>(v));
 }
 
-JSER_INLINE auto cycle_handler::serializable_do_encode_(java::io::Serializable s)
+JSER_INLINE auto cycle_handler::serializable_do_encode_(::java::const_ref<::java::io::Serializable> s)
 -> cycle_ptr::cycle_gptr<const stream::stream_element> {
   return serializable_do_encode_(*::java::raw_ptr<::java::_tags::java::io::Serializable>(s));
 }

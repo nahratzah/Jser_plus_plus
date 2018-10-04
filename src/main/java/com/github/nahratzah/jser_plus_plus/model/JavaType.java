@@ -225,6 +225,15 @@ public interface JavaType {
     public boolean isFinal();
 
     /**
+     * Test if this is a java primitive type.
+     *
+     * @return True if this is a primitive type.
+     */
+    public default boolean isPrimitive() {
+        return false;
+    }
+
+    /**
      * Retrieve the default variable type for this class.
      *
      * @return The type to use for fields and variables. Returns null if the

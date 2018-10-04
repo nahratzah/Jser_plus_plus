@@ -7,6 +7,9 @@
 namespace java::_tags::java::lang {
 struct Object;
 };
+namespace java::_tags::java::io {
+struct Serializable;
+};
 
 #include <cstddef>
 #include <type_traits>
@@ -80,6 +83,11 @@ struct generics_arity_
 
 template<>
 struct generics_arity_<java::_tags::java::lang::Object>
+: std::integral_constant<std::size_t, 0u>
+{};
+
+template<>
+struct generics_arity_<java::_tags::java::io::Serializable>
 : std::integral_constant<std::size_t, 0u>
 {};
 
@@ -366,6 +374,12 @@ struct is_satisfied_by_<java::G::super_t<X...>, java::G::pack_t<Y...>> {
 // Everything extends java.lang.Object.
 template<typename... Y>
 struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::pack_t<Y...>> {
+  using type = std::true_type;
+};
+
+// Every array extends java.io.Serializable.
+template<typename Y>
+struct is_satisfied_by_<java::G::extends_t<java::_tags::java::io::Serializable>, Y*> {
   using type = std::true_type;
 };
 

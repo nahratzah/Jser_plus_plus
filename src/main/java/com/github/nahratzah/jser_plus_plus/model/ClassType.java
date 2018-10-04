@@ -150,11 +150,12 @@ public class ClassType implements JavaType {
 
     private void initFields(Context ctx, ClassConfig classCfg, Map<String, String> argRename, ObjectStreamClass streamClass) {
         class IntermediateFieldDescr {
-            public IntermediateFieldDescr(String name, Class<?> classType, Type reflectType, Field reflectField) {
+            public IntermediateFieldDescr(String name, Class<?> classType, Type reflectType, Field reflectField, boolean shared) {
                 this.name = requireNonNull(name);
                 this.classType = requireNonNull(classType);
                 this.reflectType = reflectType;
                 this.reflectField = reflectField;
+                this.shared = shared;
             }
 
             /**
@@ -173,6 +174,10 @@ public class ClassType implements JavaType {
              * Field found using reflection. May be null.
              */
             public final Field reflectField;
+            /**
+             * True if the field uses shared encoding. False otherwise.
+             */
+            public final boolean shared;
         }
 
         // Generate fields based on reflection logic.
@@ -197,7 +202,7 @@ public class ClassType implements JavaType {
                         reflectType = null;
                         reflectField = null;
                     }
-                    return new IntermediateFieldDescr(name, type, reflectType, reflectField);
+                    return new IntermediateFieldDescr(name, type, reflectType, reflectField, !f.isUnshared());
                 })
                 .map(iField -> {
                     final Type visitType = iField.reflectType != null ? iField.reflectType : iField.classType;
@@ -207,6 +212,7 @@ public class ClassType implements JavaType {
                     if (iField.reflectField != null) {
                         fieldType.setFinal(Modifier.isFinal(iField.reflectField.getModifiers()));
                     }
+                    fieldType.setShared(iField.shared);
                     return fieldType;
                 })
                 .collect(Collectors.toList());

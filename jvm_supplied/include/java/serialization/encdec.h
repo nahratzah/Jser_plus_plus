@@ -966,13 +966,6 @@ struct new_array
 struct new_enum
 : stream_element
 {
-  new_enum() = default;
-
-  new_enum(cycle_ptr::cycle_gptr<const class_desc> type, cycle_ptr::cycle_gptr<const stream_string> value)
-  : type(std::move(type)),
-    value(std::move(value))
-  {}
-
   static auto decode(reader& r, basic_read_wrapper& read, std::uint8_t hdr) -> cycle_ptr::cycle_gptr<new_enum>;
 
   auto to_out_(std::ostream& out, str_ctx& ctx) const -> void override;

@@ -372,6 +372,9 @@ namespace java {
 
 template<template<class> class PtrImpl, typename Type>
 class basic_ref<PtrImpl, Type*> final {
+  // Be friends with all our specializations.
+  template<template<class> class, typename> friend class java::basic_ref;
+
   // Be friend with raw_objintf function.
   template<template<class> class FnPtrImpl, typename FnType>
   friend auto raw_objintf(const basic_ref<FnPtrImpl, FnType>& r) noexcept
@@ -426,6 +429,9 @@ class basic_ref<PtrImpl, Type*> final {
 
 template<template<class> class PtrImpl, typename Type>
 class basic_ref<PtrImpl, Type*const> final {
+  // Be friends with all our specializations.
+  template<template<class> class, typename> friend class java::basic_ref;
+
   // Be friend with raw_objintf function.
   template<template<class> class FnPtrImpl, typename FnType>
   friend auto raw_objintf(const basic_ref<FnPtrImpl, FnType>& r) noexcept

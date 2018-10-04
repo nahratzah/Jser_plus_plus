@@ -241,6 +241,26 @@ public class FieldType {
     }
 
     /**
+     * Test if the field is using shared encoding.
+     *
+     * Default is to use shared encoding.
+     *
+     * @return True if the field uses shared encoding.
+     */
+    public boolean isShared() {
+        return sharedVar;
+    }
+
+    /**
+     * Change if the field uses shared encoding.
+     *
+     * @param sharedVar Value indicating if the field is shared.
+     */
+    public void setShared(boolean sharedVar) {
+        this.sharedVar = sharedVar;
+    }
+
+    /**
      * Get the documentation for the field.
      *
      * @return Documentation of the field, or null if the field is undocumented.
@@ -393,6 +413,10 @@ public class FieldType {
         });
     }
 
+    public boolean isSerializationArray() {
+        return getSerializationExtents() != 0;
+    }
+
     @Override
     public String toString() {
         return "FieldType{" + "name=" + name + ", type=" + type + ", varType=" + varType + ", encodeEnabled=" + encodeEnabled + ", decodeEnabled=" + decodeEnabled + '}';
@@ -411,6 +435,7 @@ public class FieldType {
     private Boolean setterFn = null;
     private boolean finalVar = false;
     private boolean constVar = false;
+    private boolean sharedVar = true;
     private String docString = null;
     private String defaultInit = null;
 }

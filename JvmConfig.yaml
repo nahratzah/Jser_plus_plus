@@ -170,7 +170,7 @@ rules:
 
       return handler_.encode_class_desc(
           $u8String(model.name)$,
-          [](::java::serialization::cycle_handler& handler) {
+          []([[maybe_unused]] ::java::serialization::cycle_handler& handler) {
             return cycle_ptr::make_cycle<new_class_desc__class_desc>(
                 field_descriptor($u16StringView(model.name)$),
                 $model.serialVersionUID_string$, // serialVersionUID
@@ -180,8 +180,8 @@ rules:
                   $ model.serializationFields
                   : { f | $\\$
                       $if (f.serializationType.primitive)$$\\$
-                      $if (f.serializationExtents)$object_desc$else$primitive_desc$endif$$\\$
-                      (primitive_type::$f.serializationType.name$_type, $u16StringView(f.serializationName)$, $f.serializationExtents$)$\\$
+                      $if (f.serializationArray)$object_desc$else$primitive_desc$endif$$\\$
+                      (primitive_type::$f.serializationType.name$_type, $u16StringView(f.serializationName)$$if (f.serializationArray)$, $f.serializationExtents$$endif$)$\\$
                       $else$$\\$
                       object_desc($u16StringView(f.serializationType.name)$, $u16StringView(f.serializationName)$, $f.serializationExtents$)$\\$
                       $endif$$\\$
@@ -197,7 +197,7 @@ rules:
       - java/serialization/type_def.h
       - java/serialization/encdec.h
 
-# Implement default do_encode_ implementation.
+# Implement default do_encode_fields_ implementation.
 - id: java.io.Serializable/do_encode_
   predicate:
     interface: false
@@ -208,24 +208,75 @@ rules:
   members:
   - type: method
     name: do_encode_fields_
-    visibility: private
+    visibility: protected
     static: true
     arguments:
+    - name: _self_
+      type:
+        cxx: const $erasedType(model)$&
     - name: handler_
       type:
         cxx: ::java::serialization::cycle_handler&
         includes:
           declaration:
           - java/serialization/type_def_fwd.h
-    - name: out
+    - name: obj
       # replace with object type!
       type:
-        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+        cxx: ::java::serialization::stream::new_object&
         includes:
           declaration:
           - java/serialization/type_def_fwd.h
-    body:
-      // XXX implement
+    body: |
+      using namespace ::std::literals;
+      using namespace ::java::serialization::stream;
+
+      obj.data.emplace(
+          ::std::piecewise_construct,
+          ::std::forward_as_tuple($erasedType(model)$::__serializable_class__(handler_)),
+          std::forward_as_tuple(
+              std::initializer_list<class_desc::field_map::value_type>{
+                $ model.serializationFields
+                : { f | $\\$
+                    { stream_string($u16StringView(f.serializationName)$),$"\n  "$$\\$
+                      $if (f.serializationType.primitive && !f.serializationArray)$$\\$
+                      primitive_desc::value_type(::std::in_place_type<::$[f.serializationType.namespace, f.serializationType.className]; separator = "::"$>, _self_.$f.name$)$\\$
+                      $else$$\\$
+                      object_desc::value_type(handler_.$if (f.shared)$encode_field$else$encode_field_unshared$endif$(_self_.$f.name$))$\\$
+                      $endif$$\\$
+                      $" "$\}$\\$
+                  }
+                ; anchor, separator = ",\n"$
+              },
+              ::std::initializer_list<::std::variant<::cycle_ptr::cycle_gptr<const stream_element>, blockdata>>{}));
+
+      $if (model.superClass.type.testInherits.({java.io.Serializable}))$
+      $erasedType(model.superClass.type)$::do_encode_fields_(_self_, handler_, obj);
+      $endif$
+    includes:
+      declaration:
+      - java/serialization/type_def_fwd.h
+      - java/serialization/encdec.h
+      - cycle_ptr/cycle_ptr.h
+      implementation:
+      - tuple
+      - variant
+      - utility
+      - string_view
+      - cycle_ptr/cycle_ptr.h
+      - java/serialization/type_def.h
+      - java/serialization/encdec.h
+# Implement default do_encode_ implementation.
+# Note: we omit this method on abstract classes, since the derived class will
+# override it anyway, and there is no call to super in `do_encode_()`.
+- id: java.io.Serializable/do_encode_
+  predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.io.Serializable
+  members:
   - type: method
     name: do_encode_
     visibility: private
@@ -233,14 +284,21 @@ rules:
     const: true
     covariant_return: false
     return:
-      cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+      cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
     arguments:
-    - name: _handler_
+    - name: handler_
       type:
         cxx: ::java::serialization::cycle_handler&
     # XXX implement
     body: |
-      return nullptr; // XXX
+      using namespace ::java::serialization::stream;
+
+      return handler_.template encode_obj<new_object>(
+          this->shared_from_this(this),
+          [this](::java::serialization::cycle_handler& handler, new_object& obj) {
+            obj.cls = $erasedType(model)$::__serializable_class__(handler);
+            $erasedType(model)$::do_encode_fields_(*this, handler, obj);
+          });
     includes:
       declaration:
       - java/serialization/type_def_fwd.h
@@ -300,7 +358,7 @@ rules:
     const: true
     covariant_return: false
     return:
-      cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+      cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
     arguments:
     - name: handler_
       type:
@@ -319,13 +377,24 @@ rules:
             std::codecvt_utf8_utf16<char16_t>,
             char16_t>;
 
-      conversion_type conversion;
-      const auto& value_str = to_string(value);
+      return handler_.template encode_obj<new_enum>(
+          this->shared_from_this(this),
+          [this](::java::serialization::cycle_handler& handler, new_enum& obj) {
+            obj.type = $erasedType(model)$::__serializable_class__(handler);
 
-      // Note: no call to super, as enum encoding is specialized.
-      return cycle_ptr::make_cycle<new_enum>(
-          $erasedType(model)$::__serializable_class__(handler_),
-          ::cycle_ptr::make_cycle<stream_string>(conversion.from_bytes(value_str.data(), value_str.data() + value_str.size())));
+            if constexpr(::std::is_constructible_v<std::string, std::string_view>) {
+              obj.value = handler.encode_str(std::string(to_string(value)));
+            } else {
+              const auto& value_str = to_string(value);
+              obj.value = handler.encode_str(std::string(value_str.begin(), value_str.end()));
+            }
+          });
+    includes:
+      implementation:
+      - string
+      - string_view
+      - type_traits
+      - java/serialization/type_def.h
 
 # Implement values() for enums.
 - predicate:
@@ -724,11 +793,11 @@ classes:
 
   java.lang.Boolean:
     dev_mode: false
-    var_type:
-      cxx: ::java::boolean_t
-      includes:
-        declaration:
-        - java/primitives.h
+#    var_type:
+#      cxx: ::java::boolean_t
+#      includes:
+#        declaration:
+#        - java/primitives.h
     fields:
       value:
         const: true
@@ -795,11 +864,11 @@ classes:
 
   java.lang.Character:
     dev_mode: false
-    var_type:
-      cxx: ::java::char_t
-      includes:
-        declaration:
-        - java/primitives.h
+#    var_type:
+#      cxx: ::java::char_t
+#      includes:
+#        declaration:
+#        - java/primitives.h
     fields:
       value:
         const: true
@@ -841,11 +910,11 @@ classes:
 
   java.lang.Byte:
     dev_mode: false
-    var_type:
-      cxx: ::java::byte_t
-      includes:
-        declaration:
-        - java/primitives.h
+#    var_type:
+#      cxx: ::java::byte_t
+#      includes:
+#        declaration:
+#        - java/primitives.h
     fields:
       value:
         const: true
@@ -911,11 +980,11 @@ classes:
 
   java.lang.Short:
     dev_mode: false
-    var_type:
-      cxx: ::java::short_t
-      includes:
-        declaration:
-        - java/primitives.h
+#    var_type:
+#      cxx: ::java::short_t
+#      includes:
+#        declaration:
+#        - java/primitives.h
     fields:
       value:
         const: true
@@ -981,11 +1050,11 @@ classes:
 
   java.lang.Integer:
     dev_mode: false
-    var_type:
-      cxx: ::java::int_t
-      includes:
-        declaration:
-        - java/primitives.h
+#    var_type:
+#      cxx: ::java::int_t
+#      includes:
+#        declaration:
+#        - java/primitives.h
     fields:
       value:
         const: true
@@ -1051,11 +1120,11 @@ classes:
 
   java.lang.Long:
     dev_mode: false
-    var_type:
-      cxx: ::java::long_t
-      includes:
-        declaration:
-        - java/primitives.h
+#    var_type:
+#      cxx: ::java::long_t
+#      includes:
+#        declaration:
+#        - java/primitives.h
     fields:
       value:
         const: true
@@ -1113,11 +1182,11 @@ classes:
 
   java.lang.Float:
     dev_mode: false
-    var_type:
-      cxx: ::java::float_t
-      includes:
-        declaration:
-        - java/primitives.h
+#    var_type:
+#      cxx: ::java::float_t
+#      includes:
+#        declaration:
+#        - java/primitives.h
     fields:
       value:
         const: true
@@ -1183,11 +1252,11 @@ classes:
 
   java.lang.Double:
     dev_mode: false
-    var_type:
-      cxx: ::java::double_t
-      includes:
-        declaration:
-        - java/primitives.h
+#    var_type:
+#      cxx: ::java::double_t
+#      includes:
+#        declaration:
+#        - java/primitives.h
     fields:
       value:
         const: true
@@ -1258,7 +1327,7 @@ classes:
       const: true
       covariant_return: false
       return:
-        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+        cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
       arguments:
       - name: handler_
         type:
@@ -1279,11 +1348,11 @@ classes:
     dev_mode: false
     suppress:
     - java.io.Serializable/do_encode_
-    var_type:
-      cxx: ::std::string
-      includes:
-        declaration:
-        - string
+#    var_type:
+#      cxx: ::std::string
+#      includes:
+#        declaration:
+#        - string
     fields:
       value:
         doc_string: |
@@ -1444,22 +1513,13 @@ classes:
       const: true
       covariant_return: false
       return:
-        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+        cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
       arguments:
-      - name: _handler_
+      - name: handler_
         type:
           cxx: ::java::serialization::cycle_handler&
       body: |
-        using namespace ::java::serialization::stream;
-        using conversion_type = ::std::wstring_convert<
-            std::codecvt_utf8_utf16<char16_t>,
-            char16_t>;
-
-        conversion_type conversion;
-
-        // Note: No invocation of super.do_encode_,
-        // because strings are special case encoded.
-        return ::cycle_ptr::make_cycle<stream_string>(conversion.from_bytes(value.data(), value.data() + value.size()));
+        return handler_.encode_str(value);
       includes:
         declaration:
         - java/serialization/type_def_fwd.h
@@ -1682,7 +1742,7 @@ classes:
       final: true
       covariant_return: false
       return:
-        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+        cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
         includes:
           declaration:
           - cycle_ptr/cycle_ptr.h
@@ -1700,21 +1760,19 @@ classes:
             std::codecvt_utf8_utf16<char16_t>,
             char16_t>;
 
-        auto result = ::cycle_ptr::make_cycle<new_class>();
+        return handler_.template encode_obj<new_class>(
+            this->shared_from_this(this),
+            [this](::java::serialization::cycle_handler& handler, new_class& obj) {
+              if (serialization_fn) {
+                obj = serialization_fn(handler);
+              } else {
+                conversion_type conversion;
 
-        if (serialization_fn) {
-          (*result) = serialization_fn(handler_);
-        } else {
-          conversion_type conversion;
-
-          (*result) = cycle_ptr::make_cycle<new_class_desc__class_desc>(
-              field_descriptor(conversion.from_bytes(name)),
-              0); // serialVersionUID for non-serializable class.
-        }
-
-        // Note: No invocation of super.do_encode_,
-        // because classes are special case encoded.
-        return result;
+                obj = cycle_ptr::make_cycle<new_class_desc__class_desc>(
+                    field_descriptor(conversion.from_bytes(name)),
+                    0); // serialVersionUID for non-serializable class.
+              }
+            });
       includes:
         implementation:
         - java/serialization/encdec.h
