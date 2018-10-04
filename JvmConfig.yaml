@@ -159,7 +159,7 @@ rules:
           declaration:
           - java/serialization/type_def_fwd.h
     return:
-      cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::new_class_desc__class_desc>
+      cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>
       includes:
         declaration:
         - java/serialization/encdec.h
@@ -1558,7 +1558,7 @@ classes:
       serialization_fn:
         visibility: private
         type:
-          cxx: std::function<::cycle_ptr::cycle_gptr<::java::serialization::stream::new_class_desc__class_desc>(::java::serialization::cycle_handler&)>
+          cxx: std::function<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>(::java::serialization::cycle_handler&)>
           includes:
             declaration:
             - functional
@@ -1583,7 +1583,7 @@ classes:
             - initializer_list
       - name: serialization_fn
         type:
-          cxx: std::function<::cycle_ptr::cycle_gptr<::java::serialization::stream::new_class_desc__class_desc>(::java::serialization::cycle_handler&)>
+          cxx: std::function<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>(::java::serialization::cycle_handler&)>
           includes:
             declaration:
             - functional

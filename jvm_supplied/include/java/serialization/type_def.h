@@ -40,6 +40,12 @@ class cycle_handler {
       std::hash<cycle_ptr::cycle_gptr<const void>>,
       std::equal_to<cycle_ptr::cycle_gptr<const void>>,
       std::allocator<std::pair<const cycle_ptr::cycle_gptr<const void>, cycle_ptr::cycle_gptr<const java::serialization::stream::stream_element>>>>;
+  using class_descs = std::unordered_map<
+      std::string,
+      cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>>;
+  using string_table = std::unordered_map<
+      std::string,
+      cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_string>>;
 
   template<typename Defn, typename T>
   using select_defn_t = std::conditional_t<
@@ -86,7 +92,9 @@ class cycle_handler {
 
   template<typename T>
   auto encode_field_unshared(const T& v)
-  -> cycle_ptr::cycle_gptr<const stream::stream_element>;
+  -> cycle_ptr::cycle_gptr<const stream::stream_element> {
+    return cycle_handler().template encode_field<T>(v);
+  }
 
   template<typename T>
   auto encode_field(const T& v)
@@ -94,7 +102,7 @@ class cycle_handler {
 
   template<typename Fn>
   auto encode_class_desc(std::string name, Fn&& fn)
-  -> cycle_ptr::cycle_gptr<stream::new_class_desc__class_desc> {
+  -> cycle_ptr::cycle_gptr<const stream::new_class_desc__class_desc> {
     const auto cd_iter = class_descs_.find(name);
     if (cd_iter != class_descs_.end())
       return cd_iter->second;
@@ -125,22 +133,10 @@ class cycle_handler {
   -> cycle_ptr::cycle_gptr<const stream::stream_string>;
 
  private:
-  auto register_value(typename visit_done::key_type addr, typename visit_done::mapped_type result)
-  -> void {
-    assert(addr != nullptr && result != nullptr);
-    bool emplace_success;
-    std::tie(std::ignore, emplace_success) = visit_done_.emplace(std::move(addr), std::move(result));
-    if (!emplace_success) throw std::logic_error("cycle_handler already contains key");
-  }
-
   visit_done visit_done_;
-  std::unordered_map<std::string, cycle_ptr::cycle_gptr<::java::serialization::stream::new_class_desc__class_desc>> class_descs_;
-  std::unordered_map<std::string, cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_string>> string_table_;
+  class_descs class_descs_;
+  string_table string_table_;
 };
-
-
-auto get_non_serializable_class(std::u16string_view class_name)
--> cycle_ptr::cycle_gptr<java::serialization::stream::new_class_desc__class_desc>;
 
 
 } /* namespace java::serialization */
@@ -149,12 +145,6 @@ auto get_non_serializable_class(std::u16string_view class_name)
 
 namespace java::serialization {
 
-
-template<typename T>
-auto cycle_handler::encode_field_unshared(const T& v)
--> cycle_ptr::cycle_gptr<const stream::stream_element> {
-  return cycle_handler().template encode_field<T>(v);
-}
 
 template<typename T>
 auto cycle_handler::encode_field(const T& v)
