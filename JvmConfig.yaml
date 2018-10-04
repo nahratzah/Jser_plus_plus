@@ -1339,9 +1339,6 @@ classes:
         - java/serialization/type_def_fwd.h
         implementation:
         - java/serialization/type_def.h
-      # XXX erase body, so method becomes pure virtual
-      body: |
-        return nullptr; // XXX erase body once rules take care of most things.
 
 
   java.lang.String:
