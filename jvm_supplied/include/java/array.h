@@ -39,14 +39,8 @@ class array_intf
   }
 
  private:
-  virtual auto __get_class__() const
-  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override final;
-
   virtual auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> = 0;
-
-  virtual auto __get_class__(std::size_t dimensions) const
-  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> = 0;
 
   virtual auto size_() const noexcept -> std::size_t = 0;
   virtual auto dimensions_() const noexcept -> std::size_t = 0;
@@ -56,15 +50,25 @@ class array_intf
  * \brief Type-erased array type.
  * \details
  * Erased array type is only defined for the primitive types (excluding void),
- * object_intf, and array types.
+ * and objects.
  */
 template<typename T>
 class array;
+/**
+ * \brief Type-erased array for multi-dimensional arrays.
+ * \details
+ * Erased array type is only defined for the primitive types (excluding void),
+ * and objects.
+ */
+template<typename T>
+class array_of_array;
 
 template<>
 class array<::java::boolean_t> final
 : public array_intf
 {
+  friend array_of_array<::java::boolean_t>;
+
  private:
   using vector_type = ::std::vector<::java::boolean_t>;
 
@@ -84,11 +88,14 @@ class array<::java::boolean_t> final
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto __get_class__(std::size_t dimensions) const
-  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+  static auto __class__(std::size_t dimensions)
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
@@ -103,6 +110,8 @@ template<>
 class array<::java::byte_t> final
 : public array_intf
 {
+  friend array_of_array<::java::byte_t>;
+
  private:
   using vector_type = ::std::vector<::java::byte_t>;
 
@@ -122,11 +131,14 @@ class array<::java::byte_t> final
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto __get_class__(std::size_t dimensions) const
-  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+  static auto __class__(std::size_t dimensions)
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
@@ -141,6 +153,8 @@ template<>
 class array<::java::short_t> final
 : public array_intf
 {
+  friend array_of_array<::java::short_t>;
+
  private:
   using vector_type = ::std::vector<::java::short_t>;
 
@@ -160,11 +174,14 @@ class array<::java::short_t> final
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto __get_class__(std::size_t dimensions) const
-  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+  static auto __class__(std::size_t dimensions)
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
@@ -179,6 +196,8 @@ template<>
 class array<::java::int_t> final
 : public array_intf
 {
+  friend array_of_array<::java::int_t>;
+
  private:
   using vector_type = ::std::vector<::java::int_t>;
 
@@ -198,11 +217,14 @@ class array<::java::int_t> final
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto __get_class__(std::size_t dimensions) const
-  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+  static auto __class__(std::size_t dimensions)
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
@@ -217,6 +239,8 @@ template<>
 class array<::java::long_t> final
 : public array_intf
 {
+  friend array_of_array<::java::long_t>;
+
  private:
   using vector_type = ::std::vector<::java::long_t>;
 
@@ -236,11 +260,14 @@ class array<::java::long_t> final
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto __get_class__(std::size_t dimensions) const
-  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+  static auto __class__(std::size_t dimensions)
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
@@ -255,6 +282,8 @@ template<>
 class array<::java::float_t> final
 : public array_intf
 {
+  friend array_of_array<::java::float_t>;
+
  private:
   using vector_type = ::std::vector<::java::float_t>;
 
@@ -274,11 +303,14 @@ class array<::java::float_t> final
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto __get_class__(std::size_t dimensions) const
-  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+  static auto __class__(std::size_t dimensions)
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
@@ -293,6 +325,8 @@ template<>
 class array<::java::double_t> final
 : public array_intf
 {
+  friend array_of_array<::java::double_t>;
+
  private:
   using vector_type = ::std::vector<::java::double_t>;
 
@@ -312,11 +346,14 @@ class array<::java::double_t> final
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto __get_class__(std::size_t dimensions) const
-  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+  static auto __class__(std::size_t dimensions)
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
@@ -331,6 +368,8 @@ template<>
 class array<::java::char_t> final
 : public array_intf
 {
+  friend array_of_array<::java::char_t>;
+
  private:
   using vector_type = ::std::vector<::java::char_t>;
 
@@ -350,11 +389,14 @@ class array<::java::char_t> final
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto __get_class__(std::size_t dimensions) const
-  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+  static auto __class__(std::size_t dimensions)
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
@@ -369,6 +411,8 @@ template<>
 class array<::java::lang::Object> final
 : public array_intf
 {
+  friend array_of_array<::java::lang::Object>;
+
  private:
   using vector_type = std::vector<
       ::java::field_t<::java::lang::Object>,
@@ -391,21 +435,394 @@ class array<::java::lang::Object> final
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto __get_class__(std::size_t dimensions) const
-  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+  static auto __class__(::java::lang::Class<::java::G::pack<>> element_type, std::size_t dimensions)
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
-  static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, const ::java::serialization::stream::field_descriptor& fd)
+  static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, ::java::lang::Class<::java::G::pack<>> element_type, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
-  const ::java::lang::Class<::java::G::pack<>> element_type_;
+  const ::java::field_t<::java::lang::Class<::java::G::pack<>>> element_type_;
   vector_type data_{
     ::cycle_ptr::cycle_allocator<::std::allocator<::java::field_t<::java::lang::Object>>>(*this)
+  };
+};
+
+template<>
+class array_of_array<::java::boolean_t> final
+: public array_intf
+{
+ private:
+  using vector_type = std::vector<
+      ::cycle_ptr::cycle_member_ptr<array_intf>,
+      ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>>;
+
+ public:
+  array_of_array() = delete;
+  explicit array_of_array(std::size_t dim);
+  ~array_of_array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return dim_;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  const ::std::size_t dim_;
+  vector_type data_{
+    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
+  };
+};
+
+template<>
+class array_of_array<::java::byte_t> final
+: public array_intf
+{
+ private:
+  using vector_type = std::vector<
+      ::cycle_ptr::cycle_member_ptr<array_intf>,
+      ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>>;
+
+ public:
+  array_of_array() = delete;
+  explicit array_of_array(std::size_t dim);
+  ~array_of_array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return dim_;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  const ::std::size_t dim_;
+  vector_type data_{
+    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
+  };
+};
+
+template<>
+class array_of_array<::java::short_t> final
+: public array_intf
+{
+ private:
+  using vector_type = std::vector<
+      ::cycle_ptr::cycle_member_ptr<array_intf>,
+      ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>>;
+
+ public:
+  array_of_array() = delete;
+  explicit array_of_array(std::size_t dim);
+  ~array_of_array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return dim_;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  const ::std::size_t dim_;
+  vector_type data_{
+    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
+  };
+};
+
+template<>
+class array_of_array<::java::int_t> final
+: public array_intf
+{
+ private:
+  using vector_type = std::vector<
+      ::cycle_ptr::cycle_member_ptr<array_intf>,
+      ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>>;
+
+ public:
+  array_of_array() = delete;
+  explicit array_of_array(std::size_t dim);
+  ~array_of_array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return dim_;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  const ::std::size_t dim_;
+  vector_type data_{
+    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
+  };
+};
+
+template<>
+class array_of_array<::java::long_t> final
+: public array_intf
+{
+ private:
+  using vector_type = std::vector<
+      ::cycle_ptr::cycle_member_ptr<array_intf>,
+      ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>>;
+
+ public:
+  array_of_array() = delete;
+  explicit array_of_array(std::size_t dim);
+  ~array_of_array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return dim_;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  const ::std::size_t dim_;
+  vector_type data_{
+    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
+  };
+};
+
+template<>
+class array_of_array<::java::float_t> final
+: public array_intf
+{
+ private:
+  using vector_type = std::vector<
+      ::cycle_ptr::cycle_member_ptr<array_intf>,
+      ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>>;
+
+ public:
+  array_of_array() = delete;
+  explicit array_of_array(std::size_t dim);
+  ~array_of_array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return dim_;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  const ::std::size_t dim_;
+  vector_type data_{
+    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
+  };
+};
+
+template<>
+class array_of_array<::java::double_t> final
+: public array_intf
+{
+ private:
+  using vector_type = std::vector<
+      ::cycle_ptr::cycle_member_ptr<array_intf>,
+      ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>>;
+
+ public:
+  array_of_array() = delete;
+  explicit array_of_array(std::size_t dim);
+  ~array_of_array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return dim_;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  const ::std::size_t dim_;
+  vector_type data_{
+    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
+  };
+};
+
+template<>
+class array_of_array<::java::char_t> final
+: public array_intf
+{
+ private:
+  using vector_type = std::vector<
+      ::cycle_ptr::cycle_member_ptr<array_intf>,
+      ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>>;
+
+ public:
+  array_of_array() = delete;
+  explicit array_of_array(std::size_t dim);
+  ~array_of_array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return dim_;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  const ::std::size_t dim_;
+  vector_type data_{
+    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
+  };
+};
+
+template<>
+class array_of_array<::java::lang::Object> final
+: public array_intf
+{
+ private:
+  using vector_type = std::vector<
+      ::cycle_ptr::cycle_member_ptr<array_intf>,
+      ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>>;
+
+ public:
+  array_of_array() = delete;
+  array_of_array(::java::lang::Class<::java::G::pack<>> element_type, std::size_t dim);
+  ~array_of_array() noexcept override;
+
+  JSER_INLINE auto size() const noexcept -> std::size_t {
+    return data_.size();
+  }
+
+  JSER_INLINE auto dimensions() const noexcept -> std::size_t {
+    return dim_;
+  }
+
+ private:
+  auto size_() const noexcept -> std::size_t override;
+  auto dimensions_() const noexcept -> std::size_t override;
+
+  virtual auto __get_class__() const
+  -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
+
+  auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  const ::java::field_t<::java::lang::Class<::java::G::pack<>>> element_type_;
+  const ::std::size_t dim_;
+  vector_type data_{
+    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
   };
 };
 
