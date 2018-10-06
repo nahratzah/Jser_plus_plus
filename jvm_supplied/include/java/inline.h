@@ -9,7 +9,7 @@
 # define JSER_INLINE inline __forceinline
 #elif defined(__clang__) || defined(__GNUC__)
 // Always inline for GNU and LLVM.
-# define JSER_INLINE inline __attribute__((__always_inline__))
+# define JSER_INLINE inline __attribute__((__visibility__("hidden"), __always_inline__))
 #else
 // Declare inline and cross our fingers.
 // The code doesn't depend on inlined functions being erased entirely,
