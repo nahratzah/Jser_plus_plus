@@ -12,12 +12,30 @@
 #include <java/ref.h>
 #include <java/type_traits.h>
 #include <java/lang/Class.h>
+#include <java/array.h>
+#include <java/type_traits.h>
 
 namespace java {
 
 ///\brief Helper for get_class.
 ///\details This class simply exists, so that object_intf can declare it friend.
 class _reflect_ops {
+ private:
+  template<typename T>
+  struct elem_t_ {
+    using type = T;
+  };
+
+  template<typename T>
+  struct dims_
+  : ::std::integral_constant<std::size_t, 0>
+  {};
+
+  template<typename T>
+  using elem_t = typename elem_t_<T>::type;
+  template<typename T>
+  using dims = typename dims_<T>::type;
+
  public:
   static JSER_INLINE auto get_class(const object_intf& objintf)
   -> ::java::lang::Class<::java::G::pack<>> {
@@ -65,6 +83,30 @@ class _reflect_ops {
   static auto noarg_get_class_void()
   -> ::java::lang::Class<java::G::pack<>>;
 
+  template<typename Array, typename Type = elem_t<Array*>, std::size_t Dim = dims<Array*>::value>
+  static auto noarg_get_class([[maybe_unused]] Array* type)
+  -> std::enable_if_t<
+      (::java::type_traits::is_java_primitive_v<Type>
+       && Dim > 0u),
+      ::java::lang::Class<type_of_t<array_type<Type, Dim>>>> {
+    return ::java::lang::Class<type_of_t<array_type<Type, Dim>>>(
+        ::java::_direct(),
+        ::java::_erased::java::array<elem_t<Type>>::__class__(dims<Type>::value));
+  }
+
+  template<typename Array, typename Type = elem_t<Array*>, std::size_t Dim = dims<Array*>::value>
+  static JSER_INLINE auto noarg_get_class([[maybe_unused]] Array* type)
+  -> std::enable_if_t<
+      (!::java::type_traits::is_java_primitive_v<Type>
+       && Dim > 0u),
+      ::java::lang::Class<type_of_t<array_type<Type, Dim>>>> {
+    return ::java::lang::Class<type_of_t<array_type<Type, Dim>>>(
+        ::java::_direct(),
+        ::java::_erased::java::array<::java::lang::Object>::__class__(
+            noarg_get_class(Type()),
+            Dim));
+  }
+
   template<template<typename> class PtrImpl, typename Type>
   static JSER_INLINE auto hash_code(const basic_ref<PtrImpl, Type>& ref, std::size_t max_cascade)
   -> ::std::size_t {
@@ -73,6 +115,16 @@ class _reflect_ops {
     return objintf->__hash_code__(false, max_cascade);
   }
 };
+
+template<typename T>
+struct _reflect_ops::elem_t_<T*>
+: _reflect_ops::elem_t_<T>
+{};
+
+template<typename T>
+struct _reflect_ops::dims_<T*>
+: ::std::integral_constant<std::size_t, _reflect_ops::dims_<T>::value + 1u>
+{};
 
 ///\brief Acquire the class from a type.
 ///\returns the java::lang::Class implemented by the pointee of the reference.

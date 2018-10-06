@@ -68,6 +68,7 @@ class array<::java::boolean_t> final
 : public array_intf
 {
   friend array_of_array<::java::boolean_t>;
+  friend ::java::_reflect_ops;
 
  private:
   using vector_type = ::std::vector<::java::boolean_t>;
@@ -111,6 +112,7 @@ class array<::java::byte_t> final
 : public array_intf
 {
   friend array_of_array<::java::byte_t>;
+  friend ::java::_reflect_ops;
 
  private:
   using vector_type = ::std::vector<::java::byte_t>;
@@ -154,6 +156,7 @@ class array<::java::short_t> final
 : public array_intf
 {
   friend array_of_array<::java::short_t>;
+  friend ::java::_reflect_ops;
 
  private:
   using vector_type = ::std::vector<::java::short_t>;
@@ -197,6 +200,7 @@ class array<::java::int_t> final
 : public array_intf
 {
   friend array_of_array<::java::int_t>;
+  friend ::java::_reflect_ops;
 
  private:
   using vector_type = ::std::vector<::java::int_t>;
@@ -240,6 +244,7 @@ class array<::java::long_t> final
 : public array_intf
 {
   friend array_of_array<::java::long_t>;
+  friend ::java::_reflect_ops;
 
  private:
   using vector_type = ::std::vector<::java::long_t>;
@@ -283,6 +288,7 @@ class array<::java::float_t> final
 : public array_intf
 {
   friend array_of_array<::java::float_t>;
+  friend ::java::_reflect_ops;
 
  private:
   using vector_type = ::std::vector<::java::float_t>;
@@ -326,6 +332,7 @@ class array<::java::double_t> final
 : public array_intf
 {
   friend array_of_array<::java::double_t>;
+  friend ::java::_reflect_ops;
 
  private:
   using vector_type = ::std::vector<::java::double_t>;
@@ -369,6 +376,7 @@ class array<::java::char_t> final
 : public array_intf
 {
   friend array_of_array<::java::char_t>;
+  friend ::java::_reflect_ops;
 
  private:
   using vector_type = ::std::vector<::java::char_t>;
@@ -412,6 +420,7 @@ class array<::java::lang::Object> final
 : public array_intf
 {
   friend array_of_array<::java::lang::Object>;
+  friend ::java::_reflect_ops;
 
  private:
   using vector_type = std::vector<
@@ -827,18 +836,6 @@ class array_of_array<::java::lang::Object> final
 };
 
 } /* namespace java::_erased::java */
-
-namespace java::G {
-
-/**
- * \brief Array tag.
- * \tparam T The element type of the array. Must be a java primitive type
- * or a generic.
- */
-template<typename T>
-struct array_t;
-
-} /* namespace java::G */
 
 namespace java {
 

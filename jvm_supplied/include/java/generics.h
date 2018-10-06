@@ -17,6 +17,10 @@ struct Serializable;
 namespace java::type_traits {
 namespace {
 
+// Forward declaration of is_java_primitive_ (implemented in java/type_traits.h)
+template<typename>
+struct is_java_primitive_;
+
 ///\brief Type trait that tests if \p T is a generic.
 template<typename T>
 struct is_generic_ {
@@ -304,7 +308,7 @@ namespace {
 
 template<typename T>
 struct is_generic_<T*>
-: is_generic_<T>
+: std::disjunction<typename is_generic_<T>::type, typename is_java_primitive_<T>::type>
 {};
 
 template<typename Tag, typename... Args>
