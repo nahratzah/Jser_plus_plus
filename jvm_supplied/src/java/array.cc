@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iterator>
 #include <java/reflect.h>
+#include <java/hash.h>
 #include <java/lang/Class.h>
 #include <java/lang/Object.h>
 #include <java/io/Serializable.h>
@@ -78,6 +79,34 @@ auto array<::java::boolean_t>::do_encode_(::java::serialization::cycle_handler& 
       });
 }
 
+auto array<::java::boolean_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (bool i : *this) hc << i;
+  return std::move(hc);
+}
+
+auto array<::java::boolean_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array& x, const array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  eq(x.data_, y.data_);
+}
+
+auto array<::java::boolean_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array* casted_other = dynamic_cast<const array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
 
 array<::java::byte_t>::~array() noexcept = default;
 
@@ -139,6 +168,34 @@ auto array<::java::byte_t>::do_encode_(::java::serialization::cycle_handler& han
         obj.type = __serializable_array_class__(handler, dimensions());
         obj.data.emplace<new_array::byte_array>(data_);
       });
+}
+
+auto array<::java::byte_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : *this) hc << i;
+  return std::move(hc);
+}
+
+auto array<::java::byte_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array& x, const array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  eq(x.data_, y.data_);
+}
+
+auto array<::java::byte_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array* casted_other = dynamic_cast<const array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
 }
 
 
@@ -204,6 +261,34 @@ auto array<::java::short_t>::do_encode_(::java::serialization::cycle_handler& ha
       });
 }
 
+auto array<::java::short_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : *this) hc << i;
+  return std::move(hc);
+}
+
+auto array<::java::short_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array& x, const array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  eq(x.data_, y.data_);
+}
+
+auto array<::java::short_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array* casted_other = dynamic_cast<const array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
 
 array<::java::int_t>::~array() noexcept = default;
 
@@ -265,6 +350,34 @@ auto array<::java::int_t>::do_encode_(::java::serialization::cycle_handler& hand
         obj.type = __serializable_array_class__(handler, dimensions());
         obj.data.emplace<new_array::int_array>(data_);
       });
+}
+
+auto array<::java::int_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : *this) hc << i;
+  return std::move(hc);
+}
+
+auto array<::java::int_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array& x, const array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  eq(x.data_, y.data_);
+}
+
+auto array<::java::int_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array* casted_other = dynamic_cast<const array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
 }
 
 
@@ -330,6 +443,34 @@ auto array<::java::long_t>::do_encode_(::java::serialization::cycle_handler& han
       });
 }
 
+auto array<::java::long_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : *this) hc << i;
+  return std::move(hc);
+}
+
+auto array<::java::long_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array& x, const array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  eq(x.data_, y.data_);
+}
+
+auto array<::java::long_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array* casted_other = dynamic_cast<const array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
 
 array<::java::float_t>::~array() noexcept = default;
 
@@ -391,6 +532,34 @@ auto array<::java::float_t>::do_encode_(::java::serialization::cycle_handler& ha
         obj.type = __serializable_array_class__(handler, dimensions());
         obj.data.emplace<new_array::float_array>(data_);
       });
+}
+
+auto array<::java::float_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : *this) hc << i;
+  return std::move(hc);
+}
+
+auto array<::java::float_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array& x, const array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  eq(x.data_, y.data_);
+}
+
+auto array<::java::float_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array* casted_other = dynamic_cast<const array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
 }
 
 
@@ -456,6 +625,34 @@ auto array<::java::double_t>::do_encode_(::java::serialization::cycle_handler& h
       });
 }
 
+auto array<::java::double_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : *this) hc << i;
+  return std::move(hc);
+}
+
+auto array<::java::double_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array& x, const array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  eq(x.data_, y.data_);
+}
+
+auto array<::java::double_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array* casted_other = dynamic_cast<const array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
 
 array<::java::char_t>::~array() noexcept = default;
 
@@ -517,6 +714,34 @@ auto array<::java::char_t>::do_encode_(::java::serialization::cycle_handler& han
         obj.type = __serializable_array_class__(handler, dimensions());
         obj.data.emplace<new_array::char_array>(data_);
       });
+}
+
+auto array<::java::char_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : *this) hc << i;
+  return std::move(hc);
+}
+
+auto array<::java::char_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array& x, const array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  eq(x.data_, y.data_);
+}
+
+auto array<::java::char_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array* casted_other = dynamic_cast<const array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
 }
 
 

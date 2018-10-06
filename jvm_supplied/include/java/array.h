@@ -40,11 +40,11 @@ class array_intf
   }
 
  private:
-  virtual auto element_class_() const
-  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> = 0;
-
   virtual auto size_() const noexcept -> std::size_t = 0;
   virtual auto dimensions_() const noexcept -> std::size_t = 0;
+
+  virtual auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> = 0;
 };
 
 /**
@@ -86,6 +86,19 @@ class array<::java::boolean_t> final
     return 1u;
   }
 
+  JSER_INLINE auto begin() noexcept -> typename vector_type::iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() noexcept -> typename vector_type::iterator {
+    return data_.end();
+  }
+  JSER_INLINE auto begin() const noexcept -> typename vector_type::const_iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() const noexcept -> typename vector_type::const_iterator {
+    return data_.end();
+  }
+
  private:
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
@@ -104,6 +117,16 @@ class array<::java::boolean_t> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array& x, const array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
 
   vector_type data_;
 };
@@ -130,6 +153,19 @@ class array<::java::byte_t> final
     return 1u;
   }
 
+  JSER_INLINE auto begin() noexcept -> typename vector_type::iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() noexcept -> typename vector_type::iterator {
+    return data_.end();
+  }
+  JSER_INLINE auto begin() const noexcept -> typename vector_type::const_iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() const noexcept -> typename vector_type::const_iterator {
+    return data_.end();
+  }
+
  private:
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
@@ -148,6 +184,16 @@ class array<::java::byte_t> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array& x, const array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
 
   vector_type data_;
 };
@@ -174,6 +220,19 @@ class array<::java::short_t> final
     return 1u;
   }
 
+  JSER_INLINE auto begin() noexcept -> typename vector_type::iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() noexcept -> typename vector_type::iterator {
+    return data_.end();
+  }
+  JSER_INLINE auto begin() const noexcept -> typename vector_type::const_iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() const noexcept -> typename vector_type::const_iterator {
+    return data_.end();
+  }
+
  private:
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
@@ -192,6 +251,16 @@ class array<::java::short_t> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array& x, const array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
 
   vector_type data_;
 };
@@ -218,6 +287,19 @@ class array<::java::int_t> final
     return 1u;
   }
 
+  JSER_INLINE auto begin() noexcept -> typename vector_type::iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() noexcept -> typename vector_type::iterator {
+    return data_.end();
+  }
+  JSER_INLINE auto begin() const noexcept -> typename vector_type::const_iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() const noexcept -> typename vector_type::const_iterator {
+    return data_.end();
+  }
+
  private:
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
@@ -236,6 +318,16 @@ class array<::java::int_t> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array& x, const array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
 
   vector_type data_;
 };
@@ -262,6 +354,19 @@ class array<::java::long_t> final
     return 1u;
   }
 
+  JSER_INLINE auto begin() noexcept -> typename vector_type::iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() noexcept -> typename vector_type::iterator {
+    return data_.end();
+  }
+  JSER_INLINE auto begin() const noexcept -> typename vector_type::const_iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() const noexcept -> typename vector_type::const_iterator {
+    return data_.end();
+  }
+
  private:
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
@@ -280,6 +385,16 @@ class array<::java::long_t> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array& x, const array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
 
   vector_type data_;
 };
@@ -306,6 +421,19 @@ class array<::java::float_t> final
     return 1u;
   }
 
+  JSER_INLINE auto begin() noexcept -> typename vector_type::iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() noexcept -> typename vector_type::iterator {
+    return data_.end();
+  }
+  JSER_INLINE auto begin() const noexcept -> typename vector_type::const_iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() const noexcept -> typename vector_type::const_iterator {
+    return data_.end();
+  }
+
  private:
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
@@ -324,6 +452,16 @@ class array<::java::float_t> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array& x, const array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
 
   vector_type data_;
 };
@@ -350,6 +488,19 @@ class array<::java::double_t> final
     return 1u;
   }
 
+  JSER_INLINE auto begin() noexcept -> typename vector_type::iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() noexcept -> typename vector_type::iterator {
+    return data_.end();
+  }
+  JSER_INLINE auto begin() const noexcept -> typename vector_type::const_iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() const noexcept -> typename vector_type::const_iterator {
+    return data_.end();
+  }
+
  private:
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
@@ -368,6 +519,16 @@ class array<::java::double_t> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array& x, const array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
 
   vector_type data_;
 };
@@ -394,6 +555,19 @@ class array<::java::char_t> final
     return 1u;
   }
 
+  JSER_INLINE auto begin() noexcept -> typename vector_type::iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() noexcept -> typename vector_type::iterator {
+    return data_.end();
+  }
+  JSER_INLINE auto begin() const noexcept -> typename vector_type::const_iterator {
+    return data_.begin();
+  }
+  JSER_INLINE auto end() const noexcept -> typename vector_type::const_iterator {
+    return data_.end();
+  }
+
  private:
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
@@ -412,6 +586,16 @@ class array<::java::char_t> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array& x, const array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
 
   vector_type data_;
 };
