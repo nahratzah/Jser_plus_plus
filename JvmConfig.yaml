@@ -1888,7 +1888,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: specialized
+      - name: _specialized_
         type:
           cxx: bool
       - name: max_cascade
@@ -1951,7 +1951,7 @@ classes:
       static: true
       visibility: protected
       arguments:
-      - name: specialized
+      - name: _specialized_
         type:
           cxx: bool
       - name: eq
@@ -3588,7 +3588,7 @@ classes:
       visibility: protected
       covariant_return: false
       arguments:
-      - name: specialized
+      - name: _specialized_
         type:
           cxx: bool
       - name: max_cascade
@@ -3655,7 +3655,7 @@ classes:
       static: true
       visibility: protected
       arguments:
-      - name: specialized
+      - name: _specialized_
         type:
           cxx: bool
       - name: eq
