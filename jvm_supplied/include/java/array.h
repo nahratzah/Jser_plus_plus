@@ -10,6 +10,7 @@
 #include <java/_accessor.h>
 #include <java/inline.h>
 #include <java/ref.h>
+#include <java/reflect_fwd.h>
 #include <cycle_ptr/allocator.h>
 #include <cycle_ptr/cycle_ptr.h>
 #include <java/io/Serializable.h>
@@ -835,6 +836,63 @@ class array_of_array<::java::lang::Object> final
   };
 };
 
+template<typename Type>
+struct select_array_elemtype_
+: ::std::enable_if<
+    ::java::type_traits::is_java_primitive_v<Type>,
+    Type>
+{};
+
+template<typename Tag, typename... Types>
+struct select_array_elemtype_<::java::G::is_t<Tag, Types...>> {
+  using type = ::java::lang::Object;
+};
+
+template<typename Type>
+struct select_array_elemtype_<Type*>
+: select_array_elemtype_<Type>
+{};
+
+template<typename Type>
+struct select_array_dim_
+: ::std::integral_constant<::std::size_t, 0u>
+{};
+
+template<typename Type>
+struct select_array_dim_<Type*>
+: ::std::integral_constant<::std::size_t, 1u + select_array_dim_<Type>::value>
+{};
+
+template<typename Type>
+struct select_array_new_impl_
+: ::std::conditional<
+    (select_array_dim_<Type>::value >= 2u),
+    array_of_array<typename select_array_elemtype_<Type>::type>,
+    array<typename select_array_elemtype_<Type>::type>>
+{};
+
+template<typename Type>
+struct array_impl_is_primitive_
+: ::std::integral_constant<bool, ::java::type_traits::is_java_primitive_v<Type>>
+{};
+
+template<typename Type>
+struct array_impl_is_primitive_<Type*>
+: array_impl_is_primitive_<Type>
+{};
+
+template<typename Type>
+struct get_array_elem_class_ {
+  static JSER_INLINE auto get_class() -> decltype(auto) {
+    return ::java::get_class<Type>();
+  }
+};
+
+template<typename Type>
+struct get_array_elem_class_<Type*>
+: get_array_elem_class_<Type>
+{};
+
 } /* namespace java::_erased::java */
 
 namespace java {
@@ -870,6 +928,16 @@ class basic_ref<PtrImpl, Type*> final {
   JSER_INLINE basic_ref& operator=(const basic_ref&) = default;
   JSER_INLINE basic_ref& operator=(basic_ref&&) = default;
   JSER_INLINE ~basic_ref() noexcept = default;
+
+  template<
+      typename NewArraySelector = typename ::java::_erased::java::select_array_new_impl_<Type>,
+      typename NewArrayType = typename NewArraySelector::type>
+  explicit JSER_INLINE basic_ref([[maybe_unused]] allocate_t a) {
+    if constexpr(::java::_erased::java::array_impl_is_primitive_<Type>::value)
+      p_ = ::cycle_ptr::make_cycle<NewArrayType>();
+    else
+      p_ = ::cycle_ptr::make_cycle<NewArrayType>(::java::_erased::java::get_array_elem_class_<Type>::get_class());
+  }
 
   JSER_INLINE explicit operator bool() const noexcept {
     return bool(p_);
@@ -973,6 +1041,8 @@ using array_type = basic_ref<
     typename add_dimensions_<typename maybe_unpack_type_<T>::type, Dimensions>::type>;
 
 } /* namespace java */
+
+#include <java/reflect.h>
 
 
 #if 0

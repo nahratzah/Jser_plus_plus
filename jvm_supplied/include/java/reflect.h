@@ -1,6 +1,7 @@
 #ifndef JAVA_REFLECT_H
 #define JAVA_REFLECT_H
 
+#include <java/reflect_fwd.h>
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
