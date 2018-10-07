@@ -1150,7 +1150,10 @@ class basic_ref<PtrImpl, Type*> final {
       ::cycle_ptr::cycle_gptr<object_intf>>;
 
  protected:
-  using ptr_type = PtrImpl<::java::_erased::java::array_intf>;
+  using ptr_type = PtrImpl<std::conditional_t<
+      ::java::type_traits::is_java_primitive_v<Type>,
+      ::java::_erased::java::array<Type>,
+      ::java::_erased::java::array_intf>>;
 
  public:
   using size_type = std::size_t;
@@ -1217,7 +1220,10 @@ class basic_ref<PtrImpl, Type*const> final {
       ::cycle_ptr::cycle_gptr<object_intf>>;
 
  protected:
-  using ptr_type = PtrImpl<::java::_erased::java::array_intf>;
+  using ptr_type = PtrImpl<std::add_const_t<std::conditional_t<
+      ::java::type_traits::is_java_primitive_v<Type>,
+      ::java::_erased::java::array<Type>,
+      ::java::_erased::java::array_intf>>>;
 
  public:
   using size_type = std::size_t;
