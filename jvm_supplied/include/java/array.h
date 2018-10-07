@@ -139,7 +139,7 @@ class array<::java::boolean_t> final
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -216,7 +216,7 @@ class array<::java::byte_t> final
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -293,7 +293,7 @@ class array<::java::short_t> final
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -370,7 +370,7 @@ class array<::java::int_t> final
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -447,7 +447,7 @@ class array<::java::long_t> final
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -524,7 +524,7 @@ class array<::java::float_t> final
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -601,7 +601,7 @@ class array<::java::double_t> final
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -678,7 +678,7 @@ class array<::java::char_t> final
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -745,7 +745,7 @@ class array<::java::lang::Object> final
   static auto __serializable_array_class__(::java::serialization::cycle_handler& handler, ::java::lang::Class<::java::G::pack<>> element_type, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -804,7 +804,7 @@ class array_of_array<::java::boolean_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -863,7 +863,7 @@ class array_of_array<::java::byte_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -922,7 +922,7 @@ class array_of_array<::java::short_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -981,7 +981,7 @@ class array_of_array<::java::int_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -1040,7 +1040,7 @@ class array_of_array<::java::long_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -1099,7 +1099,7 @@ class array_of_array<::java::float_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -1158,7 +1158,7 @@ class array_of_array<::java::double_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -1217,7 +1217,7 @@ class array_of_array<::java::char_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -1276,7 +1276,7 @@ class array_of_array<::java::lang::Object> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
-  auto do_encode_(::java::serialization::cycle_handler& handler_) const
+  auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
@@ -1774,12 +1774,12 @@ class array final
   }
 
  private:
-  auto do_encode_(java::io::Serializable::tag t) const
+  auto __encoder__(java::io::Serializable::tag t) const
   -> cycle_ptr::cycle_gptr<const java::serialization::stream::stream_element> override {
     return java::serialization::type_def<array>::encode(*this);
   }
 
-  auto do_encode_(java::io::Serializable::tag t, java::serialization::cycle_handler& h) const
+  auto __encoder__(java::io::Serializable::tag t, java::serialization::cycle_handler& h) const
   -> cycle_ptr::cycle_gptr<const java::serialization::stream::stream_element> override {
     return h.encode_field<array>(this->template shared_from_this(this));
   }
@@ -2020,12 +2020,12 @@ class array<T, 1> final
   }
 
  private:
-  auto do_encode_(java::io::Serializable::tag t) const
+  auto __encoder__(java::io::Serializable::tag t) const
   -> cycle_ptr::cycle_gptr<const java::serialization::stream::stream_element> override {
     return java::serialization::type_def<array>::encode(*this);
   }
 
-  auto do_encode_(java::io::Serializable::tag t, java::serialization::cycle_handler& h) const
+  auto __encoder__(java::io::Serializable::tag t, java::serialization::cycle_handler& h) const
   -> cycle_ptr::cycle_gptr<const java::serialization::stream::stream_element> override {
     return h.encode_field<array>(this->template shared_from_this(this));
   }

@@ -197,8 +197,8 @@ rules:
       - java/serialization/type_def.h
       - java/serialization/encdec.h
 
-# Implement default do_encode_fields_ implementation.
-- id: java.io.Serializable/do_encode_
+# Implement default __encoder_fields__ implementation.
+- id: java.io.Serializable/__encoder__
   predicate:
     interface: false
     abstract: true
@@ -207,7 +207,7 @@ rules:
     - java.io.Serializable
   members:
   - type: method
-    name: do_encode_fields_
+    name: __encoder_fields__
     visibility: protected
     static: true
     arguments:
@@ -251,7 +251,7 @@ rules:
               ::std::initializer_list<::std::variant<::cycle_ptr::cycle_gptr<const stream_element>, blockdata>>{}));
 
       $if (model.superClass.type.testInherits.({java.io.Serializable}))$
-      $erasedType(model.superClass.type)$::do_encode_fields_(_self_, handler_, obj);
+      $erasedType(model.superClass.type)$::__encoder_fields__(_self_, handler_, obj);
       $endif$
     includes:
       declaration:
@@ -266,10 +266,10 @@ rules:
       - cycle_ptr/cycle_ptr.h
       - java/serialization/type_def.h
       - java/serialization/encdec.h
-# Implement default do_encode_ implementation.
+# Implement default __encoder__ implementation.
 # Note: we omit this method on abstract classes, since the derived class will
-# override it anyway, and there is no call to super in `do_encode_()`.
-- id: java.io.Serializable/do_encode_
+# override it anyway, and there is no call to super in `__encoder__()`.
+- id: java.io.Serializable/__encoder__
   predicate:
     interface: false
     abstract: false
@@ -278,7 +278,7 @@ rules:
     - java.io.Serializable
   members:
   - type: method
-    name: do_encode_
+    name: __encoder__
     visibility: private
     override: true
     const: true
@@ -297,7 +297,7 @@ rules:
           this->shared_from_this(this),
           [this](::java::serialization::cycle_handler& handler, new_object& obj) {
             obj.cls = $erasedType(model)$::__serializable_class__(handler);
-            $erasedType(model)$::do_encode_fields_(*this, handler, obj);
+            $erasedType(model)$::__encoder_fields__(*this, handler, obj);
           });
     includes:
       declaration:
@@ -444,7 +444,7 @@ rules:
       - java/serialization/exception.h
       - string_view
 
-# Implement do_encode_ for enums.
+# Implement __encoder__ for enums.
 - predicate:
     interface: false
     abstract: false
@@ -452,10 +452,10 @@ rules:
     inherits:
     - java.lang.Enum
   suppress:
-  - java.io.Serializable/do_encode_
+  - java.io.Serializable/__encoder__
   members:
   - type: method
-    name: do_encode_
+    name: __encoder__
     visibility: private
     override: true
     final: true
@@ -689,7 +689,7 @@ classes:
   java.lang.Enum<E>:
     dev_mode: false
     suppress:
-    - java.io.Serializable/do_encode_
+    - java.io.Serializable/__encoder__
     members:
     - type: constructor
       visibility: protected
@@ -1426,7 +1426,7 @@ classes:
         - java/serialization/type_def_fwd.h
     members:
     - type: method
-      name: do_encode_
+      name: __encoder__
       visibility: private
       virtual: true
       const: true
@@ -1449,7 +1449,7 @@ classes:
   java.lang.String:
     dev_mode: false
     suppress:
-    - java.io.Serializable/do_encode_
+    - java.io.Serializable/__encoder__
 #    var_type:
 #      cxx: ::std::string
 #      includes:
@@ -1608,7 +1608,7 @@ classes:
       body: |
         return value;
     - type: method
-      name: do_encode_
+      name: __encoder__
       visibility: private
       override: true
       final: true
@@ -1639,7 +1639,7 @@ classes:
     dev_mode: false
     suppress:
     - java.lang.Object/equals_and_hashcode
-    - java.io.Serializable/do_encode_
+    - java.io.Serializable/__encoder__
     fields:
       name:
         type:
@@ -1837,7 +1837,7 @@ classes:
       body: |
         return ::java::constcast<$boundTemplateType(java.({java.lang.Iterable<java.lang.Class<?>>}), "style=type, class")$>(interfaces);
     - type: method
-      name: do_encode_
+      name: __encoder__
       visibility: private
       override: true
       const: true

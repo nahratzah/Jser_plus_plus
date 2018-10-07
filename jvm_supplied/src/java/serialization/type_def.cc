@@ -8,7 +8,7 @@ cycle_handler::~cycle_handler() noexcept = default;
 
 auto cycle_handler::serializable_do_encode_(const java::_tags::java::io::Serializable::erased_type& s)
 -> cycle_ptr::cycle_gptr<const stream::stream_element> {
-  return s.do_encode_(*this);
+  return s.__encoder__(*this);
 }
 
 auto cycle_handler::encode_str(std::string s)

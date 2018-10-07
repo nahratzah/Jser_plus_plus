@@ -160,7 +160,7 @@ auto array<::java::boolean_t>::__serializable_array_class__(::java::serializatio
       });
 }
 
-auto array<::java::boolean_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array<::java::boolean_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
 
@@ -275,7 +275,7 @@ auto array<::java::byte_t>::__serializable_array_class__(::java::serialization::
       });
 }
 
-auto array<::java::byte_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array<::java::byte_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
 
@@ -390,7 +390,7 @@ auto array<::java::short_t>::__serializable_array_class__(::java::serialization:
       });
 }
 
-auto array<::java::short_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array<::java::short_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
 
@@ -505,7 +505,7 @@ auto array<::java::int_t>::__serializable_array_class__(::java::serialization::c
       });
 }
 
-auto array<::java::int_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array<::java::int_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
 
@@ -620,7 +620,7 @@ auto array<::java::long_t>::__serializable_array_class__(::java::serialization::
       });
 }
 
-auto array<::java::long_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array<::java::long_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
 
@@ -735,7 +735,7 @@ auto array<::java::float_t>::__serializable_array_class__(::java::serialization:
       });
 }
 
-auto array<::java::float_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array<::java::float_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
 
@@ -850,7 +850,7 @@ auto array<::java::double_t>::__serializable_array_class__(::java::serialization
       });
 }
 
-auto array<::java::double_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array<::java::double_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
 
@@ -965,7 +965,7 @@ auto array<::java::char_t>::__serializable_array_class__(::java::serialization::
       });
 }
 
-auto array<::java::char_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array<::java::char_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
 
@@ -1097,7 +1097,7 @@ auto array<::java::lang::Object>::__serializable_array_class__(::java::serializa
       });
 }
 
-auto array<::java::lang::Object>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array<::java::lang::Object>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
 
@@ -1202,7 +1202,7 @@ auto array_of_array<::java::boolean_t>::__get_class__() const
   return array<::java::boolean_t>::__class__(dim_);
 }
 
-auto array_of_array<::java::boolean_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array_of_array<::java::boolean_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
   using conversion_type = ::std::wstring_convert<
@@ -1313,7 +1313,7 @@ auto array_of_array<::java::byte_t>::__get_class__() const
   return array<::java::byte_t>::__class__(dim_);
 }
 
-auto array_of_array<::java::byte_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array_of_array<::java::byte_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
   using conversion_type = ::std::wstring_convert<
@@ -1424,7 +1424,7 @@ auto array_of_array<::java::short_t>::__get_class__() const
   return array<::java::short_t>::__class__(dim_);
 }
 
-auto array_of_array<::java::short_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array_of_array<::java::short_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
   using conversion_type = ::std::wstring_convert<
@@ -1535,7 +1535,7 @@ auto array_of_array<::java::int_t>::__get_class__() const
   return array<::java::int_t>::__class__(dim_);
 }
 
-auto array_of_array<::java::int_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array_of_array<::java::int_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
   using conversion_type = ::std::wstring_convert<
@@ -1646,7 +1646,7 @@ auto array_of_array<::java::long_t>::__get_class__() const
   return array<::java::long_t>::__class__(dim_);
 }
 
-auto array_of_array<::java::long_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array_of_array<::java::long_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
   using conversion_type = ::std::wstring_convert<
@@ -1757,7 +1757,7 @@ auto array_of_array<::java::float_t>::__get_class__() const
   return array<::java::float_t>::__class__(dim_);
 }
 
-auto array_of_array<::java::float_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array_of_array<::java::float_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
   using conversion_type = ::std::wstring_convert<
@@ -1868,7 +1868,7 @@ auto array_of_array<::java::double_t>::__get_class__() const
   return array<::java::double_t>::__class__(dim_);
 }
 
-auto array_of_array<::java::double_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array_of_array<::java::double_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
   using conversion_type = ::std::wstring_convert<
@@ -1979,7 +1979,7 @@ auto array_of_array<::java::char_t>::__get_class__() const
   return array<::java::char_t>::__class__(dim_);
 }
 
-auto array_of_array<::java::char_t>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array_of_array<::java::char_t>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
   using conversion_type = ::std::wstring_convert<
@@ -2093,7 +2093,7 @@ auto array_of_array<::java::lang::Object>::__get_class__() const
   return array<::java::lang::Object>::__class__(element_type_, dim_);
 }
 
-auto array_of_array<::java::lang::Object>::do_encode_(::java::serialization::cycle_handler& handler_) const
+auto array_of_array<::java::lang::Object>::__encoder__(::java::serialization::cycle_handler& handler_) const
 -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> {
   using namespace ::java::serialization::stream;
   using conversion_type = ::std::wstring_convert<
