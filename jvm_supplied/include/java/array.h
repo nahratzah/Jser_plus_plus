@@ -1196,6 +1196,34 @@ class basic_ref<PtrImpl, Type*> final {
     return p_->size();
   }
 
+  template<bool Enable = ::java::type_traits::is_java_primitive_v<Type>>
+  JSER_INLINE auto begin() const
+  -> ::std::enable_if_t<Enable, typename std::vector<Type>::iterator> {
+    if (p_ == nullptr) throw ::java::null_error();
+    return p_->begin();
+  }
+
+  template<bool Enable = ::java::type_traits::is_java_primitive_v<Type>>
+  JSER_INLINE auto end() const
+  -> ::std::enable_if_t<Enable, typename std::vector<Type>::iterator> {
+    if (p_ == nullptr) throw ::java::null_error();
+    return p_->end();
+  }
+
+  template<bool Enable = !::java::type_traits::is_java_primitive_v<Type>>
+  JSER_INLINE auto begin() const
+  -> ::std::enable_if_t<Enable, ::java::bidirectional_iterator<Type>> {
+    if (p_ == nullptr) throw ::java::null_error();
+    return p_->begin();
+  }
+
+  template<bool Enable = !::java::type_traits::is_java_primitive_v<Type>>
+  JSER_INLINE auto end() const
+  -> ::std::enable_if_t<Enable, ::java::bidirectional_iterator<Type>> {
+    if (p_ == nullptr) throw ::java::null_error();
+    return p_->end();
+  }
+
  private:
   ptr_type p_ = nullptr;
 };
@@ -1254,6 +1282,34 @@ class basic_ref<PtrImpl, Type*const> final {
   JSER_INLINE auto size() const noexcept -> size_type {
     if (!*this) return 0;
     return p_->size();
+  }
+
+  template<bool Enable = ::java::type_traits::is_java_primitive_v<Type>>
+  JSER_INLINE auto begin() const
+  -> ::std::enable_if_t<Enable, typename std::vector<Type>::const_iterator> {
+    if (p_ == nullptr) throw ::java::null_error();
+    return p_->begin();
+  }
+
+  template<bool Enable = ::java::type_traits::is_java_primitive_v<Type>>
+  JSER_INLINE auto end() const
+  -> ::std::enable_if_t<Enable, typename std::vector<Type>::const_iterator> {
+    if (p_ == nullptr) throw ::java::null_error();
+    return p_->end();
+  }
+
+  template<bool Enable = !::java::type_traits::is_java_primitive_v<Type>>
+  JSER_INLINE auto begin() const
+  -> ::std::enable_if_t<Enable, ::java::bidirectional_iterator<const Type>> {
+    if (p_ == nullptr) throw ::java::null_error();
+    return p_->begin();
+  }
+
+  template<bool Enable = !::java::type_traits::is_java_primitive_v<Type>>
+  JSER_INLINE auto end() const
+  -> ::std::enable_if_t<Enable, ::java::bidirectional_iterator<const Type>> {
+    if (p_ == nullptr) throw ::java::null_error();
+    return p_->end();
   }
 
  private:
