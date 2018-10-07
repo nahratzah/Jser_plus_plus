@@ -31,17 +31,32 @@ auto module::decoder(
     ::java::serialization::decoder_ctx& ctx,
     ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element> element) const
 -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
+  using conversion_type = ::std::wstring_convert<
+      std::codecvt_utf8_utf16<char16_t>,
+      char16_t>;
+
+  const auto& spec = spec_(class_name);
+  if (spec.decoder == nullptr) {
+    conversion_type conversion;
+    throw ::java::serialization::decoding_error("class "
+        + conversion.to_bytes(class_name.data(), class_name.data() + class_name.size())
+        + " is not decodable");
+  }
+
   ::cycle_ptr::cycle_gptr<::java::serialization::decoder> result =
-      ::std::invoke(spec_(class_name).decoder, ctx, std::move(element));
+      ::std::invoke(spec.decoder, ctx, std::move(element));
   assert(result != nullptr);
   return result;
 }
 
 auto module::get_class(::std::u16string_view class_name) const
 -> ::java::lang::Class<::java::G::pack<>> {
+  const auto& spec = spec_(class_name);
+  assert(spec.cls != nullptr);
+
   return ::java::lang::Class<::java::G::pack<>>(
       ::java::_direct(),
-      ::std::invoke(spec_(class_name).cls));
+      ::std::invoke(spec.cls));
 }
 
 auto module::spec_(::std::u16string_view class_name) const
