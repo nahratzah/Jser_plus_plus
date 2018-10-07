@@ -21,7 +21,7 @@
 #include <java/io/Serializable.h>
 
 namespace java::_erased::java {
-
+namespace {
 
 template<typename Iter, typename Obj>
 class wrapped_primitive_iter
@@ -47,6 +47,8 @@ class wrapped_primitive_iter
     return value_type(::java::allocate, this->Iter::operator*());
   }
 };
+
+} /* namespace java::_erased::java::<unnamed> */
 
 
 array_intf::~array_intf() noexcept = default;
