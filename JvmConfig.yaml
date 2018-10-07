@@ -354,6 +354,95 @@ rules:
         - java/serialization/decoder.h
     body: |
       return nullptr;
+# Specialize all __decoder__ implementations for enum.
+- predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.lang.Enum
+  friends:
+  - cxx: ::java::serialization::module
+    includes:
+      declaration:
+      - java/serialization/module_fwd.h
+  suppress:
+  - java.io.Serializable/__decoder__
+  members:
+  - type: method
+    name: __decoder__
+    static: true
+    visibility: private
+    arguments:
+    - name: ctx
+      type:
+        cxx: ::java::serialization::decoder_ctx&
+        includes:
+          declaration:
+          - java/serialization/decoder_fwd.h
+    - name: raw_stream_elem
+      type:
+        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+        includes:
+          declaration:
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
+    return:
+      cxx: ::cycle_ptr::cycle_gptr<::java::serialization::decoder>
+      includes:
+        declaration:
+        - cycle_ptr/cycle_ptr.h
+        - java/serialization/decoder_fwd.h
+        implementation:
+        - java/serialization/decoder.h
+    body: |
+      class decoder_impl final
+      : public ::java::serialization::decoder
+      {
+       public:
+        decoder_impl(::java::serialization::decoder_ctx& ctx, cycle_ptr::cycle_gptr<::java::serialization::stream::new_enum> data)
+        : decoder(ctx),
+          data_(std::move(data))
+        {}
+
+        ~decoder_impl() noexcept override = default;
+
+        auto init() -> ::java::lang::Object override {
+          using namespace ::std::string_view_literals;
+
+          if (data_ == nullptr) throw ::java::serialization::decoding_error("incorrectly typed stream element");
+          if (data_->value == nullptr) throw ::java::serialization::decoding_error("enum identifier is null");
+
+          $ model.enumValues
+          : {value|if (*data_->value == $u16StringView(value.name)$) return $erasedType(model)$::$value.remappedName$();}
+          ; separator = "\n"$
+
+          throw ::java::serialization::decoding_error("unrecognized enum value");
+        }
+
+        auto init_comparable() -> dependent_set override {
+          return dependent_set();
+        }
+
+        auto complete() -> dependent_set override {
+          return dependent_set();
+        }
+
+       private:
+        cycle_ptr::cycle_member_ptr<::java::serialization::stream::new_enum> data_;
+      };
+
+      return ::cycle_ptr::make_cycle<decoder_impl>(
+          ctx,
+          ::std::dynamic_pointer_cast<::java::serialization::stream::new_enum>(raw_stream_elem));
+    includes:
+      implementation:
+      - java/serialization/encdec.h
+      - java/serialization/decoder.h
+      - java/serialization/exception.h
+      - string_view
 
 # Implement do_encode_ for enums.
 - predicate:
