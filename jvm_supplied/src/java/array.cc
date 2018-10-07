@@ -48,6 +48,38 @@ class wrapped_primitive_iter
   }
 };
 
+template<typename Iter>
+class wrapped_arrayintf_iter
+: public Iter
+{
+ public:
+  using value_type = ::java::lang::Object;
+  using reference = std::conditional_t<
+      ::std::is_const_v<::std::remove_reference_t<typename ::std::iterator_traits<Iter>::reference>>,
+      ::java::const_ref<value_type>,
+      value_type>;
+
+ public:
+  using Iter::Iter;
+  using Iter::operator=;
+
+  template<typename IterArg>
+  explicit wrapped_arrayintf_iter(IterArg iter)
+  : Iter(std::forward<IterArg>(iter))
+  {}
+
+  auto operator*() const -> reference {
+    using erased_ref = std::conditional_t<
+        ::std::is_const_v<::std::remove_reference_t<typename ::std::iterator_traits<Iter>::reference>>,
+        const ::java::_erased::java::lang::Object,
+        ::java::_erased::java::lang::Object>;
+
+    return reference(
+        ::java::_direct(),
+        ::cycle_ptr::cycle_gptr<erased_ref>(this->Iter::operator*()));
+  }
+};
+
 } /* namespace java::_erased::java::<unnamed> */
 
 
@@ -1118,22 +1150,22 @@ auto array<::java::lang::Object>::__equal__(bool specialized, ::java::_equal_hel
 
 auto array<::java::lang::Object>::begin_() const
 -> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
-  return begin();
+  return data_.begin();
 }
 
 auto array<::java::lang::Object>::end_() const
 -> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
-  return end();
+  return data_.end();
 }
 
 auto array<::java::lang::Object>::begin_()
 -> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
-  return begin();
+  return data_.begin();
 }
 
 auto array<::java::lang::Object>::end_()
 -> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
-  return end();
+  return data_.end();
 }
 
 
@@ -1193,6 +1225,60 @@ auto array_of_array<::java::boolean_t>::do_encode_(::java::serialization::cycle_
       });
 }
 
+auto array_of_array<::java::boolean_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : data_) hc << i;
+  return std::move(hc);
+}
+
+auto array_of_array<::java::boolean_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array_of_array& x, const array_of_array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  if (!std::equal(
+          x.data_.begin(), x.data_.end(),
+          y.data_.begin(), y.data_.end(),
+          [&eq](const auto& x, const auto& y) {
+            return eq(x, y).ok(); // By returning the `ok()` state, we can bail out early.
+          }))
+    eq.fail();
+}
+
+auto array_of_array<::java::boolean_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array_of_array* casted_other = dynamic_cast<const array_of_array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array_of_array<::java::boolean_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.begin());
+}
+
+auto array_of_array<::java::boolean_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.end());
+}
+
+auto array_of_array<::java::boolean_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.begin());
+}
+
+auto array_of_array<::java::boolean_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
+}
+
 
 array_of_array<::java::byte_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1248,6 +1334,60 @@ auto array_of_array<::java::byte_t>::do_encode_(::java::serialization::cycle_han
                       cycle_ptr::cycle_gptr<::java::_erased::java::io::Serializable>(element)));
             });
       });
+}
+
+auto array_of_array<::java::byte_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : data_) hc << i;
+  return std::move(hc);
+}
+
+auto array_of_array<::java::byte_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array_of_array& x, const array_of_array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  if (!std::equal(
+          x.data_.begin(), x.data_.end(),
+          y.data_.begin(), y.data_.end(),
+          [&eq](const auto& x, const auto& y) {
+            return eq(x, y).ok(); // By returning the `ok()` state, we can bail out early.
+          }))
+    eq.fail();
+}
+
+auto array_of_array<::java::byte_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array_of_array* casted_other = dynamic_cast<const array_of_array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array_of_array<::java::byte_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.begin());
+}
+
+auto array_of_array<::java::byte_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.end());
+}
+
+auto array_of_array<::java::byte_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.begin());
+}
+
+auto array_of_array<::java::byte_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
 
@@ -1307,6 +1447,60 @@ auto array_of_array<::java::short_t>::do_encode_(::java::serialization::cycle_ha
       });
 }
 
+auto array_of_array<::java::short_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : data_) hc << i;
+  return std::move(hc);
+}
+
+auto array_of_array<::java::short_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array_of_array& x, const array_of_array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  if (!std::equal(
+          x.data_.begin(), x.data_.end(),
+          y.data_.begin(), y.data_.end(),
+          [&eq](const auto& x, const auto& y) {
+            return eq(x, y).ok(); // By returning the `ok()` state, we can bail out early.
+          }))
+    eq.fail();
+}
+
+auto array_of_array<::java::short_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array_of_array* casted_other = dynamic_cast<const array_of_array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array_of_array<::java::short_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.begin());
+}
+
+auto array_of_array<::java::short_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.end());
+}
+
+auto array_of_array<::java::short_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.begin());
+}
+
+auto array_of_array<::java::short_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
+}
+
 
 array_of_array<::java::int_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1362,6 +1556,60 @@ auto array_of_array<::java::int_t>::do_encode_(::java::serialization::cycle_hand
                       cycle_ptr::cycle_gptr<::java::_erased::java::io::Serializable>(element)));
             });
       });
+}
+
+auto array_of_array<::java::int_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : data_) hc << i;
+  return std::move(hc);
+}
+
+auto array_of_array<::java::int_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array_of_array& x, const array_of_array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  if (!std::equal(
+          x.data_.begin(), x.data_.end(),
+          y.data_.begin(), y.data_.end(),
+          [&eq](const auto& x, const auto& y) {
+            return eq(x, y).ok(); // By returning the `ok()` state, we can bail out early.
+          }))
+    eq.fail();
+}
+
+auto array_of_array<::java::int_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array_of_array* casted_other = dynamic_cast<const array_of_array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array_of_array<::java::int_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.begin());
+}
+
+auto array_of_array<::java::int_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.end());
+}
+
+auto array_of_array<::java::int_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.begin());
+}
+
+auto array_of_array<::java::int_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
 
@@ -1421,6 +1669,60 @@ auto array_of_array<::java::long_t>::do_encode_(::java::serialization::cycle_han
       });
 }
 
+auto array_of_array<::java::long_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : data_) hc << i;
+  return std::move(hc);
+}
+
+auto array_of_array<::java::long_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array_of_array& x, const array_of_array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  if (!std::equal(
+          x.data_.begin(), x.data_.end(),
+          y.data_.begin(), y.data_.end(),
+          [&eq](const auto& x, const auto& y) {
+            return eq(x, y).ok(); // By returning the `ok()` state, we can bail out early.
+          }))
+    eq.fail();
+}
+
+auto array_of_array<::java::long_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array_of_array* casted_other = dynamic_cast<const array_of_array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array_of_array<::java::long_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.begin());
+}
+
+auto array_of_array<::java::long_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.end());
+}
+
+auto array_of_array<::java::long_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.begin());
+}
+
+auto array_of_array<::java::long_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
+}
+
 
 array_of_array<::java::float_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1476,6 +1778,60 @@ auto array_of_array<::java::float_t>::do_encode_(::java::serialization::cycle_ha
                       cycle_ptr::cycle_gptr<::java::_erased::java::io::Serializable>(element)));
             });
       });
+}
+
+auto array_of_array<::java::float_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : data_) hc << i;
+  return std::move(hc);
+}
+
+auto array_of_array<::java::float_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array_of_array& x, const array_of_array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  if (!std::equal(
+          x.data_.begin(), x.data_.end(),
+          y.data_.begin(), y.data_.end(),
+          [&eq](const auto& x, const auto& y) {
+            return eq(x, y).ok(); // By returning the `ok()` state, we can bail out early.
+          }))
+    eq.fail();
+}
+
+auto array_of_array<::java::float_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array_of_array* casted_other = dynamic_cast<const array_of_array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array_of_array<::java::float_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.begin());
+}
+
+auto array_of_array<::java::float_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.end());
+}
+
+auto array_of_array<::java::float_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.begin());
+}
+
+auto array_of_array<::java::float_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
 
@@ -1535,6 +1891,60 @@ auto array_of_array<::java::double_t>::do_encode_(::java::serialization::cycle_h
       });
 }
 
+auto array_of_array<::java::double_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : data_) hc << i;
+  return std::move(hc);
+}
+
+auto array_of_array<::java::double_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array_of_array& x, const array_of_array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  if (!std::equal(
+          x.data_.begin(), x.data_.end(),
+          y.data_.begin(), y.data_.end(),
+          [&eq](const auto& x, const auto& y) {
+            return eq(x, y).ok(); // By returning the `ok()` state, we can bail out early.
+          }))
+    eq.fail();
+}
+
+auto array_of_array<::java::double_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array_of_array* casted_other = dynamic_cast<const array_of_array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array_of_array<::java::double_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.begin());
+}
+
+auto array_of_array<::java::double_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.end());
+}
+
+auto array_of_array<::java::double_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.begin());
+}
+
+auto array_of_array<::java::double_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
+}
+
 
 array_of_array<::java::char_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1590,6 +2000,60 @@ auto array_of_array<::java::char_t>::do_encode_(::java::serialization::cycle_han
                       cycle_ptr::cycle_gptr<::java::_erased::java::io::Serializable>(element)));
             });
       });
+}
+
+auto array_of_array<::java::char_t>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : data_) hc << i;
+  return std::move(hc);
+}
+
+auto array_of_array<::java::char_t>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array_of_array& x, const array_of_array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  if (!std::equal(
+          x.data_.begin(), x.data_.end(),
+          y.data_.begin(), y.data_.end(),
+          [&eq](const auto& x, const auto& y) {
+            return eq(x, y).ok(); // By returning the `ok()` state, we can bail out early.
+          }))
+    eq.fail();
+}
+
+auto array_of_array<::java::char_t>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array_of_array* casted_other = dynamic_cast<const array_of_array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array_of_array<::java::char_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.begin());
+}
+
+auto array_of_array<::java::char_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.end());
+}
+
+auto array_of_array<::java::char_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.begin());
+}
+
+auto array_of_array<::java::char_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
 
@@ -1650,6 +2114,60 @@ auto array_of_array<::java::lang::Object>::do_encode_(::java::serialization::cyc
                       cycle_ptr::cycle_gptr<::java::_erased::java::io::Serializable>(element)));
             });
       });
+}
+
+auto array_of_array<::java::lang::Object>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : data_) hc << i;
+  return std::move(hc);
+}
+
+auto array_of_array<::java::lang::Object>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array_of_array& x, const array_of_array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  if (!std::equal(
+          x.data_.begin(), x.data_.end(),
+          y.data_.begin(), y.data_.end(),
+          [&eq](const auto& x, const auto& y) {
+            return eq(x, y).ok(); // By returning the `ok()` state, we can bail out early.
+          }))
+    eq.fail();
+}
+
+auto array_of_array<::java::lang::Object>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array_of_array* casted_other = dynamic_cast<const array_of_array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array_of_array<::java::lang::Object>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.begin());
+}
+
+auto array_of_array<::java::lang::Object>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_arrayintf_iter<vector_type::const_iterator>(data_.end());
+}
+
+auto array_of_array<::java::lang::Object>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.begin());
+}
+
+auto array_of_array<::java::lang::Object>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
 

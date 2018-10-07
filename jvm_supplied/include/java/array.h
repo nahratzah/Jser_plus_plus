@@ -807,6 +807,21 @@ class array_of_array<::java::boolean_t> final
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array_of_array& x, const array_of_array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
 };
@@ -850,6 +865,21 @@ class array_of_array<::java::byte_t> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array_of_array& x, const array_of_array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -895,6 +925,21 @@ class array_of_array<::java::short_t> final
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array_of_array& x, const array_of_array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
 };
@@ -938,6 +983,21 @@ class array_of_array<::java::int_t> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array_of_array& x, const array_of_array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -983,6 +1043,21 @@ class array_of_array<::java::long_t> final
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array_of_array& x, const array_of_array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
 };
@@ -1026,6 +1101,21 @@ class array_of_array<::java::float_t> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array_of_array& x, const array_of_array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1071,6 +1161,21 @@ class array_of_array<::java::double_t> final
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array_of_array& x, const array_of_array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
 };
@@ -1115,6 +1220,21 @@ class array_of_array<::java::char_t> final
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array_of_array& x, const array_of_array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
 };
@@ -1158,6 +1278,21 @@ class array_of_array<::java::lang::Object> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array_of_array& x, const array_of_array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
 
   const ::java::field_t<::java::lang::Class<::java::G::pack<>>> element_type_;
   const ::std::size_t dim_;
