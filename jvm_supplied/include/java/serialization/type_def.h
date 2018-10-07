@@ -21,17 +21,6 @@
 namespace java::serialization {
 
 
-template<template<typename...> class Tmpl>
-struct template_type_def;
-
-template<typename> struct type_def;
-
-template<template<typename...> class Tmpl, typename... T>
-struct type_def<Tmpl<T...>>
-: template_type_def<Tmpl>
-{};
-
-
 class cycle_handler {
  private:
   using visit_done = std::unordered_map<
@@ -46,39 +35,6 @@ class cycle_handler {
   using string_table = std::unordered_map<
       std::string,
       cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_string>>;
-
-  template<typename Defn, typename T>
-  using select_defn_t = std::conditional_t<
-      std::is_void_v<Defn>,
-      std::conditional_t<
-          (std::is_polymorphic_v<std::remove_cv_t<std::remove_reference_t<T>>>
-           && !std::is_final_v<std::remove_cv_t<std::remove_reference_t<T>>>),
-          void,
-          type_def<std::remove_cv_t<std::remove_reference_t<T>>>>, // When final, just use T directly.
-      std::conditional_t<
-          (std::is_polymorphic_v<std::remove_cv_t<std::remove_reference_t<T>>>
-           && std::is_base_of_v<Defn, std::remove_cv_t<std::remove_reference_t<T>>>),
-          void,
-          type_def<Defn>>>; // Cross-type conversion, there shall be a specialized encode() method in Defn for T.
-
-  template<typename SelectedDefn, typename T>
-  struct encode_element_for_defn_ {
-    using type = std::remove_cv_t<typename std::decay_t<decltype(SelectedDefn::encode(std::declval<const T&>()))>::element_type>;
-  };
-
-  template<typename T>
-  struct encode_element_for_void_ {
-    using type = java::serialization::stream::stream_element;
-  };
-
-  template<typename Defn, typename T>
-  using encode_element_t = typename std::conditional_t<
-      std::is_void_v<select_defn_t<Defn, T>>,
-      encode_element_for_void_<T>,
-      encode_element_for_defn_<select_defn_t<Defn, T>, T>>::type;
-
-  template<typename Defn, typename T>
-  using encode_result_t = cycle_ptr::cycle_gptr<std::add_const_t<encode_element_t<Defn, T>>>;
 
   auto serializable_do_encode_(const java::_tags::java::io::Serializable::erased_type& s)
   -> cycle_ptr::cycle_gptr<const stream::stream_element>;
