@@ -394,6 +394,7 @@ public class ClassType implements JavaType {
 
         final Stream<String> fieldIncludes;
         final Stream<String> memberIncludes;
+        final Stream<String> friendIncludes;
         if (publicOnly) {
             fieldIncludes = getFields().stream()
                     .map(field -> field.getVarType())
@@ -403,6 +404,8 @@ public class ClassType implements JavaType {
                             .flatMap(member -> member.getDeclarationIncludes()),
                     getClassNonMemberFunctions().stream()
                             .flatMap(member -> member.getDeclarationIncludes()));
+            friendIncludes = friends.stream()
+                    .flatMap(friend -> friend.getIncludes(true));
         } else {
             fieldIncludes = getFields().stream()
                     .flatMap(field -> Stream.of(field.getType(), field.getVarType()))
@@ -412,9 +415,11 @@ public class ClassType implements JavaType {
                             .flatMap(member -> member.getImplementationIncludes()),
                     getClassMembers().stream()
                             .flatMap(member -> member.getImplementationIncludes()));
+            friendIncludes = friends.stream()
+                    .flatMap(friend -> friend.getIncludes(false));
         }
 
-        return Stream.of(parentTypes, fieldIncludes, memberIncludes)
+        return Stream.of(parentTypes, fieldIncludes, memberIncludes, friendIncludes)
                 .flatMap(Function.identity());
     }
 
@@ -597,6 +602,28 @@ public class ClassType implements JavaType {
     public boolean getHasDefaultConstructor() {
         return getClassMembers().stream()
                 .anyMatch(ClassMemberModel::isDefaultConstructor);
+    }
+
+    /**
+     * Get a version of this type with all template arguments bound to the
+     * wildcard generic.
+     *
+     * @return A bound type for this class.
+     */
+    public com.github.nahratzah.jser_plus_plus.model.Type getPackType() {
+        return new BoundTemplate.ClassBinding<>(
+                this,
+                getTemplateArgumentNames().stream().map(ignored -> new BoundTemplate.Any()).collect(Collectors.toList()));
+    }
+
+    /**
+     * Get a version of this type with all template arguments bound to the
+     * wildcard generic.
+     *
+     * @return A const bound type for this class.
+     */
+    public com.github.nahratzah.jser_plus_plus.model.Type getConstPackType() {
+        return new ConstType(getPackType());
     }
 
     @Override

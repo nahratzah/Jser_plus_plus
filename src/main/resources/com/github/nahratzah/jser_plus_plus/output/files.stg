@@ -106,6 +106,46 @@ $codeGen.types:{model|$accessorImplSrc(model)$}; separator = "\n\n"$
 >>
 
 
+moduleHeader(name, headers, types) ::= <<
+$include({java/serialization/module.h})$
+
+namespace java::modules {
+auto $name$() -> const ::java::serialization::module&;
+} /* namespace java::modules */
+>>
+
+
+moduleSource(name, headers, types) ::= <<
+$include({java/modules/$name$.h})$
+$include({string_view})$
+$include({java/reflect.h})$
+
+$ headers
+: include()
+; separator = "\n"$
+
+namespace java::modules {
+
+auto $name$()
+-> const ::java::serialization::module& {
+  using namespace ::std::string_view_literals;
+
+  static const auto impl = ::java::serialization::module({
+      $ types
+      : { model | { $u16StringView(model.name)$,$"\n"$$\\$
+                  $"  "${ ::java::serialization::module::__class__<$erasedType(model)$>(),$"\n"$$\\$
+                  $"    "$$if (!model.interface && !model.abstract && model.testInherits.({java.io.Serializable}))$::java::serialization::module::__decoder__<$erasedType(model)$>()$else$nullptr$endif$$"\n"$$\\$
+                  $"  "$\}\}}
+      ; anchor, separator = ",\n"$
+      });
+
+  return impl;
+}
+
+} /* namespace java::modules */
+>>
+
+
 tagDeclaration(model) ::= <<
 struct $model.className$ {
   static constexpr ::std::size_t generics_arity = $length(model.templateArguments)$;

@@ -237,6 +237,10 @@ public class CmakeModule implements Closeable {
         Util.setFileContents(getCmakeOutputFile().toPath(), getContents());
     }
 
+    public String getTargetName() {
+        return targetName;
+    }
+
     private void cleanOutputDirectory(Path dir, Collection<String> filesToKeep) throws IOException {
         final List<Path> suppliedFiles = filesToKeep.stream()
                 .map(x -> outputDir.toPath().resolve(x))

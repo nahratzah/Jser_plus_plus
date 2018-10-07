@@ -44,6 +44,22 @@ class module {
   auto get_class(::std::u16string_view class_name) const
   -> ::java::lang::Class<::java::G::pack<>>;
 
+  ///\brief Tiny forwarder to extract the __class__ function for a given type.
+  ///\tparam T the type for which to find the __class__ function.
+  template<typename T>
+  static auto __class__() noexcept
+  -> class_factory {
+    return &T::__class__;
+  }
+
+  ///\brief Tiny forwarder to extract the __decoder__ function for a given type.
+  ///\tparam T the type for which to find the __decoder__ function.
+  template<typename T>
+  static auto __decoder__() noexcept
+  -> decoder_factory {
+    return &T::__decoder__;
+  }
+
  private:
   auto spec_(::std::u16string_view class_name) const
   -> const decoder_spec&;

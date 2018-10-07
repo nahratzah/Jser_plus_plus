@@ -10,6 +10,7 @@ import com.github.nahratzah.jser_plus_plus.output.CodeGenerator;
 import static com.github.nahratzah.jser_plus_plus.output.Util.setFileContents;
 import java.io.IOException;
 import java.util.Collection;
+import static java.util.Collections.unmodifiableCollection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +120,13 @@ public class Processor implements Context {
                     module.addSource(cg.sourceName()).toPath(),
                     cg.sourceFile());
         }
+
+        setFileContents(
+                module.addHeader(CodeGenerator.moduleHeaderFilename(module.getTargetName())).toPath(),
+                CodeGenerator.moduleHeader(module.getTargetName(), unmodifiableCollection(classes.values())));
+        setFileContents(
+                module.addSource(CodeGenerator.moduleSourceFilename(module.getTargetName())).toPath(),
+                CodeGenerator.moduleSource(module.getTargetName(), unmodifiableCollection(classes.values())));
     }
 
     private final ClassLoader classLoader;

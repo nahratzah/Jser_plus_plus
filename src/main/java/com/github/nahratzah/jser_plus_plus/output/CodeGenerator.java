@@ -1,5 +1,6 @@
 package com.github.nahratzah.jser_plus_plus.output;
 
+import com.github.nahratzah.jser_plus_plus.misc.ListComparator;
 import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
 import com.github.nahratzah.jser_plus_plus.model.JavaType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
@@ -28,6 +29,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STGroupString;
 
@@ -138,6 +140,40 @@ public class CodeGenerator {
                 .add("codeGen", this)
                 .add("includes", includes)
                 .render(Locale.ROOT, LINE_WRAP);
+    }
+
+    private static String renderModule(ST template, String moduleName, Collection<? extends JavaType> types) {
+        final List<String> includes = types.stream()
+                .map(c -> headerName(c))
+                .distinct()
+                .sorted(INCLUDE_SORTER)
+                .collect(Collectors.toList());
+
+        final List<JavaType> orderedTypes = types.stream()
+                .sorted(Comparator.comparing(JavaType::getNamespace, new ListComparator<>()).thenComparing(Comparator.comparing(JavaType::getClassName)))
+                .collect(Collectors.toList());
+
+        return template
+                .add("name", moduleName)
+                .add("headers", includes)
+                .add("types", orderedTypes)
+                .render(Locale.ROOT, LINE_WRAP);
+    }
+
+    public static String moduleHeaderFilename(String moduleName) {
+        return "java/modules/" + moduleName + ".h";
+    }
+
+    public static String moduleSourceFilename(String moduleName) {
+        return "java/modules/" + moduleName + ".cc";
+    }
+
+    public static String moduleHeader(String moduleName, Collection<? extends JavaType> types) {
+        return renderModule(FILES_TEMPLATE.getInstanceOf("moduleHeader"), moduleName, types);
+    }
+
+    public static String moduleSource(String moduleName, Collection<? extends JavaType> types) {
+        return renderModule(FILES_TEMPLATE.getInstanceOf("moduleSource"), moduleName, types);
     }
 
     public static List<String> computeBaseType(JavaType c) {

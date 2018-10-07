@@ -1,6 +1,7 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
 import com.github.nahratzah.jser_plus_plus.input.Context;
+import com.github.nahratzah.jser_plus_plus.misc.ListComparator;
 import java.util.ArrayList;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
@@ -392,7 +393,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             if (cmp == 0)
                 cmp = type.getName().compareTo(((ClassBinding<?>) o).type.getName());
             if (cmp == 0)
-                BoundTemplateUtil.compareCollections(bindings, ((ClassBinding<?>) o).bindings);
+                cmp = new ListComparator<>().compare(bindings, ((ClassBinding<?>) o).bindings);
             return cmp;
         }
 
@@ -627,9 +628,9 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
 
             int cmp = 0;
             if (cmp == 0)
-                cmp = BoundTemplateUtil.compareCollections(superTypes, ((Any) o).superTypes);
+                cmp = new ListComparator<>().compare(superTypes, ((Any) o).superTypes);
             if (cmp == 0)
-                cmp = BoundTemplateUtil.compareCollections(extendTypes, ((Any) o).extendTypes);
+                cmp = new ListComparator<>().compare(extendTypes, ((Any) o).extendTypes);
             return cmp;
         }
 
@@ -753,7 +754,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
 
             int cmp = 0;
             if (cmp == 0)
-                cmp = BoundTemplateUtil.compareCollections(types, ((MultiType) o).types);
+                cmp = new ListComparator<>().compare(types, ((MultiType) o).types);
             return cmp;
         }
 
@@ -769,34 +770,6 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
 
     public static Type fromString(String text, Context ctx, Map<String, ? extends BoundTemplate> variables) {
         return new BoundTemplateParser(ctx, variables).parse(text);
-    }
-}
-
-class BoundTemplateUtil {
-    private BoundTemplateUtil() {
-    }
-
-    /**
-     * Compare two collections.
-     *
-     * Collections must have stable ordering.
-     *
-     * @param x A collection.
-     * @param y Another collection.
-     * @return The lexicographical comparison of the two collections.
-     */
-    public static int compareCollections(Iterable<BoundTemplate> x, Iterable<BoundTemplate> y) {
-        final Iterator<BoundTemplate> xIter = x.iterator();
-        final Iterator<BoundTemplate> yIter = y.iterator();
-
-        while (xIter.hasNext() && yIter.hasNext()) {
-            final int cmp = xIter.next().compareTo(yIter.next());
-            if (cmp != 0) return cmp;
-        }
-
-        if (xIter.hasNext()) return 1;
-        if (yIter.hasNext()) return -1;
-        return 0;
     }
 }
 

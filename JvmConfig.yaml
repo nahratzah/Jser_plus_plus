@@ -309,6 +309,52 @@ rules:
       - cycle_ptr/cycle_ptr.h
       - java/serialization/type_def.h
 
+# Implement decoder.
+# XXX placeholder for now
+- id: java.io.Serializable/__decoder__
+  predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.io.Serializable
+  friends:
+  - cxx: ::java::serialization::module
+    includes:
+      declaration:
+      - java/serialization/module_fwd.h
+  members:
+  - type: method
+    name: __decoder__
+    static: true
+    visibility: private
+    arguments:
+    - name: _ctx_
+      type:
+        cxx: ::java::serialization::decoder_ctx&
+        includes:
+          declaration:
+          - java/serialization/decoder_fwd.h
+    - name: _raw_stream_elem_
+      type:
+        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+        includes:
+          declaration:
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
+    return:
+      cxx: ::cycle_ptr::cycle_gptr<::java::serialization::decoder>
+      includes:
+        declaration:
+        - cycle_ptr/cycle_ptr.h
+        - java/serialization/decoder_fwd.h
+        implementation:
+        - java/serialization/decoder.h
+    body: |
+      return nullptr;
+
 # Implement do_encode_ for enums.
 - predicate:
     interface: false
@@ -421,6 +467,10 @@ rules:
     includes:
       declaration:
       - java/object_intf.h
+  - cxx: ::java::serialization::module
+    includes:
+      declaration:
+      - java/serialization/module_fwd.h
   members:
   - type: method
     name: __class__
