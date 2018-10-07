@@ -76,6 +76,10 @@ auto array_intf::end()
 
 array<::java::boolean_t>::~array() noexcept = default;
 
+auto array<::java::boolean_t>::empty_() const noexcept -> bool {
+  return empty();
+}
+
 auto array<::java::boolean_t>::size_() const noexcept -> std::size_t {
   return size();
 }
@@ -186,6 +190,10 @@ auto array<::java::boolean_t>::end_()
 
 
 array<::java::byte_t>::~array() noexcept = default;
+
+auto array<::java::byte_t>::empty_() const noexcept -> bool {
+  return empty();
+}
 
 auto array<::java::byte_t>::size_() const noexcept -> std::size_t {
   return size();
@@ -298,6 +306,10 @@ auto array<::java::byte_t>::end_()
 
 array<::java::short_t>::~array() noexcept = default;
 
+auto array<::java::short_t>::empty_() const noexcept -> bool {
+  return empty();
+}
+
 auto array<::java::short_t>::size_() const noexcept -> std::size_t {
   return size();
 }
@@ -408,6 +420,10 @@ auto array<::java::short_t>::end_()
 
 
 array<::java::int_t>::~array() noexcept = default;
+
+auto array<::java::int_t>::empty_() const noexcept -> bool {
+  return empty();
+}
 
 auto array<::java::int_t>::size_() const noexcept -> std::size_t {
   return size();
@@ -520,6 +536,10 @@ auto array<::java::int_t>::end_()
 
 array<::java::long_t>::~array() noexcept = default;
 
+auto array<::java::long_t>::empty_() const noexcept -> bool {
+  return empty();
+}
+
 auto array<::java::long_t>::size_() const noexcept -> std::size_t {
   return size();
 }
@@ -630,6 +650,10 @@ auto array<::java::long_t>::end_()
 
 
 array<::java::float_t>::~array() noexcept = default;
+
+auto array<::java::float_t>::empty_() const noexcept -> bool {
+  return empty();
+}
 
 auto array<::java::float_t>::size_() const noexcept -> std::size_t {
   return size();
@@ -742,6 +766,10 @@ auto array<::java::float_t>::end_()
 
 array<::java::double_t>::~array() noexcept = default;
 
+auto array<::java::double_t>::empty_() const noexcept -> bool {
+  return empty();
+}
+
 auto array<::java::double_t>::size_() const noexcept -> std::size_t {
   return size();
 }
@@ -852,6 +880,10 @@ auto array<::java::double_t>::end_()
 
 
 array<::java::char_t>::~array() noexcept = default;
+
+auto array<::java::char_t>::empty_() const noexcept -> bool {
+  return empty();
+}
 
 auto array<::java::char_t>::size_() const noexcept -> std::size_t {
   return size();
@@ -970,6 +1002,10 @@ array<::java::lang::Object>::array(::java::lang::Class<::java::G::pack<>> elemen
 }
 
 array<::java::lang::Object>::~array() noexcept = default;
+
+auto array<::java::lang::Object>::empty_() const noexcept -> bool {
+  return empty();
+}
 
 auto array<::java::lang::Object>::size_() const noexcept -> std::size_t {
   return size();
@@ -1110,6 +1146,10 @@ array_of_array<::java::boolean_t>::array_of_array(std::size_t dim)
 
 array_of_array<::java::boolean_t>::~array_of_array() noexcept = default;
 
+auto array_of_array<::java::boolean_t>::empty_() const noexcept -> bool {
+  return empty();
+}
+
 auto array_of_array<::java::boolean_t>::size_() const noexcept -> std::size_t {
   return size();
 }
@@ -1162,6 +1202,10 @@ array_of_array<::java::byte_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::byte_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::byte_t>::empty_() const noexcept -> bool {
+  return empty();
+}
 
 auto array_of_array<::java::byte_t>::size_() const noexcept -> std::size_t {
   return size();
@@ -1216,6 +1260,10 @@ array_of_array<::java::short_t>::array_of_array(std::size_t dim)
 
 array_of_array<::java::short_t>::~array_of_array() noexcept = default;
 
+auto array_of_array<::java::short_t>::empty_() const noexcept -> bool {
+  return empty();
+}
+
 auto array_of_array<::java::short_t>::size_() const noexcept -> std::size_t {
   return size();
 }
@@ -1268,6 +1316,10 @@ array_of_array<::java::int_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::int_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::int_t>::empty_() const noexcept -> bool {
+  return empty();
+}
 
 auto array_of_array<::java::int_t>::size_() const noexcept -> std::size_t {
   return size();
@@ -1322,6 +1374,10 @@ array_of_array<::java::long_t>::array_of_array(std::size_t dim)
 
 array_of_array<::java::long_t>::~array_of_array() noexcept = default;
 
+auto array_of_array<::java::long_t>::empty_() const noexcept -> bool {
+  return empty();
+}
+
 auto array_of_array<::java::long_t>::size_() const noexcept -> std::size_t {
   return size();
 }
@@ -1374,6 +1430,10 @@ array_of_array<::java::float_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::float_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::float_t>::empty_() const noexcept -> bool {
+  return empty();
+}
 
 auto array_of_array<::java::float_t>::size_() const noexcept -> std::size_t {
   return size();
@@ -1428,6 +1488,10 @@ array_of_array<::java::double_t>::array_of_array(std::size_t dim)
 
 array_of_array<::java::double_t>::~array_of_array() noexcept = default;
 
+auto array_of_array<::java::double_t>::empty_() const noexcept -> bool {
+  return empty();
+}
+
 auto array_of_array<::java::double_t>::size_() const noexcept -> std::size_t {
   return size();
 }
@@ -1480,6 +1544,10 @@ array_of_array<::java::char_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::char_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::char_t>::empty_() const noexcept -> bool {
+  return empty();
+}
 
 auto array_of_array<::java::char_t>::size_() const noexcept -> std::size_t {
   return size();
@@ -1536,6 +1604,10 @@ array_of_array<::java::lang::Object>::array_of_array(::java::lang::Class<::java:
 }
 
 array_of_array<::java::lang::Object>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::lang::Object>::empty_() const noexcept -> bool {
+  return empty();
+}
 
 auto array_of_array<::java::lang::Object>::size_() const noexcept -> std::size_t {
   return size();

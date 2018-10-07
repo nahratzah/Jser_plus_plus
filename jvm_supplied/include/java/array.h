@@ -31,6 +31,10 @@ class array_intf
  public:
   virtual ~array_intf() noexcept override = 0;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return empty_();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return size_();
   }
@@ -49,6 +53,7 @@ class array_intf
   -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>>;
 
  private:
+  virtual auto empty_() const noexcept -> bool = 0;
   virtual auto size_() const noexcept -> std::size_t = 0;
   virtual auto dimensions_() const noexcept -> std::size_t = 0;
 
@@ -92,6 +97,10 @@ class array<::java::boolean_t> final
   array() = default;
   ~array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -114,6 +123,7 @@ class array<::java::boolean_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -164,6 +174,10 @@ class array<::java::byte_t> final
   array() = default;
   ~array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -186,6 +200,7 @@ class array<::java::byte_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -236,6 +251,10 @@ class array<::java::short_t> final
   array() = default;
   ~array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -258,6 +277,7 @@ class array<::java::short_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -308,6 +328,10 @@ class array<::java::int_t> final
   array() = default;
   ~array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -330,6 +354,7 @@ class array<::java::int_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -380,6 +405,10 @@ class array<::java::long_t> final
   array() = default;
   ~array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -402,6 +431,7 @@ class array<::java::long_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -452,6 +482,10 @@ class array<::java::float_t> final
   array() = default;
   ~array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -474,6 +508,7 @@ class array<::java::float_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -524,6 +559,10 @@ class array<::java::double_t> final
   array() = default;
   ~array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -546,6 +585,7 @@ class array<::java::double_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -596,6 +636,10 @@ class array<::java::char_t> final
   array() = default;
   ~array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -618,6 +662,7 @@ class array<::java::char_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -671,6 +716,10 @@ class array<::java::lang::Object> final
   explicit array(::java::lang::Class<::java::G::pack<>> element_type);
   ~array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -680,6 +729,7 @@ class array<::java::lang::Object> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -731,6 +781,10 @@ class array_of_array<::java::boolean_t> final
   explicit array_of_array(std::size_t dim);
   ~array_of_array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -740,6 +794,7 @@ class array_of_array<::java::boolean_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -770,6 +825,10 @@ class array_of_array<::java::byte_t> final
   explicit array_of_array(std::size_t dim);
   ~array_of_array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -779,6 +838,7 @@ class array_of_array<::java::byte_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -809,6 +869,10 @@ class array_of_array<::java::short_t> final
   explicit array_of_array(std::size_t dim);
   ~array_of_array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -818,6 +882,7 @@ class array_of_array<::java::short_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -848,6 +913,10 @@ class array_of_array<::java::int_t> final
   explicit array_of_array(std::size_t dim);
   ~array_of_array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -857,6 +926,7 @@ class array_of_array<::java::int_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -887,6 +957,10 @@ class array_of_array<::java::long_t> final
   explicit array_of_array(std::size_t dim);
   ~array_of_array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -896,6 +970,7 @@ class array_of_array<::java::long_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -926,6 +1001,10 @@ class array_of_array<::java::float_t> final
   explicit array_of_array(std::size_t dim);
   ~array_of_array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -935,6 +1014,7 @@ class array_of_array<::java::float_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -965,6 +1045,10 @@ class array_of_array<::java::double_t> final
   explicit array_of_array(std::size_t dim);
   ~array_of_array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -974,6 +1058,7 @@ class array_of_array<::java::double_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -1004,6 +1089,10 @@ class array_of_array<::java::char_t> final
   explicit array_of_array(std::size_t dim);
   ~array_of_array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -1013,6 +1102,7 @@ class array_of_array<::java::char_t> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -1043,6 +1133,10 @@ class array_of_array<::java::lang::Object> final
   array_of_array(::java::lang::Class<::java::G::pack<>> element_type, std::size_t dim);
   ~array_of_array() noexcept override;
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    return data_.empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> std::size_t {
     return data_.size();
   }
@@ -1052,6 +1146,7 @@ class array_of_array<::java::lang::Object> final
   }
 
  private:
+  auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
   auto dimensions_() const noexcept -> std::size_t override;
 
@@ -1191,6 +1286,11 @@ class basic_ref<PtrImpl, Type*> final {
     return p_ != nullptr;
   }
 
+  JSER_INLINE auto empty() const noexcept -> bool {
+    if (!*this) throw ::java::null_error();
+    return p_->empty();
+  }
+
   JSER_INLINE auto size() const noexcept -> size_type {
     if (!*this) throw ::java::null_error();
     return p_->size();
@@ -1277,6 +1377,11 @@ class basic_ref<PtrImpl, Type*const> final {
 
   JSER_INLINE auto operator!=([[maybe_unused]] ::std::nullptr_t np) const noexcept -> bool {
     return p_ != nullptr;
+  }
+
+  JSER_INLINE auto empty() const noexcept -> bool {
+    if (!*this) throw ::java::null_error();
+    return p_->empty();
   }
 
   JSER_INLINE auto size() const noexcept -> size_type {
