@@ -1,20 +1,75 @@
 #include <java/array.h>
 #include <java/serialization/encdec.h>
 #include <java/serialization/type_def.h>
-#include <codecvt>
-#include <locale>
 #include <algorithm>
+#include <codecvt>
 #include <iterator>
+#include <locale>
+#include <type_traits>
 #include <java/reflect.h>
 #include <java/hash.h>
 #include <java/lang/Class.h>
 #include <java/lang/Object.h>
+#include <java/lang/Boolean.h>
+#include <java/lang/Byte.h>
+#include <java/lang/Short.h>
+#include <java/lang/Integer.h>
+#include <java/lang/Long.h>
+#include <java/lang/Float.h>
+#include <java/lang/Double.h>
+#include <java/lang/Character.h>
 #include <java/io/Serializable.h>
 
 namespace java::_erased::java {
 
 
+template<typename Iter, typename Obj>
+class wrapped_primitive_iter
+: public Iter
+{
+ public:
+  using value_type = Obj;
+  using reference = std::conditional_t<
+      ::std::is_const_v<::std::remove_reference_t<typename ::std::iterator_traits<Iter>::reference>>,
+      ::java::const_ref<Obj>,
+      Obj>;
+
+ public:
+  using Iter::Iter;
+  using Iter::operator=;
+
+  template<typename IterArg>
+  explicit wrapped_primitive_iter(IterArg iter)
+  : Iter(std::forward<IterArg>(iter))
+  {}
+
+  auto operator*() const -> reference {
+    return value_type(::java::allocate, this->Iter::operator*());
+  }
+};
+
+
 array_intf::~array_intf() noexcept = default;
+
+auto array_intf::begin() const
+-> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return begin_();
+}
+
+auto array_intf::end() const
+-> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return end_();
+}
+
+auto array_intf::begin()
+-> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return begin_();
+}
+
+auto array_intf::end()
+-> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return end_();
+}
 
 
 array<::java::boolean_t>::~array() noexcept = default;
@@ -105,6 +160,26 @@ auto array<::java::boolean_t>::__equal__(bool specialized, ::java::_equal_helper
     eq.fail();
   else
     __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array<::java::boolean_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Boolean>(begin());
+}
+
+auto array<::java::boolean_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Boolean>(end());
+}
+
+auto array<::java::boolean_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Boolean>(begin());
+}
+
+auto array<::java::boolean_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Boolean>(end());
 }
 
 
@@ -198,6 +273,26 @@ auto array<::java::byte_t>::__equal__(bool specialized, ::java::_equal_helper& e
     __equal_impl__(specialized, eq, *this, *casted_other);
 }
 
+auto array<::java::byte_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Byte>(begin());
+}
+
+auto array<::java::byte_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Byte>(end());
+}
+
+auto array<::java::byte_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Byte>(begin());
+}
+
+auto array<::java::byte_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Byte>(end());
+}
+
 
 array<::java::short_t>::~array() noexcept = default;
 
@@ -287,6 +382,26 @@ auto array<::java::short_t>::__equal__(bool specialized, ::java::_equal_helper& 
     eq.fail();
   else
     __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array<::java::short_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Short>(begin());
+}
+
+auto array<::java::short_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Short>(end());
+}
+
+auto array<::java::short_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Short>(begin());
+}
+
+auto array<::java::short_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Short>(end());
 }
 
 
@@ -380,6 +495,26 @@ auto array<::java::int_t>::__equal__(bool specialized, ::java::_equal_helper& eq
     __equal_impl__(specialized, eq, *this, *casted_other);
 }
 
+auto array<::java::int_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Integer>(begin());
+}
+
+auto array<::java::int_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Integer>(end());
+}
+
+auto array<::java::int_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Integer>(begin());
+}
+
+auto array<::java::int_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Integer>(end());
+}
+
 
 array<::java::long_t>::~array() noexcept = default;
 
@@ -469,6 +604,26 @@ auto array<::java::long_t>::__equal__(bool specialized, ::java::_equal_helper& e
     eq.fail();
   else
     __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array<::java::long_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Long>(begin());
+}
+
+auto array<::java::long_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Long>(end());
+}
+
+auto array<::java::long_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Long>(begin());
+}
+
+auto array<::java::long_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Long>(end());
 }
 
 
@@ -562,6 +717,26 @@ auto array<::java::float_t>::__equal__(bool specialized, ::java::_equal_helper& 
     __equal_impl__(specialized, eq, *this, *casted_other);
 }
 
+auto array<::java::float_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Float>(begin());
+}
+
+auto array<::java::float_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Float>(end());
+}
+
+auto array<::java::float_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Float>(begin());
+}
+
+auto array<::java::float_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Float>(end());
+}
+
 
 array<::java::double_t>::~array() noexcept = default;
 
@@ -651,6 +826,26 @@ auto array<::java::double_t>::__equal__(bool specialized, ::java::_equal_helper&
     eq.fail();
   else
     __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array<::java::double_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Double>(begin());
+}
+
+auto array<::java::double_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Double>(end());
+}
+
+auto array<::java::double_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Double>(begin());
+}
+
+auto array<::java::double_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Double>(end());
 }
 
 
@@ -744,6 +939,26 @@ auto array<::java::char_t>::__equal__(bool specialized, ::java::_equal_helper& e
     __equal_impl__(specialized, eq, *this, *casted_other);
 }
 
+auto array<::java::char_t>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Character>(begin());
+}
+
+auto array<::java::char_t>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return wrapped_primitive_iter<vector_type::const_iterator, ::java::lang::Character>(end());
+}
+
+auto array<::java::char_t>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Character>(begin());
+}
+
+auto array<::java::char_t>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Character>(end());
+}
+
 
 array<::java::lang::Object>::array(::java::lang::Class<::java::G::pack<>> element_type)
 : element_type_(std::move(element_type))
@@ -827,6 +1042,60 @@ auto array<::java::lang::Object>::do_encode_(::java::serialization::cycle_handle
               return handler.encode_field(element);
             });
       });
+}
+
+auto array<::java::lang::Object>::__hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+-> std::size_t {
+  static const ::std::size_t nonce = ::java::__hash_nonce();
+
+  specialized = true;
+  auto hc = ::java::hash_combiner(this->::java::_erased::java::lang::Object::__hash_code__(specialized, max_cascade), max_cascade)
+      << nonce;
+  for (const auto& i : data_) hc << i;
+  return std::move(hc);
+}
+
+auto array<::java::lang::Object>::__equal_impl__(bool specialized, ::java::_equal_helper& eq, const array& x, const array& y)
+-> void {
+  specialized = true;
+  ::java::_erased::java::lang::Object::__equal_impl__(specialized, eq, x, y);
+
+  if (!std::equal(
+          x.data_.begin(), x.data_.end(),
+          y.data_.begin(), y.data_.end(),
+          [&eq](const auto& x, const auto& y) {
+            return eq(x, y).ok(); // By returning the `ok()` state, we can bail out early.
+          }))
+    eq.fail();
+}
+
+auto array<::java::lang::Object>::__equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+-> void {
+  const array* casted_other = dynamic_cast<const array*>(&other);
+  if (casted_other == nullptr)
+    eq.fail();
+  else
+    __equal_impl__(specialized, eq, *this, *casted_other);
+}
+
+auto array<::java::lang::Object>::begin_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return begin();
+}
+
+auto array<::java::lang::Object>::end_() const
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
+  return end();
+}
+
+auto array<::java::lang::Object>::begin_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return begin();
+}
+
+auto array<::java::lang::Object>::end_()
+-> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
+  return end();
 }
 
 

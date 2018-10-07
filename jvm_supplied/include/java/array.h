@@ -39,12 +39,26 @@ class array_intf
     return dimensions_();
   }
 
+  auto begin() const
+  -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>>;
+  auto end() const
+  -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>>;
+  auto begin()
+  -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>>;
+  auto end()
+  -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>>;
+
  private:
   virtual auto size_() const noexcept -> std::size_t = 0;
   virtual auto dimensions_() const noexcept -> std::size_t = 0;
 
   virtual auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> = 0;
+
+  virtual auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> = 0;
+  virtual auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> = 0;
+  virtual auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> = 0;
+  virtual auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> = 0;
 };
 
 /**
@@ -128,6 +142,11 @@ class array<::java::boolean_t> final
   auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
   -> void override;
 
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+
   vector_type data_;
 };
 
@@ -194,6 +213,11 @@ class array<::java::byte_t> final
 
   auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
   -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
 
   vector_type data_;
 };
@@ -262,6 +286,11 @@ class array<::java::short_t> final
   auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
   -> void override;
 
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+
   vector_type data_;
 };
 
@@ -328,6 +357,11 @@ class array<::java::int_t> final
 
   auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
   -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
 
   vector_type data_;
 };
@@ -396,6 +430,11 @@ class array<::java::long_t> final
   auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
   -> void override;
 
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+
   vector_type data_;
 };
 
@@ -462,6 +501,11 @@ class array<::java::float_t> final
 
   auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
   -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
 
   vector_type data_;
 };
@@ -530,6 +574,11 @@ class array<::java::double_t> final
   auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
   -> void override;
 
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+
   vector_type data_;
 };
 
@@ -597,6 +646,11 @@ class array<::java::char_t> final
   auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
   -> void override;
 
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+
   vector_type data_;
 };
 
@@ -643,6 +697,21 @@ class array<::java::lang::Object> final
 
   auto do_encode_(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
+
+  auto __hash_code__(bool specialized, ::std::size_t max_cascade) const noexcept
+  -> ::std::size_t override;
+
+  static auto __equal_impl__(bool specialized, ::java::_equal_helper& eq,
+                             const array& x, const array& y)
+  -> void;
+
+  auto __equal__(bool specialized, ::java::_equal_helper& eq, const ::java::object_intf& other) const
+  -> void override;
+
+  auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
+  auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
 
   const ::java::field_t<::java::lang::Class<::java::G::pack<>>> element_type_;
   vector_type data_{
