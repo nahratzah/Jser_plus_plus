@@ -11,6 +11,7 @@ import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.util.Arrays;
 import java.util.Collection;
+import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.EMPTY_MAP;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -47,6 +48,7 @@ public class EnumType extends ClassType {
 
         enumTypeTemplate = "::java::_static_accessor<$boundTemplateType(java.({" + getName().replaceAll(Pattern.quote("$"), Matcher.quoteReplacement("\\$")) + "}), \"style=tag\")$>::enum_t";
         initEnumFieldAndConstructor(ctx, cfg);
+        createCompareTo(ctx, cfg);
         initEnumValueStatics(ctx, cfg);
     }
 
@@ -73,6 +75,28 @@ public class EnumType extends ClassType {
         constructorCfg.setVisibility(Visibility.PUBLIC);
         final ClassMemberModel constructor = new ClassMemberModel.ClassConstructor(ctx, this, constructorCfg);
         this.classMembers.add(constructor);
+    }
+
+    private void createCompareTo(Context ctx, Config cfg) {
+        final CfgArgument methodArgument = new CfgArgument();
+        methodArgument.setName("o");
+        methodArgument.setType(new CfgType(null, "const " + getName()));
+        final CfgType returnType = new CfgType("::java::int_t", null);
+        returnType.setIncludes(new Includes(singletonList("java/primitives.h"), EMPTY_LIST));
+        final Method methodCfg = new Method();
+        methodCfg.setName("compareTo");
+        methodCfg.setOverride(true);
+        methodCfg.setConst(true);
+        methodCfg.setArguments(singletonList(methodArgument));
+        methodCfg.setReturnType(returnType);
+        methodCfg.setVisibility(Visibility.PUBLIC);
+        methodCfg.setIncludes(new Includes(EMPTY_LIST, singletonList("java/primitives.h")));
+        methodCfg.setBody("const ::java::int_t x = static_cast<::java::int_t>(value);\n"
+                + "const ::java::int_t y = static_cast<::java::int_t>(o->value());\n"
+                + "\n"
+                + "return (x < y ? -1 : (x > y ? 1 : 0));");
+        final ClassMemberModel method = new ClassMemberModel.ClassMethod(ctx, this, methodCfg);
+        this.classMembers.add(method);
     }
 
     private void initEnumValueStatics(Context ctx, Config cfg) {

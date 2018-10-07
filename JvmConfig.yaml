@@ -309,37 +309,6 @@ rules:
       - cycle_ptr/cycle_ptr.h
       - java/serialization/type_def.h
 
-# Implement Comparable<> for enums.
-- predicate:
-    interface: false
-    abstract: false
-    class: true
-    inherits:
-    - java.lang.Enum
-  members:
-  - type: method
-    name: compareTo
-    override: true
-    const: true
-    arguments:
-    - name: o
-      type:
-        # This is a bit of a hack; we would prefer something a little more elegant.
-        cxx: $boundTemplateType(java.({const $model.name$}), "style=type, class=param")$
-    return:
-      cxx: ::java::int_t
-      includes:
-        declaration:
-        - java/primitives.h
-    body: |
-      const ::java::int_t x = static_cast<::java::int_t>(value);
-      const ::java::int_t y = static_cast<::java::int_t>(o->value());
-
-      return (x < y ? -1 : (x > y ? 1 : 0));
-    includes:
-      implementation:
-      - java/primitives.h
-
 # Implement do_encode_ for enums.
 - predicate:
     interface: false
@@ -636,8 +605,6 @@ classes:
         includes:
           declaration:
           - java/primitives.h
-      # XXX Must be pure virtual
-      body: return 0; // XXX implementations needed
 
 
   java.util.Comparators$NaturalOrderComparator:
@@ -1389,7 +1356,7 @@ classes:
       arguments:
       - name: o
         type:
-          java: java.lang.String
+          java: const java.lang.String
       body: |
         const std::string& x = value;
         const std::string& y = o->value();
