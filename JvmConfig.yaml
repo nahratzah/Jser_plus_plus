@@ -417,7 +417,7 @@ rules:
 
           $ model.enumValues
           : {value|if (*data_->value == $u16StringView(value.name)$) return $erasedType(model)$::$value.remappedName$();}
-          ; separator = "\n"$
+          ; anchor, separator = "\n"$
 
           throw ::java::serialization::decoding_error("unrecognized enum value");
         }
