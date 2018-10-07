@@ -714,9 +714,7 @@ class array<::java::lang::Object> final
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
 
   const ::java::field_t<::java::lang::Class<::java::G::pack<>>> element_type_;
-  vector_type data_{
-    ::cycle_ptr::cycle_allocator<::std::allocator<::java::field_t<::java::lang::Object>>>(*this)
-  };
+  vector_type data_{ vector_type::allocator_type(*this) };
 };
 
 template<>
@@ -755,9 +753,7 @@ class array_of_array<::java::boolean_t> final
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   const ::std::size_t dim_;
-  vector_type data_{
-    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
-  };
+  vector_type data_{ vector_type::allocator_type(*this) };
 };
 
 template<>
@@ -796,9 +792,7 @@ class array_of_array<::java::byte_t> final
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   const ::std::size_t dim_;
-  vector_type data_{
-    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
-  };
+  vector_type data_{ vector_type::allocator_type(*this) };
 };
 
 template<>
@@ -837,9 +831,7 @@ class array_of_array<::java::short_t> final
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   const ::std::size_t dim_;
-  vector_type data_{
-    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
-  };
+  vector_type data_{ vector_type::allocator_type(*this) };
 };
 
 template<>
@@ -878,9 +870,7 @@ class array_of_array<::java::int_t> final
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   const ::std::size_t dim_;
-  vector_type data_{
-    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
-  };
+  vector_type data_{ vector_type::allocator_type(*this) };
 };
 
 template<>
@@ -919,9 +909,7 @@ class array_of_array<::java::long_t> final
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   const ::std::size_t dim_;
-  vector_type data_{
-    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
-  };
+  vector_type data_{ vector_type::allocator_type(*this) };
 };
 
 template<>
@@ -960,9 +948,7 @@ class array_of_array<::java::float_t> final
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   const ::std::size_t dim_;
-  vector_type data_{
-    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
-  };
+  vector_type data_{ vector_type::allocator_type(*this) };
 };
 
 template<>
@@ -1001,9 +987,7 @@ class array_of_array<::java::double_t> final
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   const ::std::size_t dim_;
-  vector_type data_{
-    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
-  };
+  vector_type data_{ vector_type::allocator_type(*this) };
 };
 
 template<>
@@ -1042,9 +1026,7 @@ class array_of_array<::java::char_t> final
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
   const ::std::size_t dim_;
-  vector_type data_{
-    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
-  };
+  vector_type data_{ vector_type::allocator_type(*this) };
 };
 
 template<>
@@ -1084,9 +1066,7 @@ class array_of_array<::java::lang::Object> final
 
   const ::java::field_t<::java::lang::Class<::java::G::pack<>>> element_type_;
   const ::std::size_t dim_;
-  vector_type data_{
-    ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<array_intf>>>(*this)
-  };
+  vector_type data_{ vector_type::allocator_type(*this) };
 };
 
 template<typename Type>
