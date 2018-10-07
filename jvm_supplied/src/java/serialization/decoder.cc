@@ -1,11 +1,78 @@
 #include <java/serialization/decoder.h>
 #include <java/serialization/exception.h>
+#include <java/serialization/module.h>
 #include <cassert>
 #include <utility>
 
 namespace java::serialization {
 
-decoder::decoder() = default;
+decoder_ctx::decoder_ctx(const module& m)
+: module_(m)
+{}
+
+decoder_ctx::~decoder_ctx() noexcept = default;
+
+auto decoder_ctx::decoder([[maybe_unused]] ::std::nullptr_t np)
+-> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
+  class null_decoder
+  : public ::java::serialization::decoder
+  {
+   public:
+    using ::java::serialization::decoder::decoder;
+    ~null_decoder() noexcept override = default;
+
+   private:
+    auto init() -> ::java::lang::Object override {
+      return nullptr;
+    }
+
+    auto init_comparable() -> dependent_set override {
+      return dependent_set();
+    }
+
+    auto complete() -> dependent_set override {
+      return dependent_set();
+    }
+  };
+
+  return cycle_ptr::make_cycle<null_decoder>(*this);
+};
+
+auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<stream::new_object> obj)
+-> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
+  if (obj == nullptr) return decoder(nullptr);
+
+  if (!obj->cls) throw decoding_error("encoded object has no class");
+
+  // New object is an object class.
+  auto cd = dynamic_cast<const stream::new_class_desc__class_desc*>(obj->cls.get());
+  if (cd != nullptr) {
+    const stream::field_descriptor& class_name = cd->class_name;
+
+    if (class_name.is_primitive())
+      throw decoding_error("encoded object declares itself as primitive (primitives are not objects)");
+    if (class_name.is_array())
+      throw decoding_error("encoded object declares itself an array (arrays have dedicated encoding)");
+
+    return module_.decoder(::std::get<::std::u16string_view>(class_name.type()), *this, std::move(obj));
+  }
+
+  // New object is a proxy.
+  auto pd = dynamic_cast<const stream::new_class_desc__proxy_class_desc*>(obj->cls.get());
+  if (pd != nullptr) {
+    // XXX: at some point we ought to support this...
+    throw decoding_error("unsupported: encoded object is a proxy type");
+  }
+
+  // Neither cast worked.
+  throw decoding_error("encoded object class not recognized");
+}
+
+
+decoder::decoder(decoder_ctx& ctx)
+: ctx(ctx)
+{}
+
 decoder::~decoder() noexcept = default;
 
 auto decoder::get_initial() -> java::lang::Object {

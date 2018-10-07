@@ -2,6 +2,7 @@
 #define JAVA_SERIALIZATION_DECODER_FWD_H
 
 namespace java::serialization {
+class decoder_ctx;
 class decoder;
 } /* namespace java::serialization */
 

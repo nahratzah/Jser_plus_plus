@@ -2,12 +2,34 @@
 #define JAVA_SERIALIZATION_DECODER_H
 
 #include <java/serialization/decoder_fwd.h>
+#include <java/serialization/module_fwd.h>
+#include <java/serialization/encdec.h>
 #include <java/ref.h>
 #include <java/lang/Object.h>
 #include <cycle_ptr/cycle_ptr.h>
 #include <unordered_set>
+#include <unordered_map>
 
 namespace java::serialization {
+
+class decoder_ctx {
+ private:
+  using decoder_map = std::unordered_map<::cycle_ptr::cycle_gptr<stream::stream_element>, ::cycle_ptr::cycle_gptr<::java::serialization::decoder>>;
+
+ public:
+  decoder_ctx(const module& m);
+  ~decoder_ctx() noexcept;
+
+  auto decoder(::std::nullptr_t np)
+  -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
+
+  auto decoder(::cycle_ptr::cycle_gptr<stream::new_object> obj)
+  -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
+
+ private:
+  decoder_map decoder_map_;
+  const module& module_;
+};
 
 class decoder
 : public ::cycle_ptr::cycle_base
@@ -29,7 +51,7 @@ class decoder
    */
   using dependent_set = ::std::unordered_set<::cycle_ptr::cycle_gptr<decoder>>;
 
-  decoder();
+  decoder(decoder_ctx& ctx);
   virtual ~decoder() noexcept = 0;
 
   auto get_initial() -> java::lang::Object;
@@ -56,7 +78,7 @@ class decoder
    * If a null-reference is returned, the stage will immediately progress
    * to Complete.
    */
-  virtual auto init() -> java::lang::Object = 0;
+  virtual auto init() -> ::java::lang::Object = 0;
 
   /**
    * \brief Further initialize the object to the Comparable state.
@@ -107,6 +129,14 @@ class decoder
    * transition method once.
    */
   stage stage_ = Unstarted;
+
+ protected:
+  /**
+   * \brief Decoder context.
+   * \details
+   * Holds on to all decoders and allows for lookups.
+   */
+  decoder_ctx& ctx;
 };
 
 } /* namespace java::serialization */
