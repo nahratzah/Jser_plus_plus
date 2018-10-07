@@ -14,7 +14,7 @@ decoder_ctx::~decoder_ctx() noexcept = default;
 
 auto decoder_ctx::decoder([[maybe_unused]] ::std::nullptr_t np)
 -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
-  class null_decoder
+  class null_decoder final
   : public ::java::serialization::decoder
   {
    public:
