@@ -118,6 +118,15 @@ public interface ClassMemberModel {
     }
 
     /**
+     * Test if this is a constructor.
+     *
+     * @return True if this is a constructor.
+     */
+    public default boolean isConstructor() {
+        return false;
+    }
+
+    /**
      * Retrieve the {@link OverrideSelector override selector} for this class
      * member.
      *
@@ -365,6 +374,11 @@ public interface ClassMemberModel {
         @Override
         public boolean isDefaultConstructor() {
             return getArgumentTypes().isEmpty();
+        }
+
+        @Override
+        public boolean isConstructor() {
+            return true;
         }
 
         @Override

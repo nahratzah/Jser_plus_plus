@@ -26,6 +26,15 @@ public class ConstTypeRenderer implements TypeAttributeRenderer {
                 .toString(innerType, formatString, locale, true);
     }
 
+    public static String apply(Type type, String formatString) {
+        return RENDERERS.entrySet().stream()
+                .filter(renderer -> renderer.getKey().isInstance(type))
+                .map(Map.Entry::getValue)
+                .findAny()
+                .map(renderer -> renderer.toString(type, formatString, Locale.ROOT))
+                .orElseGet(() -> type.toString());
+    }
+
     private static final Map<Class<?>, TypeAttributeRenderer> RENDERERS;
 
     static {

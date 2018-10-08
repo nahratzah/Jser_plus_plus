@@ -658,6 +658,43 @@ struct new_object
   auto to_out_(std::ostream& out, str_ctx& ctx) const -> void override;
   auto eq_(const stream_element& y, eq_ctx& ctx) const -> bool override;
 
+  template<typename T>
+  auto get_primitive_field(const cycle_ptr::cycle_gptr<const class_desc>& cd, std::u16string_view name, std::optional<T> fb = std::optional<T>()) const
+  -> T {
+    const auto cdata_iter = data.find(cd);
+    if (cdata_iter == data.end()) throw decoding_error("missing class data");
+    const class_data& cdata = cdata_iter->second;
+
+    const auto field_iter = cdata.fields.find(name);
+    if (field_iter == cdata.fields.end()) {
+      if (fb) return *fb;
+      throw decoding_error("missing field data");
+    }
+    const class_data::field_value& field = field_iter->second;
+
+    if (!std::holds_alternative<T>(field)) throw decoding_error("field has incorrect type");
+    return std::get<T>(field);
+  }
+
+  auto get_obj_field(const cycle_ptr::cycle_gptr<const class_desc>& cd, std::u16string_view name, bool null_ok = false) const
+  -> ::cycle_ptr::cycle_gptr<const stream_element> {
+    using obj_type = cycle_ptr::cycle_member_ptr<const stream_element>;
+
+    const auto cdata_iter = data.find(cd);
+    if (cdata_iter == data.end()) throw decoding_error("missing class data");
+    const class_data& cdata = cdata_iter->second;
+
+    const auto field_iter = cdata.fields.find(name);
+    if (field_iter == cdata.fields.end()) {
+      if (null_ok) return nullptr;
+      throw decoding_error("missing field data");
+    }
+    const class_data::field_value& field = field_iter->second;
+
+    if (!std::holds_alternative<obj_type>(field)) throw decoding_error("field has incorrect type");
+    return std::get<obj_type>(field);
+  }
+
   cycle_ptr::cycle_member_ptr<const class_desc> cls;
   std::map<
       cycle_ptr::cycle_member_ptr<const class_desc>,

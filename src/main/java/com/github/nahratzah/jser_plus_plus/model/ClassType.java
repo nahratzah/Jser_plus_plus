@@ -1,5 +1,6 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
+import com.github.nahratzah.jser_plus_plus.config.CfgArgument;
 import com.github.nahratzah.jser_plus_plus.config.CfgField;
 import com.github.nahratzah.jser_plus_plus.config.ClassConfig;
 import com.github.nahratzah.jser_plus_plus.config.ClassMember;
@@ -14,6 +15,7 @@ import com.github.nahratzah.jser_plus_plus.java.ReflectUtil;
 import com.github.nahratzah.jser_plus_plus.misc.SimpleMapEntry;
 import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
 import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
+import com.github.nahratzah.jser_plus_plus.output.builtins.ConstTypeRenderer;
 import com.github.nahratzah.jser_plus_plus.output.builtins.FunctionAttrMap;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.io.ObjectStreamClass;
@@ -51,6 +53,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.stringtemplate.v4.ST;
@@ -111,6 +115,10 @@ public class ClassType implements JavaType {
         initFields(ctx, classCfg, argRename, streamClass);
         initClassMembers(ctx, classCfg, argRename);
         initFriendTypes(ctx, classCfg, argRename);
+
+        if (findAllInherits().anyMatch(type -> ctx.resolveClass(java.io.Serializable.class.getName()) == type)
+                && !findAllInherits().anyMatch(type -> ctx.resolveClass(java.lang.Enum.class.getName()) == type))
+            initSerializationConstructor(ctx, classCfg, argRename);
     }
 
     private void initTemplateArguments(Context ctx, ClassConfig classCfg, List<? extends TypeVariable<? extends Class<?>>> cTypeParameters, Map<String, String> argRename) {
@@ -284,6 +292,106 @@ public class ClassType implements JavaType {
                     });
                 })
                 .collect(Collectors.toList());
+    }
+
+    private void initSerializationConstructor(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
+        final Predicate<FieldType> isPrimitive = field -> field.getSerializationType().isPrimitive() && field.getSerializationExtents() == 0;
+
+        final ClassType superClass = (getSuperClass() == null ? null : getSuperClass().getType());
+        final boolean superClassIsSerializable = superClass != null
+                && superClass.findAllInherits()
+                        .anyMatch(type -> ctx.resolveClass(java.io.Serializable.class.getName()) == type);
+
+        // Build `ctx` argument.
+        com.github.nahratzah.jser_plus_plus.config.CfgType ctxType = new com.github.nahratzah.jser_plus_plus.config.CfgType("::java::serialization::decoder_ctx&", null);
+        ctxType.setIncludes(new Includes(
+                singletonList("java/serialization/decoder_fwd.h"),
+                singletonList("java/serialization/decoder.h")));
+        final CfgArgument ctxArg = new CfgArgument();
+        ctxArg.setName("ctx");
+        ctxArg.setType(ctxType);
+
+        // Build `cls` argument.
+        com.github.nahratzah.jser_plus_plus.config.CfgType clsType = new com.github.nahratzah.jser_plus_plus.config.CfgType("::cycle_ptr::cycle_gptr<const ::java::serialization::stream::class_desc>", null);
+        clsType.setIncludes(new Includes(
+                Arrays.asList("cycle_ptr/cycle_ptr.h", "java/serialization/encdec.h"),
+                EMPTY_LIST));
+        final CfgArgument clsArg = new CfgArgument();
+        clsArg.setName("cls");
+        clsArg.setType(clsType);
+        final String clsArgWrapper = "::java::serialization::streamelem_is_non_null_named_class(" + clsArg.getName() + ", u$cxxString(model.name)$)";
+
+        // Build `obj` argument.
+        com.github.nahratzah.jser_plus_plus.config.CfgType objType = new com.github.nahratzah.jser_plus_plus.config.CfgType("const ::java::serialization::stream::new_object&", null);
+        clsType.setIncludes(new Includes(
+                singletonList("java/serialization/encdec.h"),
+                EMPTY_LIST));
+        final CfgArgument objArg = new CfgArgument();
+        objArg.setName("obj");
+        objArg.setType(objType);
+
+        // Build `set` argument.
+        com.github.nahratzah.jser_plus_plus.config.CfgType setType = new com.github.nahratzah.jser_plus_plus.config.CfgType("::std::vector<::cycle_ptr::cycle_gptr<::java::serialization::decoder>>&", null);
+        clsType.setIncludes(new Includes(
+                Arrays.asList("vector", "cycle_ptr/cycle_ptr.h", "java/serialization/decoder_fwd.h"),
+                EMPTY_LIST));
+        final CfgArgument setArg = new CfgArgument();
+        setArg.setName("set");
+        setArg.setType(setType);
+
+        final Constructor constructorCfg = new Constructor();
+        if (superClassIsSerializable)
+            constructorCfg.setSuperInitializer("ctx, " + clsArgWrapper + "->get_super(), obj, set");
+        constructorCfg.setVisibility(Visibility.PROTECTED);
+        constructorCfg.setArguments(Arrays.asList(ctxArg, clsArg, objArg, setArg));
+        constructorCfg.setIncludes(new Includes(
+                EMPTY_LIST,
+                Arrays.asList(
+                        "cycle_ptr/cycle_ptr.h",
+                        "java/serialization/decoder.h",
+                        "java/ref.h",
+                        "java/primitives.h",
+                        "optional")));
+
+        final Stream<Map.Entry<String, String>> primitiveFieldInitializers = getSerializationFields().stream()
+                .filter(isPrimitive)
+                .map(field -> {
+                    final String typeFullyQualifiedName = Stream.concat(field.getSerializationType().getNamespace().stream(), Stream.of(field.getSerializationType().getClassName()))
+                            .collect(Collectors.joining("::", "::", ""));
+                    final String initializer = objArg.getName() + ".get_primitive_field<${" + typeFullyQualifiedName.replaceAll(Pattern.quote("$"), Matcher.quoteReplacement("\\$")) + "}$>("
+                            + clsArgWrapper + ", "
+                            + "u$cxxString({" + field.getSerializationName().replaceAll(Pattern.quote("$"), Matcher.quoteReplacement("\\$")) + "})$"
+                            + (field.getDefault() != null ? ", std::optional<${" + typeFullyQualifiedName.replaceAll(Pattern.quote("$"), Matcher.quoteReplacement("\\$")) + "}$>(" + field.getDefault() + ")" : "")
+                            + ")";
+                    return new SimpleMapEntry<>(field.getName(), initializer);
+                });
+
+        final Stream<Map.Entry<String, String>> finalFieldInitializers = getSerializationFields().stream()
+                .filter(isPrimitive.negate())
+                .filter(FieldType::isFinal)
+                .map(field -> {
+                    final String castType = ConstTypeRenderer.apply(field.getVarType(), "style=type, class");
+
+                    final String initializer = "::java::cast<${" + castType.replaceAll(Pattern.quote("$"), Matcher.quoteReplacement("\\$")) + "}$>("
+                            + "(*"
+                            + setArg.getName() + ".insert(" + setArg.getName() + ".end(), "
+                            + ctxArg.getName() + ".decoder("
+                            + objArg.getName() + ".get_obj_field("
+                            + clsArgWrapper + ", "
+                            + "u$cxxString({" + field.getSerializationName().replaceAll(Pattern.quote("$"), Matcher.quoteReplacement("\\$")) + "})$"
+                            + ")" // get_obj_field
+                            + ")" // decoder
+                            + ")" // insert
+                            + ")" // iterator dereference
+                            + "->get_initial()"
+                            + ")"; // cast
+                    return new SimpleMapEntry<>(field.getName(), initializer);
+                });
+
+        constructorCfg.setInitializers(Stream.of(primitiveFieldInitializers, finalFieldInitializers)
+                .flatMap(Function.identity())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        classMembers.add(new ClassMemberModel.ClassConstructor(ctx, this, constructorCfg));
     }
 
     private void initFriendTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {

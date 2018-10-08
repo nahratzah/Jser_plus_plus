@@ -166,7 +166,7 @@ $ classMembers(model, true)$
 classMembers(model, doImplement) ::= <<
 $ [model.classNonMemberFunctions, model.classMemberFunctions]
   : {m | $if (!doImplement || !m.pureVirtual || m.destructorMethod)$$\\$
-         $if (!doImplement)$$m.visibility$:$"\n"$$endif$$\\$
+         $if (!doImplement)$$if (m.constructor)$public$else$$m.visibility$$endif$:$"\n"$$endif$$\\$
          $function(
               name=m.name,
               doImplement=doImplement,

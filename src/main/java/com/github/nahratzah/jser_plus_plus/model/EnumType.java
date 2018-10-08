@@ -72,7 +72,7 @@ public class EnumType extends ClassType {
         final Constructor constructorCfg = new Constructor();
         constructorCfg.setArguments(singletonList(constructorArgument));
         constructorCfg.setInitializers(singletonMap(enumField.getName(), constructorArgument.getName()));
-        constructorCfg.setVisibility(Visibility.PUBLIC);
+        constructorCfg.setVisibility(Visibility.PRIVATE);
         final ClassMemberModel constructor = new ClassMemberModel.ClassConstructor(ctx, this, constructorCfg);
         this.classMembers.add(constructor);
     }

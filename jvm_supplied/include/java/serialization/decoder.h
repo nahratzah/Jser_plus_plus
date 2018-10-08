@@ -139,6 +139,31 @@ class decoder
   decoder_ctx& ctx;
 };
 
+///\brief Validate that a class description is for the expected class name.
+///\param cd A class description.
+///\param name The expected name of the class description.
+///\throws decoding_error If the class description is null, not for an object,
+///or for an object with a different name.
+auto streamelem_is_non_null_named_class(::cycle_ptr::cycle_gptr<const stream::class_desc> raw_cd, std::u16string_view name)
+-> ::cycle_ptr::cycle_gptr<const stream::new_class_desc__class_desc> {
+  if (raw_cd == nullptr)
+    throw decoding_error("null class description while decoding object");
+
+  ::cycle_ptr::cycle_gptr<const stream::new_class_desc__class_desc> cd =
+      ::std::dynamic_pointer_cast<const stream::new_class_desc__class_desc>(raw_cd);
+
+  if (cd == nullptr)
+    throw decoding_error("class description is not a normal class description");
+  if (cd->class_name.is_array())
+    throw decoding_error("class description for object is an array");
+  if (cd->class_name.is_primitive())
+    throw decoding_error("class description for object is a primitive type");
+  if (::std::get<std::u16string_view>(cd->class_name.type()) != name)
+    throw decoding_error("class description for object is of unexpected type");
+
+  return cd;
+}
+
 } /* namespace java::serialization */
 
 #endif /* JAVA_SERIALIZATION_DECODER_H */
