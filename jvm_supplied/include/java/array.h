@@ -1405,6 +1405,22 @@ class basic_ref<PtrImpl, Type*> final {
       p_ = ::cycle_ptr::make_cycle<NewArrayType>(::java::_erased::java::get_array_elem_class_<Type>::get_class());
   }
 
+  template<template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>
+          && !std::is_const_v<OType>>>
+  JSER_INLINE basic_ref(const basic_ref<OPtrImpl, OType>& other)
+  : p_(other.p_)
+  {}
+
+  template<template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>
+          && !std::is_const_v<OType>>>
+  JSER_INLINE basic_ref(basic_ref<OPtrImpl, OType>&& other)
+  : p_(std::move(other.p_))
+  {}
+
   JSER_INLINE explicit operator bool() const noexcept {
     return bool(p_);
   }
@@ -1497,6 +1513,34 @@ class basic_ref<PtrImpl, Type*const> final {
   JSER_INLINE basic_ref& operator=(const basic_ref&) = default;
   JSER_INLINE basic_ref& operator=(basic_ref&&) = default;
   JSER_INLINE ~basic_ref() noexcept = default;
+
+  template<template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>>>
+  JSER_INLINE basic_ref(const basic_ref<OPtrImpl, OType>& other)
+  : p_(other.p_)
+  {}
+
+  template<template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>>>
+  JSER_INLINE basic_ref(basic_ref<OPtrImpl, OType>&& other)
+  : p_(std::move(other.p_))
+  {}
+
+  template<template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>>>
+  JSER_INLINE basic_ref(const basic_ref<OPtrImpl, const OType>& other)
+  : p_(other.p_)
+  {}
+
+  template<template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>>>
+  JSER_INLINE basic_ref(basic_ref<OPtrImpl, const OType>&& other)
+  : p_(std::move(other.p_))
+  {}
 
   JSER_INLINE explicit operator bool() const noexcept {
     return bool(p_);
