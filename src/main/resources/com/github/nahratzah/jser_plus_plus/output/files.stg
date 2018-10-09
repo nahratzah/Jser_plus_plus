@@ -150,6 +150,12 @@ tagDeclaration(model) ::= <<
 struct $model.className$ {
   static constexpr ::std::size_t generics_arity = $length(model.templateArguments)$;
   using erased_type = ::$["java", "_erased", model.namespace, model.className]; separator = "::"$;
+
+  static constexpr ::std::u16string_view u_name() {
+    using namespace ::std::string_view_literals;
+
+    return $u16StringView(model.name)$;
+  }
 };
 >>
 

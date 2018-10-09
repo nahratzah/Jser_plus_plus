@@ -130,6 +130,11 @@ auto array<::java::boolean_t>::element_class_() const
   return ::java::get_class<::java::boolean_t>();
 }
 
+auto array<::java::boolean_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::boolean_t>();
+}
+
 auto array<::java::boolean_t>::__class__(std::size_t dimensions)
 -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> {
   using namespace ::java::serialization::stream;
@@ -241,6 +246,11 @@ auto array<::java::byte_t>::__get_class__() const
 }
 
 auto array<::java::byte_t>::element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::byte_t>();
+}
+
+auto array<::java::byte_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
   return ::java::get_class<::java::byte_t>();
 }
@@ -360,6 +370,11 @@ auto array<::java::short_t>::element_class_() const
   return ::java::get_class<::java::short_t>();
 }
 
+auto array<::java::short_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::short_t>();
+}
+
 auto array<::java::short_t>::__class__(std::size_t dimensions)
 -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> {
   using namespace ::java::serialization::stream;
@@ -471,6 +486,11 @@ auto array<::java::int_t>::__get_class__() const
 }
 
 auto array<::java::int_t>::element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::int_t>();
+}
+
+auto array<::java::int_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
   return ::java::get_class<::java::int_t>();
 }
@@ -590,6 +610,11 @@ auto array<::java::long_t>::element_class_() const
   return ::java::get_class<::java::long_t>();
 }
 
+auto array<::java::long_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::long_t>();
+}
+
 auto array<::java::long_t>::__class__(std::size_t dimensions)
 -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> {
   using namespace ::java::serialization::stream;
@@ -701,6 +726,11 @@ auto array<::java::float_t>::__get_class__() const
 }
 
 auto array<::java::float_t>::element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::float_t>();
+}
+
+auto array<::java::float_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
   return ::java::get_class<::java::float_t>();
 }
@@ -820,6 +850,11 @@ auto array<::java::double_t>::element_class_() const
   return ::java::get_class<::java::double_t>();
 }
 
+auto array<::java::double_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::double_t>();
+}
+
 auto array<::java::double_t>::__class__(std::size_t dimensions)
 -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> {
   using namespace ::java::serialization::stream;
@@ -931,6 +966,11 @@ auto array<::java::char_t>::__get_class__() const
 }
 
 auto array<::java::char_t>::element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::char_t>();
+}
+
+auto array<::java::char_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
   return ::java::get_class<::java::char_t>();
 }
@@ -1053,6 +1093,11 @@ auto array<::java::lang::Object>::__get_class__() const
 }
 
 auto array<::java::lang::Object>::element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return element_type_;
+}
+
+auto array<::java::lang::Object>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
   return element_type_;
 }
@@ -1197,6 +1242,11 @@ auto array_of_array<::java::boolean_t>::element_class_() const
       array<::java::boolean_t>::__class__(dim_ - 1u));
 }
 
+auto array_of_array<::java::boolean_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::boolean_t>();
+}
+
 auto array_of_array<::java::boolean_t>::__get_class__() const
 -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> {
   return array<::java::boolean_t>::__class__(dim_);
@@ -1306,6 +1356,11 @@ auto array_of_array<::java::byte_t>::element_class_() const
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::_direct(),
       array<::java::byte_t>::__class__(dim_ - 1u));
+}
+
+auto array_of_array<::java::byte_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::byte_t>();
 }
 
 auto array_of_array<::java::byte_t>::__get_class__() const
@@ -1419,6 +1474,11 @@ auto array_of_array<::java::short_t>::element_class_() const
       array<::java::short_t>::__class__(dim_ - 1u));
 }
 
+auto array_of_array<::java::short_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::short_t>();
+}
+
 auto array_of_array<::java::short_t>::__get_class__() const
 -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> {
   return array<::java::short_t>::__class__(dim_);
@@ -1528,6 +1588,11 @@ auto array_of_array<::java::int_t>::element_class_() const
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::_direct(),
       array<::java::int_t>::__class__(dim_ - 1u));
+}
+
+auto array_of_array<::java::int_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::int_t>();
 }
 
 auto array_of_array<::java::int_t>::__get_class__() const
@@ -1641,6 +1706,11 @@ auto array_of_array<::java::long_t>::element_class_() const
       array<::java::long_t>::__class__(dim_ - 1u));
 }
 
+auto array_of_array<::java::long_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::long_t>();
+}
+
 auto array_of_array<::java::long_t>::__get_class__() const
 -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> {
   return array<::java::long_t>::__class__(dim_);
@@ -1750,6 +1820,11 @@ auto array_of_array<::java::float_t>::element_class_() const
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::_direct(),
       array<::java::float_t>::__class__(dim_ - 1u));
+}
+
+auto array_of_array<::java::float_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::float_t>();
 }
 
 auto array_of_array<::java::float_t>::__get_class__() const
@@ -1863,6 +1938,11 @@ auto array_of_array<::java::double_t>::element_class_() const
       array<::java::double_t>::__class__(dim_ - 1u));
 }
 
+auto array_of_array<::java::double_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::double_t>();
+}
+
 auto array_of_array<::java::double_t>::__get_class__() const
 -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> {
   return array<::java::double_t>::__class__(dim_);
@@ -1972,6 +2052,11 @@ auto array_of_array<::java::char_t>::element_class_() const
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::_direct(),
       array<::java::char_t>::__class__(dim_ - 1u));
+}
+
+auto array_of_array<::java::char_t>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return ::java::get_class<::java::char_t>();
 }
 
 auto array_of_array<::java::char_t>::__get_class__() const
@@ -2086,6 +2171,11 @@ auto array_of_array<::java::lang::Object>::element_class_() const
   return ::java::lang::Class<::java::type<::java::G::pack<>>>(
       ::java::_direct(),
       array<::java::lang::Object>::__class__(element_type_, dim_ - 1u));
+}
+
+auto array_of_array<::java::lang::Object>::leaf_element_class_() const
+-> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
+  return element_type_;
 }
 
 auto array_of_array<::java::lang::Object>::__get_class__() const

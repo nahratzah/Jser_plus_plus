@@ -310,8 +310,15 @@ public interface ClassMemberModel {
 
             {
                 final LinkedHashMap<String, String> initializersTmp = new LinkedHashMap<>();
-                if (constructor.getSuperInitializer() != null)
-                    initializersTmp.put(cdef.getSuperClass().getType().getClassName(), renderImpl(constructor.getSuperInitializer()));
+
+                if (constructor.getSuperInitializer() != null) {
+                    final String superName = StCtx.BUILTINS.getInstanceOf("boundTemplateType")
+                            .add("t", cdef.getSuperClass())
+                            .add("format", "style=erased")
+                            .render(Locale.ROOT);
+                    initializersTmp.put(superName, renderImpl(constructor.getSuperInitializer()));
+                }
+
                 cdef.getFields().stream()
                         .filter(field -> constructor.getInitializers().containsKey(field.getName()))
                         .forEachOrdered(field -> {

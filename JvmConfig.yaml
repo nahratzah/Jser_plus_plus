@@ -314,7 +314,7 @@ rules:
 - id: java.io.Serializable/__decoder__
   predicate:
     interface: false
-    abstract: false
+    abstract: true
     class: true
     inherits:
     - java.io.Serializable
@@ -329,55 +329,38 @@ rules:
     static: true
     visibility: protected
     arguments:
-    - name: out
+    - name: _out_
       type:
         cxx: ::cycle_ptr::cycle_gptr<$erasedType(model)$>
-    - name: ctx
+    - name: __decoder__
       type:
-        cxx: ::java::serialization::decoder_ctx&
-        includes:
-          declaration:
-          - java/serialization/decoder_fwd.h
-    - name: stream_elem
-      type:
-        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::new_object>
+        cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
         includes:
           declaration:
           - cycle_ptr/cycle_ptr.h
           - java/serialization/type_def_fwd.h
           implementation:
           - java/serialization/encdec.h
-    return:
-      cxx: ::std::vector<::cycle_ptr::cycle_gptr<::java::serialization::decoder>>
-      includes:
-        declaration:
-        - cycle_ptr/cycle_ptr.h
-        - java/serialization/decoder_fwd.h
-        - vector
-        implementation:
-        - java/serialization/decoder.h
+    # XXX implement body
     body: |
-      class decoder_impl
-      : public ::java::serialization::decoder
-      {
-       public:
-        decoder_impl(::java::serialization::decoder_ctx& ctx)
-        : ::java::serialization::decoder(ctx)
-        {}
+      // XXX
 
-        ~decoder_impl() noexcept override = default;
-
-       private:
-        $ model.serializationFields
-        : { f | $\\$
-            $if (f.serializationType.primitive && !f.serializationArray)$$\\$
-            ::$[f.serializationType.namespace, f.serializationType.className]; separator = "::"$ $f.serializationName$;$\\$
-            $else$$\\$
-            $boundTemplateType(f.serializationType.packType, "style=type, class=field")$ $f.serializationName$;$\\$
-            $endif$$\\$
-          }
-        ; anchor, separator = "\n"$
-      };
+      $if (model.superClass.type.testInherits.({java.io.Serializable}))$
+      $erasedType(model.superClass.type)$::__decoder_impl__(_out_, __decoder__);
+      $endif$
+- id: java.io.Serializable/__decoder__
+  predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.io.Serializable
+  friends:
+  - cxx: ::java::serialization::module
+    includes:
+      declaration:
+      - java/serialization/module_fwd.h
+  members:
   - type: method
     name: __decoder__
     static: true
@@ -391,7 +374,7 @@ rules:
           - java/serialization/decoder_fwd.h
     - name: raw_stream_elem
       type:
-        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+        cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
         includes:
           declaration:
           - cycle_ptr/cycle_ptr.h
@@ -408,57 +391,35 @@ rules:
         - java/serialization/decoder.h
     body: |
       class decoder_impl final
-      : public ::java::serialization::decoder
+      : public ::java::serialization::class_decoder_intf
       {
-       private:
-        using sub_decoders = ::std::vector<
-            ::cycle_ptr::cycle_member_ptr<::java::serialization::decoder>,
-            ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<::java::serialization::decoder>>>>;
-
        public:
-        decoder_impl(::java::serialization::decoder_ctx& ctx, ::cycle_ptr::cycle_gptr<::java::serialization::stream::new_object> data)
-        : ::java::serialization::decoder(ctx),
-          data_(*this, std::move(data))
-        {}
-
+        using ::java::serialization::class_decoder_intf::class_decoder_intf;
         ~decoder_impl() noexcept override = default;
 
         auto init() -> ::java::lang::Object override {
-          ::std::vector<::cycle_ptr::cycle_gptr<::java::serialization::decoder>> set;
+          $if (model.devMode)$
+          // Be nice with the `dev_mode` classes: don't instantiate them if they are not working.
+          if constexpr(::std::is_abstract_v<$erasedType(model)$>) return nullptr;
+          else $\\$
+          $endif$
+          dst = ::cycle_ptr::make_cycle<$erasedType(model)$>(*this);
 
-          ::cycle_ptr::cycle_gptr<$erasedType(model)$> dst$\\$
-          $if (model.devMode)$$\\$
-          ; // Be nice with the `dev_mode` classes: don't instantiate them if they are not working.
-          if constexpr(!::std::is_abstract_v<$erasedType(model)$>) dst $\\$
-          $else$$\\$
-          $" "$$\\$
-          $endif$$\\$
-          = ::cycle_ptr::make_cycle<$erasedType(model)$>(ctx, data_->cls, *data_, set);
-
-          sub_decoders_.insert(sub_decoders_.end(), ::std::make_move_iterator(set.begin()), ::std::make_move_iterator(set.end()));
-
-          $erasedType(model)$::__decoder_impl__(dst, ctx, data_);
           return $boundTemplateType(model.packType, "style=type, class")$(
               ::java::_direct(),
-              std::move(dst));
+              ::cycle_ptr::cycle_gptr<$erasedType(model)$>(dst));
         }
 
         auto init_comparable() -> dependent_set override {
-          return dependent_set();
-        }
-
-        auto complete() -> dependent_set override {
-          return dependent_set();
+          $erasedType(model)$::__decoder_impl__(dst, *this);
+          return this->::java::serialization::class_decoder_intf::init_comparable();
         }
 
        private:
-        ::cycle_ptr::cycle_member_ptr<::java::serialization::stream::new_object> data_;
-        sub_decoders sub_decoders_{ sub_decoders::allocator_type(*this) };
+        ::cycle_ptr::cycle_member_ptr<$erasedType(model)$> dst;
       };
 
-      return ::cycle_ptr::make_cycle<decoder_impl>(
-          ctx,
-          ::std::dynamic_pointer_cast<::java::serialization::stream::new_object>(raw_stream_elem));
+      return ::cycle_ptr::make_cycle<decoder_impl>(ctx, raw_stream_elem);
     includes:
       implementation:
       - java/serialization/encdec.h
@@ -468,6 +429,7 @@ rules:
       - vector
       - memory
       - iterator
+      - type_traits
 
 # Specialize all __decoder__ implementations for enum.
 - predicate:
@@ -497,7 +459,7 @@ rules:
           - java/serialization/decoder_fwd.h
     - name: raw_stream_elem
       type:
-        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>
+        cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
         includes:
           declaration:
           - cycle_ptr/cycle_ptr.h
@@ -517,17 +479,18 @@ rules:
       : public ::java::serialization::decoder
       {
        public:
-        decoder_impl(::java::serialization::decoder_ctx& ctx, cycle_ptr::cycle_gptr<::java::serialization::stream::new_enum> data)
+        decoder_impl(::java::serialization::decoder_ctx& ctx, cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_enum> data)
         : decoder(ctx),
           data_(std::move(data))
-        {}
+        {
+          if (data_ == nullptr) throw ::java::serialization::decoding_error("incorrectly typed stream element");
+        }
 
         ~decoder_impl() noexcept override = default;
 
         auto init() -> ::java::lang::Object override {
           using namespace ::std::string_view_literals;
 
-          if (data_ == nullptr) throw ::java::serialization::decoding_error("incorrectly typed stream element");
           if (data_->value == nullptr) throw ::java::serialization::decoding_error("enum identifier is null");
 
           $ model.enumValues
@@ -546,12 +509,12 @@ rules:
         }
 
        private:
-        cycle_ptr::cycle_member_ptr<::java::serialization::stream::new_enum> data_;
+        cycle_ptr::cycle_member_ptr<const ::java::serialization::stream::new_enum> data_;
       };
 
       return ::cycle_ptr::make_cycle<decoder_impl>(
           ctx,
-          ::std::dynamic_pointer_cast<::java::serialization::stream::new_enum>(raw_stream_elem));
+          ::std::dynamic_pointer_cast<const ::java::serialization::stream::new_enum>(raw_stream_elem));
     includes:
       implementation:
       - java/serialization/encdec.h
@@ -3111,6 +3074,7 @@ classes:
       comparator:
         final: true
         const: true
+        decode_complete: true
     members:
     - type: constructor
     - type: constructor
@@ -4050,6 +4014,7 @@ classes:
       type:
         const: true
         final: true
+        decode_complete: true
         visibility: private
     members:
     - type: constructor

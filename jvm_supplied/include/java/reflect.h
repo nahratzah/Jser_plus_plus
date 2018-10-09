@@ -12,9 +12,8 @@
 #include <java/primitives.h>
 #include <java/ref.h>
 #include <java/type_traits.h>
+#include <java/array_fwd.h>
 #include <java/lang/Class.h>
-#include <java/array.h>
-#include <java/type_traits.h>
 
 namespace java {
 
@@ -85,28 +84,18 @@ class _reflect_ops {
   -> ::java::lang::Class<java::G::pack<>>;
 
   template<typename Array, typename Type = elem_t<Array*>, std::size_t Dim = dims<Array*>::value>
-  static auto noarg_get_class([[maybe_unused]] Array* type)
+  static JSER_INLINE auto noarg_get_class([[maybe_unused]] Array* type)
   -> std::enable_if_t<
       (::java::type_traits::is_java_primitive_v<Type>
        && Dim > 0u),
-      ::java::lang::Class<type_of_t<array_type<Type, Dim>>>> {
-    return ::java::lang::Class<type_of_t<array_type<Type, Dim>>>(
-        ::java::_direct(),
-        ::java::_erased::java::array<elem_t<Type>>::__class__(dims<Type>::value));
-  }
+      ::java::lang::Class<type_of_t<array_type<Type, Dim>>>>;
 
   template<typename Array, typename Type = elem_t<Array*>, std::size_t Dim = dims<Array*>::value>
   static JSER_INLINE auto noarg_get_class([[maybe_unused]] Array* type)
   -> std::enable_if_t<
       (!::java::type_traits::is_java_primitive_v<Type>
        && Dim > 0u),
-      ::java::lang::Class<type_of_t<array_type<Type, Dim>>>> {
-    return ::java::lang::Class<type_of_t<array_type<Type, Dim>>>(
-        ::java::_direct(),
-        ::java::_erased::java::array<::java::lang::Object>::__class__(
-            noarg_get_class(Type()),
-            Dim));
-  }
+      ::java::lang::Class<type_of_t<array_type<Type, Dim>>>>;
 
   template<template<typename> class PtrImpl, typename Type>
   static JSER_INLINE auto hash_code(const basic_ref<PtrImpl, Type>& ref, std::size_t max_cascade)
@@ -309,6 +298,36 @@ class _equal_helper {
   bool success_ = true;
 };
 
+
+} /* namespace java */
+
+#include <java/array.h>
+
+namespace java {
+
+template<typename Array, typename Type, std::size_t Dim>
+JSER_INLINE auto _reflect_ops::noarg_get_class([[maybe_unused]] Array* type)
+-> std::enable_if_t<
+    (::java::type_traits::is_java_primitive_v<Type>
+     && Dim > 0u),
+    ::java::lang::Class<type_of_t<array_type<Type, Dim>>>> {
+  return ::java::lang::Class<type_of_t<array_type<Type, Dim>>>(
+      ::java::_direct(),
+      ::java::_erased::java::array<elem_t<Type>>::__class__(dims<Type>::value));
+}
+
+template<typename Array, typename Type, std::size_t Dim>
+JSER_INLINE auto _reflect_ops::noarg_get_class([[maybe_unused]] Array* type)
+-> std::enable_if_t<
+    (!::java::type_traits::is_java_primitive_v<Type>
+     && Dim > 0u),
+    ::java::lang::Class<type_of_t<array_type<Type, Dim>>>> {
+  return ::java::lang::Class<type_of_t<array_type<Type, Dim>>>(
+      ::java::_direct(),
+      ::java::_erased::java::array<::java::lang::Object>::__class__(
+          noarg_get_class(Type()),
+          Dim));
+}
 
 } /* namespace java */
 

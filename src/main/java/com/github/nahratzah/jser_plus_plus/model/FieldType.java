@@ -287,6 +287,20 @@ public class FieldType {
     }
 
     /**
+     * Test if the field must be completely initialized at construction time.
+     *
+     * @return True if the field must be completely initialized at construction
+     * time.
+     */
+    public boolean isCompleteInit() {
+        return completeInit;
+    }
+
+    public void setCompleteInit(boolean completeInit) {
+        this.completeInit = completeInit;
+    }
+
+    /**
      * Prerender the types.
      *
      * @param renderArgs Arguments to the renderer.
@@ -438,4 +452,5 @@ public class FieldType {
     private boolean sharedVar = true;
     private String docString = null;
     private String defaultInit = null;
+    private boolean completeInit = false;
 }

@@ -43,7 +43,8 @@ public class CodeGenerator {
             "cstddef",
             "java/_accessor.h",
             "java/ref.h",
-            "java/inline.h"
+            "java/inline.h",
+            "string_view"
     )));
     private static final Comparator<String> INCLUDE_SORTER = CodeGenerator::pathComparison;
     private static final STGroup CODE_GENERATOR_TEMPLATE;

@@ -1,6 +1,7 @@
 #ifndef JAVA_ARRAY_H
 #define JAVA_ARRAY_H
 
+#include <java/array_fwd.h>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -19,6 +20,8 @@
 
 namespace java::_erased::java {
 
+template<typename, std::size_t> struct cast_check_generic_;
+
 /**
  * \brief Erased base type of all the arrays.
  * \details Handles abstracting the array logic.
@@ -28,6 +31,8 @@ class array_intf
   public virtual ::java::_erased::java::io::Serializable,
   public virtual ::java::_erased::java::lang::Cloneable
 {
+  template<typename T, std::size_t Dim> friend struct ::java::_erased::java::cast_check_generic_;
+
  public:
   virtual ~array_intf() noexcept override = 0;
 
@@ -58,6 +63,9 @@ class array_intf
   virtual auto dimensions_() const noexcept -> std::size_t = 0;
 
   virtual auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> = 0;
+
+  virtual auto leaf_element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> = 0;
 
   virtual auto begin_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> = 0;
@@ -131,6 +139,9 @@ class array<::java::boolean_t> final
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
 
   auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto leaf_element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
   static auto __class__(std::size_t dimensions)
@@ -210,6 +221,9 @@ class array<::java::byte_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
+  auto leaf_element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   static auto __class__(std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
@@ -285,6 +299,9 @@ class array<::java::short_t> final
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
 
   auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto leaf_element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
   static auto __class__(std::size_t dimensions)
@@ -364,6 +381,9 @@ class array<::java::int_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
+  auto leaf_element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   static auto __class__(std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
@@ -439,6 +459,9 @@ class array<::java::long_t> final
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
 
   auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto leaf_element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
   static auto __class__(std::size_t dimensions)
@@ -518,6 +541,9 @@ class array<::java::float_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
+  auto leaf_element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   static auto __class__(std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
@@ -593,6 +619,9 @@ class array<::java::double_t> final
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
 
   auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto leaf_element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
   static auto __class__(std::size_t dimensions)
@@ -672,6 +701,9 @@ class array<::java::char_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
+  auto leaf_element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   static auto __class__(std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
@@ -739,6 +771,9 @@ class array<::java::lang::Object> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
+  auto leaf_element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   static auto __class__(::java::lang::Class<::java::G::pack<>> element_type, std::size_t dimensions)
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
@@ -804,6 +839,9 @@ class array_of_array<::java::boolean_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
+  auto leaf_element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
@@ -861,6 +899,9 @@ class array_of_array<::java::byte_t> final
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
 
   auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto leaf_element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
   auto __encoder__(::java::serialization::cycle_handler& handler_) const
@@ -922,6 +963,9 @@ class array_of_array<::java::short_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
+  auto leaf_element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
@@ -979,6 +1023,9 @@ class array_of_array<::java::int_t> final
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
 
   auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto leaf_element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
   auto __encoder__(::java::serialization::cycle_handler& handler_) const
@@ -1040,6 +1087,9 @@ class array_of_array<::java::long_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
+  auto leaf_element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
@@ -1097,6 +1147,9 @@ class array_of_array<::java::float_t> final
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
 
   auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto leaf_element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
   auto __encoder__(::java::serialization::cycle_handler& handler_) const
@@ -1158,6 +1211,9 @@ class array_of_array<::java::double_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
+  auto leaf_element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
@@ -1217,6 +1273,9 @@ class array_of_array<::java::char_t> final
   auto element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
+  auto leaf_element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
   auto __encoder__(::java::serialization::cycle_handler& handler_) const
   -> ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> override;
 
@@ -1274,6 +1333,9 @@ class array_of_array<::java::lang::Object> final
   -> ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> override;
 
   auto element_class_() const
+  -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
+
+  auto leaf_element_class_() const
   -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> override;
 
   auto __encoder__(::java::serialization::cycle_handler& handler_) const
@@ -1356,6 +1418,10 @@ struct get_array_elem_class_<Type*>
 : get_array_elem_class_<Type>
 {};
 
+template<typename Type, typename ArrayType>
+JSER_INLINE auto cast_check_(const ArrayType& a)
+-> std::enable_if_t<::std::is_base_of_v<array_intf, ArrayType>, bool>;
+
 } /* namespace java::_erased::java */
 
 namespace java {
@@ -1420,6 +1486,25 @@ class basic_ref<PtrImpl, Type*> final {
   JSER_INLINE basic_ref(basic_ref<OPtrImpl, OType>&& other)
   : p_(std::move(other.p_))
   {}
+
+  template<template<typename> class XImpl, typename XType>
+  JSER_INLINE basic_ref([[maybe_unused]] _cast c, const basic_ref<XImpl, XType>& x) {
+    p_ = ::std::dynamic_pointer_cast<typename ptr_type::element_type>(x.p_);
+    if (p_ == nullptr) {
+      if (x.p_ != nullptr) throw std::bad_cast();
+      return;
+    }
+
+    if (!::java::_erased::java::cast_check_<Type*>(*p_))
+      throw std::bad_cast();
+  }
+
+  template<template<typename> class XImpl, typename XType>
+  JSER_INLINE basic_ref(_cast c, basic_ref<XImpl, XType>&& x)
+  : basic_ref(c, x)
+  {
+    x.p_ = nullptr;
+  }
 
   JSER_INLINE explicit operator bool() const noexcept {
     return bool(p_);
@@ -1542,6 +1627,25 @@ class basic_ref<PtrImpl, Type*const> final {
   : p_(std::move(other.p_))
   {}
 
+  template<template<typename> class XImpl, typename XType>
+  JSER_INLINE basic_ref([[maybe_unused]] _cast c, const basic_ref<XImpl, XType>& x) {
+    p_ = ::std::dynamic_pointer_cast<typename ptr_type::element_type>(x.p_);
+    if (p_ == nullptr) {
+      if (x.p_ != nullptr) throw std::bad_cast();
+      return;
+    }
+
+    if (!::java::_erased::java::cast_check_<Type*>(*p_))
+      throw std::bad_cast();
+  }
+
+  template<template<typename> class XImpl, typename XType>
+  JSER_INLINE basic_ref(_cast c, basic_ref<XImpl, XType>&& x)
+  : basic_ref(c, x)
+  {
+    x.p_ = nullptr;
+  }
+
   JSER_INLINE explicit operator bool() const noexcept {
     return bool(p_);
   }
@@ -1600,27 +1704,69 @@ class basic_ref<PtrImpl, Type*const> final {
   ptr_type p_ = nullptr;
 };
 
-namespace {
-
-template<typename Type, std::size_t Dimensions>
-struct add_dimensions_ {
-  using type = typename add_dimensions_<Type, Dimensions - 1>::type*;
-};
-
-template<typename Type>
-struct add_dimensions_<Type, 0> {
-  using type = Type;
-};
-
-} /* namespace java::<unnamed> */
-
-template<typename T, std::size_t Dimensions = 1>
-using array_type = basic_ref<
-    cycle_ptr::cycle_gptr,
-    typename add_dimensions_<typename maybe_unpack_type_<T>::type, Dimensions>::type>;
-
 } /* namespace java */
 
 #include <java/reflect.h>
+
+namespace java::_erased::java {
+
+
+template<typename Type, typename ArrayType>
+JSER_INLINE auto cast_check_(const ArrayType& a)
+-> std::enable_if_t<::std::is_base_of_v<array_intf, ArrayType>, bool> {
+  if constexpr(array_impl_is_primitive_<Type>::value) {
+    return ::java::get_class<Type>()->isAssignableFrom(::java::_reflect_ops::get_class(a));
+  } else {
+    cast_check_generic_<Type, select_array_dim_<Type>::value> impl;
+    return impl(a, a.dimensions());
+  }
+}
+
+
+template<typename Tag, typename... Args, std::size_t Dim>
+struct cast_check_generic_<::java::G::is_t<Tag, Args...>, Dim> {
+  JSER_INLINE auto operator()(const array_intf& a, std::size_t dimensions) const
+  -> bool {
+    return dimensions == Dim
+        && ::java::get_class<::java::G::is_t<Tag, Args...>>() == a.leaf_element_class_();
+  }
+};
+
+template<typename Tag, typename... Args, std::size_t Dim>
+struct cast_check_generic_<::java::G::extends_t<Tag, Args...>, Dim> {
+  JSER_INLINE auto operator()(const array_intf& a, std::size_t dimensions) const
+  -> bool {
+    return dimensions == Dim
+        && ::java::get_class<::java::G::is_t<Tag, Args...>>().isAssignableFrom(a.leaf_element_class_());
+  }
+};
+
+template<typename Tag, typename... Args, std::size_t Dim>
+struct cast_check_generic_<::java::G::super_t<Tag, Args...>, Dim>
+: cast_check_generic_<::java::G::extends<::java::_tags::java::lang::Object>, Dim>
+{};
+
+template<typename... T, std::size_t Dim>
+struct cast_check_generic_<::java::G::pack_t<T...>, Dim> {
+  JSER_INLINE auto operator()(const array_intf& a, std::size_t dimensions) const
+  -> bool {
+    for (bool i : { cast_check_generic_<T, Dim>()(a, dimensions)... })
+      if (!i) return false;
+    return true;
+  }
+};
+
+template<std::size_t Dim>
+struct cast_check_generic_<::java::G::pack_t<>, Dim>
+: cast_check_generic_<::java::G::extends<::java::_tags::java::lang::Object>, Dim>
+{};
+
+template<typename T, std::size_t Dim>
+struct cast_check_generic_<T*, Dim>
+: cast_check_generic_<T, Dim>
+{};
+
+
+} /* namespace java::_erased::java */
 
 #endif /* JAVA_ARRAY_H */

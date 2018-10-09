@@ -81,6 +81,14 @@ public class CfgField {
         this.rename = rename;
     }
 
+    public boolean isCompleteInit() {
+        return completeInit;
+    }
+
+    public void setCompleteInit(boolean completeInit) {
+        this.completeInit = completeInit;
+    }
+
     @JsonProperty("getter")
     private Boolean getterFn;
     @JsonProperty("setter")
@@ -99,4 +107,6 @@ public class CfgField {
     private String defaultInit;
     @JsonProperty(value = "rename")
     private String rename;
+    @JsonProperty(value = "decode_complete")
+    private boolean completeInit = false;
 }

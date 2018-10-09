@@ -7,6 +7,7 @@
 #include <java/ref.h>
 #include <java/lang/Object.h>
 #include <cycle_ptr/cycle_ptr.h>
+#include <cycle_ptr/allocator.h>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -23,7 +24,10 @@ class decoder_ctx {
   auto decoder(::std::nullptr_t np)
   -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
 
-  auto decoder(::cycle_ptr::cycle_gptr<stream::new_object> obj)
+  auto decoder(::cycle_ptr::cycle_gptr<const stream::new_object> obj)
+  -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
+
+  auto decoder(::cycle_ptr::cycle_gptr<const stream::stream_element> obj)
   -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
 
  private:
@@ -51,7 +55,7 @@ class decoder
    */
   using dependent_set = ::std::unordered_set<::cycle_ptr::cycle_gptr<decoder>>;
 
-  decoder(decoder_ctx& ctx);
+  explicit decoder(decoder_ctx& ctx);
   virtual ~decoder() noexcept = 0;
 
   auto get_initial() -> java::lang::Object;
@@ -139,30 +143,107 @@ class decoder
   decoder_ctx& ctx;
 };
 
-///\brief Validate that a class description is for the expected class name.
-///\param cd A class description.
-///\param name The expected name of the class description.
-///\throws decoding_error If the class description is null, not for an object,
-///or for an object with a different name.
-auto streamelem_is_non_null_named_class(::cycle_ptr::cycle_gptr<const stream::class_desc> raw_cd, std::u16string_view name)
--> ::cycle_ptr::cycle_gptr<const stream::new_class_desc__class_desc> {
-  if (raw_cd == nullptr)
-    throw decoding_error("null class description while decoding object");
+class class_decoder_intf
+: public decoder
+{
+ private:
+  using field_decoder_set = ::std::unordered_set<
+      ::cycle_ptr::cycle_member_ptr<decoder>,
+      ::std::hash<::cycle_ptr::cycle_member_ptr<decoder>>,
+      ::std::equal_to<::cycle_ptr::cycle_member_ptr<decoder>>,
+      ::cycle_ptr::cycle_allocator<::std::allocator<::cycle_ptr::cycle_member_ptr<decoder>>>>;
 
-  ::cycle_ptr::cycle_gptr<const stream::new_class_desc__class_desc> cd =
-      ::std::dynamic_pointer_cast<const stream::new_class_desc__class_desc>(raw_cd);
+ public:
+  class_decoder_intf(decoder_ctx& ctx, ::cycle_ptr::cycle_gptr<const stream::new_object> data);
+  class_decoder_intf(decoder_ctx& ctx, ::cycle_ptr::cycle_gptr<const stream::stream_element> data);
+  ~class_decoder_intf() noexcept override = 0;
 
-  if (cd == nullptr)
-    throw decoding_error("class description is not a normal class description");
-  if (cd->class_name.is_array())
-    throw decoding_error("class description for object is an array");
-  if (cd->class_name.is_primitive())
-    throw decoding_error("class description for object is a primitive type");
-  if (::std::get<std::u16string_view>(cd->class_name.type()) != name)
-    throw decoding_error("class description for object is of unexpected type");
+  auto initial_field(::cycle_ptr::cycle_gptr<const stream::stream_element> obj)
+  -> ::java::lang::Object;
+  auto comparable_field(::cycle_ptr::cycle_gptr<const stream::stream_element> obj)
+  -> ::java::lang::Object;
+  auto complete_field(::cycle_ptr::cycle_gptr<const stream::stream_element> obj)
+  -> ::java::lang::Object;
 
-  return cd;
-}
+  auto init_comparable() -> dependent_set override;
+  auto complete() -> dependent_set override;
+
+ private:
+  static auto cast_data_(::cycle_ptr::cycle_gptr<const stream::stream_element> data)
+  -> ::cycle_ptr::cycle_gptr<const stream::new_object>;
+
+  field_decoder_set field_decoders_;
+
+ public:
+  ///\brief Object description. Never null.
+  ::cycle_ptr::cycle_gptr<const stream::new_object> data;
+};
+
+template<typename Tag>
+class class_decoder {
+  template<typename> friend class class_decoder;
+
+ private:
+  class_decoder(class_decoder_intf& intf, cycle_ptr::cycle_gptr<const stream::class_desc> cls)
+  : intf_(intf),
+    cls_(std::move(cls))
+  {
+    if (cls_ == nullptr)
+      throw decoding_error("null class description while decoding object");
+
+    const stream::new_class_desc__class_desc*const cd =
+        dynamic_cast<const stream::new_class_desc__class_desc*>(cls_.get());
+
+    if (cd == nullptr)
+      throw decoding_error("class description is not a normal class description");
+    if (cd->class_name.is_array())
+      throw decoding_error("class description for object is an array");
+    if (cd->class_name.is_primitive())
+      throw decoding_error("class description for object is a primitive type");
+    if (::std::get<std::u16string_view>(cd->class_name.type()) != Tag::u_name())
+      throw decoding_error("class description for object is of unexpected type");
+  }
+
+ public:
+  class_decoder(class_decoder_intf& intf)
+  : class_decoder(intf, intf.data->cls)
+  {}
+
+  template<typename OtherTag>
+  class_decoder(const class_decoder<OtherTag>& other)
+  : class_decoder(other.intf_, other.cls_->get_super())
+  {}
+
+  template<typename T>
+  auto get_primitive_field(::std::u16string_view name, std::optional<T> fb = ::std::optional<T>()) const
+  -> T {
+    return intf_.data->get_primitive_field<T>(cls_, std::move(name), std::move(fb));
+  }
+
+  template<typename T>
+  auto get_initial_field(::std::u16string_view name, bool null_ok = false) const
+  -> T {
+    return ::java::cast<T>(intf_.initial_field(intf_.data->get_obj_field(cls_, std::move(name), null_ok)));
+  }
+
+  template<typename T>
+  auto get_comparable_field(::std::u16string_view name, bool null_ok = false) const
+  -> T {
+    return ::java::cast<T>(intf_.comparable_field(intf_.data->get_obj_field(cls_, std::move(name), null_ok)));
+  }
+
+  template<typename T>
+  auto get_complete_field(::std::u16string_view name, bool null_ok = false) const
+  -> T {
+    return ::java::cast<T>(intf_.complete_field(intf_.data->get_obj_field(cls_, std::move(name), null_ok)));
+  }
+
+ private:
+  ///\brief Class decoder interface.
+  class_decoder_intf& intf_;
+  ///\brief Class description. Never null.
+  cycle_ptr::cycle_gptr<const stream::class_desc> cls_;
+};
 
 } /* namespace java::serialization */
 

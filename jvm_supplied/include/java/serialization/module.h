@@ -16,7 +16,7 @@ class module {
  public:
   using decoder_factory = ::cycle_ptr::cycle_gptr<::java::serialization::decoder> (*)(
       ::java::serialization::decoder_ctx&,
-      ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element>);
+      ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>);
   using class_factory = ::cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>(*)();
 
   struct decoder_spec {
@@ -38,7 +38,7 @@ class module {
   auto decoder(
       ::std::u16string_view class_name,
       ::java::serialization::decoder_ctx& ctx,
-      ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element> element) const
+      ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> element) const
   -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
 
   auto get_class(::std::u16string_view class_name) const

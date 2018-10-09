@@ -29,7 +29,7 @@ auto module::operator+=(module&& other) -> module& {
 auto module::decoder(
     ::std::u16string_view class_name,
     ::java::serialization::decoder_ctx& ctx,
-    ::cycle_ptr::cycle_gptr<::java::serialization::stream::stream_element> element) const
+    ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element> element) const
 -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
   using conversion_type = ::std::wstring_convert<
       std::codecvt_utf8_utf16<char16_t>,

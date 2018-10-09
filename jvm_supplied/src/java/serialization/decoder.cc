@@ -3,6 +3,7 @@
 #include <java/serialization/module.h>
 #include <cassert>
 #include <utility>
+#include <stdexcept>
 
 namespace java::serialization {
 
@@ -38,7 +39,7 @@ auto decoder_ctx::decoder([[maybe_unused]] ::std::nullptr_t np)
   return cycle_ptr::make_cycle<null_decoder>(*this);
 };
 
-auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<stream::new_object> obj)
+auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::new_object> obj)
 -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
   if (obj == nullptr) return decoder(nullptr);
 
@@ -66,6 +67,25 @@ auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<stream::new_object> obj)
 
   // Neither cast worked.
   throw decoding_error("encoded object class not recognized");
+}
+
+auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::stream_element> elem)
+-> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
+  if (elem == nullptr) return decoder(nullptr);
+
+  {
+    auto obj = ::std::dynamic_pointer_cast<const stream::new_object>(elem);
+    if (obj != nullptr) return decoder(std::move(obj));
+  }
+
+#if 0 // XXX
+  {
+    auto str = ::std::dynamic_pointer_cast<const stream::string_stream>(elem);
+    if (str != nullptr) return decoder(std::move(str));
+  }
+#endif
+
+  throw decoding_error("unrecognized stream element type");
 }
 
 
@@ -209,6 +229,64 @@ auto decoder::ensure_complete(::cycle_ptr::cycle_gptr<decoder> initial)
           assert(!decoder_ptr->in_progress_);
         }
       });
+}
+
+
+class_decoder_intf::class_decoder_intf(decoder_ctx& ctx, ::cycle_ptr::cycle_gptr<const stream::new_object> data)
+: decoder(ctx),
+  field_decoders_(field_decoder_set::allocator_type(*this)),
+  data(std::move(data))
+{
+  if (data == nullptr) throw ::std::invalid_argument("null data");
+}
+
+class_decoder_intf::class_decoder_intf(decoder_ctx& ctx, ::cycle_ptr::cycle_gptr<const stream::stream_element> data)
+: class_decoder_intf(ctx, cast_data_(std::move(data)))
+{}
+
+class_decoder_intf::~class_decoder_intf() noexcept = default;
+
+auto class_decoder_intf::initial_field(::cycle_ptr::cycle_gptr<const stream::stream_element> obj)
+-> ::java::lang::Object {
+  ::cycle_ptr::cycle_gptr<decoder> d = ctx.decoder(obj);
+  ::java::lang::Object d_obj = d->get_initial();
+  field_decoders_.emplace(std::move(d));
+  return d_obj;
+}
+
+auto class_decoder_intf::comparable_field(::cycle_ptr::cycle_gptr<const stream::stream_element> obj)
+-> ::java::lang::Object {
+  ::cycle_ptr::cycle_gptr<decoder> d = ctx.decoder(obj);
+  ::java::lang::Object d_obj = d->get_comparable();
+  field_decoders_.emplace(std::move(d));
+  return d_obj;
+}
+
+auto class_decoder_intf::complete_field(::cycle_ptr::cycle_gptr<const stream::stream_element> obj)
+-> ::java::lang::Object {
+  ::cycle_ptr::cycle_gptr<decoder> d = ctx.decoder(obj);
+  ::java::lang::Object d_obj = d->get_complete();
+  field_decoders_.emplace(std::move(d));
+  return d_obj;
+}
+
+auto class_decoder_intf::init_comparable()
+-> dependent_set {
+  return dependent_set(field_decoders_.begin(), field_decoders_.end());
+}
+
+auto class_decoder_intf::complete()
+-> dependent_set {
+  return dependent_set(field_decoders_.begin(), field_decoders_.end());
+}
+
+auto class_decoder_intf::cast_data_(::cycle_ptr::cycle_gptr<const stream::stream_element> data)
+-> ::cycle_ptr::cycle_gptr<const stream::new_object> {
+  ::cycle_ptr::cycle_gptr<const stream::new_object> casted_data =
+      ::std::dynamic_pointer_cast<const stream::new_object>(data);
+  if (casted_data == nullptr && data != nullptr)
+    throw decoding_error("expected object description for object class");
+  return casted_data;
 }
 
 } /* namespace java::serialization */

@@ -210,6 +210,11 @@ struct is_assignable_<java::G::pack_t<X...>, Y> {
   using type = typename std::conjunction<is_assignable<X, Y>...>;
 };
 
+template<typename X, typename Y>
+struct is_assignable_<X*, Y> {
+  using type = is_satisfied_by<X*, Y>;
+};
+
 
 template<>
 struct is_java_primitive_<java::boolean_t>
