@@ -4,12 +4,16 @@
 #include <java/serialization/decoder_fwd.h>
 #include <java/serialization/module_fwd.h>
 #include <java/serialization/encdec.h>
+#include <java/inline.h>
 #include <java/ref.h>
+#include <java/primitives.h>
 #include <java/lang/Object.h>
 #include <cycle_ptr/cycle_ptr.h>
 #include <cycle_ptr/allocator.h>
 #include <unordered_set>
 #include <unordered_map>
+#include <optional>
+#include <variant>
 
 namespace java::serialization {
 
@@ -176,74 +180,97 @@ class class_decoder_intf
 
  public:
   ///\brief Object description. Never null.
-  ::cycle_ptr::cycle_gptr<const stream::new_object> data;
+  const ::cycle_ptr::cycle_gptr<const stream::new_object> data;
 };
 
-template<typename Tag>
-class class_decoder {
+class basic_class_decoder {
   template<typename> friend class class_decoder;
 
- private:
-  class_decoder(class_decoder_intf& intf, cycle_ptr::cycle_gptr<const stream::class_desc> cls)
-  : intf_(intf),
-    cls_(std::move(cls))
-  {
-    if (cls_ == nullptr)
-      throw decoding_error("null class description while decoding object");
-
-    const stream::new_class_desc__class_desc*const cd =
-        dynamic_cast<const stream::new_class_desc__class_desc*>(cls_.get());
-
-    if (cd == nullptr)
-      throw decoding_error("class description is not a normal class description");
-    if (cd->class_name.is_array())
-      throw decoding_error("class description for object is an array");
-    if (cd->class_name.is_primitive())
-      throw decoding_error("class description for object is a primitive type");
-    if (::std::get<std::u16string_view>(cd->class_name.type()) != Tag::u_name())
-      throw decoding_error("class description for object is of unexpected type");
-  }
+ protected:
+  basic_class_decoder(class_decoder_intf& intf, cycle_ptr::cycle_gptr<const stream::class_desc> cls, std::u16string_view name);
+  ~basic_class_decoder() noexcept;
 
  public:
+  template<typename T>
+  auto get_primitive_field(::std::u16string_view name, std::optional<T> fb = ::std::optional<T>()) const
+  -> T {
+    const stream::new_object::class_data::field_value*const field = get_field_(name);
+    if (!field) {
+      if (fb) return *fb;
+      throw decoding_error("missing field data");
+    }
+
+    if (!::std::holds_alternative<T>(*field)) throw decoding_error("field has incorrect type");
+    return ::std::get<T>(*field);
+  }
+
+  template<typename T>
+  JSER_INLINE auto get_initial_field(::std::u16string_view name) const
+  -> T {
+    return ::java::cast<T>(get_initial_field_(name));
+  }
+
+  template<typename T>
+  JSER_INLINE auto get_comparable_field(::std::u16string_view name) const
+  -> T {
+    return ::java::cast<T>(get_comparable_field_(name));
+  }
+
+  template<typename T>
+  JSER_INLINE auto get_complete_field(::std::u16string_view name) const
+  -> T {
+    return ::java::cast<T>(get_complete_field_(name));
+  }
+
+ private:
+  static auto find_cd_(const class_decoder_intf& intf, const cycle_ptr::cycle_gptr<const stream::class_desc>& cls)
+  -> const stream::new_object::class_data&;
+
+  auto get_field_(::std::u16string_view name) const
+  -> const stream::new_object::class_data::field_value*;
+
+  auto get_initial_field_(::std::u16string_view name) const
+  -> ::java::lang::Object;
+
+  auto get_comparable_field_(::std::u16string_view name) const
+  -> ::java::lang::Object;
+
+  auto get_complete_field_(::std::u16string_view name) const
+  -> ::java::lang::Object;
+
+  ///\brief Class decoder interface.
+  class_decoder_intf& intf_;
+  ///\brief Class description. Never null.
+  const cycle_ptr::cycle_gptr<const stream::class_desc> cls_;
+  ///\brief Class data.
+  const stream::new_object::class_data& cd_;
+};
+
+
+template<typename Tag>
+class class_decoder
+: public basic_class_decoder
+{
+ public:
   class_decoder(class_decoder_intf& intf)
-  : class_decoder(intf, intf.data->cls)
+  : basic_class_decoder(intf, intf.data->cls, Tag::u_name())
   {}
 
   template<typename OtherTag>
   class_decoder(const class_decoder<OtherTag>& other)
-  : class_decoder(other.intf_, other.cls_->get_super())
+  : basic_class_decoder(other.intf_, other.cls_->get_super(), Tag::u_name())
   {}
-
-  template<typename T>
-  auto get_primitive_field(::std::u16string_view name, std::optional<T> fb = ::std::optional<T>()) const
-  -> T {
-    return intf_.data->get_primitive_field<T>(cls_, std::move(name), std::move(fb));
-  }
-
-  template<typename T>
-  auto get_initial_field(::std::u16string_view name, bool null_ok = false) const
-  -> T {
-    return ::java::cast<T>(intf_.initial_field(intf_.data->get_obj_field(cls_, std::move(name), null_ok)));
-  }
-
-  template<typename T>
-  auto get_comparable_field(::std::u16string_view name, bool null_ok = false) const
-  -> T {
-    return ::java::cast<T>(intf_.comparable_field(intf_.data->get_obj_field(cls_, std::move(name), null_ok)));
-  }
-
-  template<typename T>
-  auto get_complete_field(::std::u16string_view name, bool null_ok = false) const
-  -> T {
-    return ::java::cast<T>(intf_.complete_field(intf_.data->get_obj_field(cls_, std::move(name), null_ok)));
-  }
-
- private:
-  ///\brief Class decoder interface.
-  class_decoder_intf& intf_;
-  ///\brief Class description. Never null.
-  cycle_ptr::cycle_gptr<const stream::class_desc> cls_;
 };
+
+
+extern template auto basic_class_decoder::get_primitive_field<::java::boolean_t>(::std::u16string_view name, std::optional<::java::boolean_t> fb) const -> ::java::boolean_t;
+extern template auto basic_class_decoder::get_primitive_field<::java::byte_t>(::std::u16string_view name, std::optional<::java::byte_t> fb) const -> ::java::byte_t;
+extern template auto basic_class_decoder::get_primitive_field<::java::short_t>(::std::u16string_view name, std::optional<::java::short_t> fb) const -> ::java::short_t;
+extern template auto basic_class_decoder::get_primitive_field<::java::int_t>(::std::u16string_view name, std::optional<::java::int_t> fb) const -> ::java::int_t;
+extern template auto basic_class_decoder::get_primitive_field<::java::long_t>(::std::u16string_view name, std::optional<::java::long_t> fb) const -> ::java::long_t;
+extern template auto basic_class_decoder::get_primitive_field<::java::float_t>(::std::u16string_view name, std::optional<::java::float_t> fb) const -> ::java::float_t;
+extern template auto basic_class_decoder::get_primitive_field<::java::double_t>(::std::u16string_view name, std::optional<::java::double_t> fb) const -> ::java::double_t;
+extern template auto basic_class_decoder::get_primitive_field<::java::char_t>(::std::u16string_view name, std::optional<::java::char_t> fb) const -> ::java::char_t;
 
 } /* namespace java::serialization */
 
