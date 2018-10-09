@@ -132,7 +132,7 @@ auto array<::java::boolean_t>::element_class_() const
 
 auto array<::java::boolean_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  return ::java::get_class<::java::boolean_t>();
+  return element_class_();
 }
 
 auto array<::java::boolean_t>::__class__(std::size_t dimensions)
@@ -252,7 +252,7 @@ auto array<::java::byte_t>::element_class_() const
 
 auto array<::java::byte_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  return ::java::get_class<::java::byte_t>();
+  return element_class_();
 }
 
 auto array<::java::byte_t>::__class__(std::size_t dimensions)
@@ -372,7 +372,7 @@ auto array<::java::short_t>::element_class_() const
 
 auto array<::java::short_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  return ::java::get_class<::java::short_t>();
+  return element_class_();
 }
 
 auto array<::java::short_t>::__class__(std::size_t dimensions)
@@ -492,7 +492,7 @@ auto array<::java::int_t>::element_class_() const
 
 auto array<::java::int_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  return ::java::get_class<::java::int_t>();
+  return element_class_();
 }
 
 auto array<::java::int_t>::__class__(std::size_t dimensions)
@@ -612,7 +612,7 @@ auto array<::java::long_t>::element_class_() const
 
 auto array<::java::long_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  return ::java::get_class<::java::long_t>();
+  return element_class_();
 }
 
 auto array<::java::long_t>::__class__(std::size_t dimensions)
@@ -732,7 +732,7 @@ auto array<::java::float_t>::element_class_() const
 
 auto array<::java::float_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  return ::java::get_class<::java::float_t>();
+  return element_class_();
 }
 
 auto array<::java::float_t>::__class__(std::size_t dimensions)
@@ -852,7 +852,7 @@ auto array<::java::double_t>::element_class_() const
 
 auto array<::java::double_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  return ::java::get_class<::java::double_t>();
+  return element_class_();
 }
 
 auto array<::java::double_t>::__class__(std::size_t dimensions)
@@ -972,7 +972,7 @@ auto array<::java::char_t>::element_class_() const
 
 auto array<::java::char_t>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  return ::java::get_class<::java::char_t>();
+  return element_class_();
 }
 
 auto array<::java::char_t>::__class__(std::size_t dimensions)
@@ -1099,7 +1099,7 @@ auto array<::java::lang::Object>::element_class_() const
 
 auto array<::java::lang::Object>::leaf_element_class_() const
 -> ::java::return_t<::java::lang::Class<::java::type<::java::G::pack<>>>> {
-  return element_type_;
+  return element_class_();
 }
 
 auto array<::java::lang::Object>::__class__(::java::lang::Class<::java::G::pack<>> element_type, std::size_t dimensions)
