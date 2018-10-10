@@ -4,6 +4,7 @@
 #include <cassert>
 #include <utility>
 #include <stdexcept>
+#include <java/fwd/java/lang/String.h>
 
 namespace java::serialization {
 
@@ -70,6 +71,12 @@ auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::new_object> obj)
   throw decoding_error("encoded object class not recognized");
 }
 
+auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::stream_string> str)
+-> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
+  if (str == nullptr) return decoder(nullptr);
+  return module_.decoder(::java::_tags::java::lang::String::u_name(), *this, std::move(str));
+}
+
 auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::stream_element> elem)
 -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
   if (elem == nullptr) return decoder(nullptr);
@@ -79,10 +86,25 @@ auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::stream_element> 
     if (obj != nullptr) return decoder(std::move(obj));
   }
 
+  {
+    auto str = ::std::dynamic_pointer_cast<const stream::stream_string>(elem);
+    if (str != nullptr) return decoder(std::move(str));
+  }
+
 #if 0 // XXX
   {
-    auto str = ::std::dynamic_pointer_cast<const stream::string_stream>(elem);
-    if (str != nullptr) return decoder(std::move(str));
+    auto enm = ::std::dynamic_pointer_cast<const stream::new_enum>(elem);
+    if (enm != nullptr) return decoder(std::move(enm));
+  }
+
+  {
+    auto cls = ::std::dynamic_pointer_cast<const stream::new_class>(elem);
+    if (cls != nullptr) return decoder(std::move(cls));
+  }
+
+  {
+    auto arr = ::std::dynamic_pointer_cast<const stream::new_array>(elem);
+    if (arr != nullptr) return decoder(std::move(arr));
   }
 #endif
 
