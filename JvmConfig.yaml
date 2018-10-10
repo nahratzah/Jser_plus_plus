@@ -343,11 +343,27 @@ rules:
           - java/serialization/encdec.h
     # XXX implement body
     body: |
-      // XXX
+      $if (model.serializationFields)$$\\$
+      using namespace ::std::string_view_literals;
 
-      $if (model.superClass.type.testInherits.({java.io.Serializable}))$
+      $ model.serializationFields
+      : { f | $\\$
+          $if (!(f.serializationType.primitive && !f.serializationArray) && !f.final && !f.completeInit)$$\\$
+          _out_->$f.name$ = __decoder__.get_initial_field<$boundTemplateType(f.varType, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
+          $else$$\\$
+          // `$f.name$` handled by constructor.$\\$
+          $endif$$\\$
+        }
+      ; anchor, separator = "\n"$
+
+      $endif$
+      $if (model.superClass.type.testInherits.({java.io.Serializable}))$$\\$
       $erasedType(model.superClass.type)$::__decoder_impl__(_out_, __decoder__);
       $endif$
+    includes:
+      implementation:
+      - string_view
+      - java/serialization/decoder.h
 - id: java.io.Serializable/__decoder__
   predicate:
     interface: false

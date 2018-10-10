@@ -296,7 +296,7 @@ public class ClassType implements JavaType {
     }
 
     private void initSerializationConstructor(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
-        final Predicate<FieldType> isPrimitive = field -> field.getSerializationType().isPrimitive() && field.getSerializationExtents() == 0;
+        final Predicate<FieldType> isPrimitive = field -> field.getSerializationType().isPrimitive() && !field.isSerializationArray();
 
         final ClassType superClass = (getSuperClass() == null ? null : getSuperClass().getType());
         final boolean superClassIsSerializable = superClass != null
