@@ -2575,12 +2575,6 @@ classes:
     fields:
       size:
         omit: true
-        encoder_expr: |
-          [this]() {
-            if (this->data_.size() > 0x7fffffffu)
-              throw ::std::logic_error($cxxString({$model.name$: size too large})$);
-            return ::java::int_t(this->data_.size());
-          }(/* invoke */)
       data_:
         visibility: private
         type:
@@ -2802,14 +2796,17 @@ classes:
             implementation:
             - java/serialization/decoder.h
       body: |
+        using namespace ::std::string_view_literals;
         using conversion_type = ::std::wstring_convert<
             std::codecvt_utf8_utf16<char16_t>,
             char16_t>;
 
         auto annotation = ::java::serialization::annotation_reader(decoder.get_annotation());
 
-        auto len = annotation.read_int();
+        auto len = decoder.get_primitive_field<::java::int_t>($u16StringView("size")$);
         if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative collection size})$);
+
+        annotation.read_int(); // discard unused capacity field
 
         data_.reserve(len);
         ::std::generate_n(
@@ -2822,6 +2819,7 @@ classes:
         implementation:
         - algorithm
         - iterator
+        - string_view
     - type: method
       name: __encoder_annotation__
       visibility: private
@@ -2833,7 +2831,7 @@ classes:
           includes:
             declaration:
             - java/serialization/type_def_fwd.h
-      - name: _fields_
+      - name: fields
         type:
           cxx: ::java::serialization::stream::new_object::class_data::field_map&
           includes:
@@ -2849,12 +2847,19 @@ classes:
           implementation:
           - java/serialization/encdec.h
       body: |
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+
         auto annotation = ::java::serialization::annotation_writer(handler_);
 
         if (data_.size() > 0x7fffffffu)
           throw ::std::logic_error($cxxString({$model.name$: size too large})$);
 
-        annotation.write_int(data_.size());
+        new_object::class_data::set_field(
+            fields,
+            $u16StringView("size")$,
+            primitive_desc::value_type(::std::in_place_type<::java::int_t>, data_.size()));
+        annotation.write_int(data_.size()); // capacity
         for (const auto& i : data_) annotation.write_object(i);
 
         return std::move(annotation).data();
