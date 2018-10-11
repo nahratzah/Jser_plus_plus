@@ -328,6 +328,7 @@ public class ClassType implements JavaType {
                         "optional")));
 
         final Stream<Map.Entry<String, String>> primitiveFieldInitializers = getSerializationFields().stream()
+                .filter(field -> field.getDecodeStage().isAtInitialStage())
                 .filter(isPrimitive)
                 .map(field -> {
                     final String typeFullyQualifiedName = Stream.concat(field.getSerializationType().getNamespace().stream(), Stream.of(field.getSerializationType().getClassName()))
@@ -341,8 +342,8 @@ public class ClassType implements JavaType {
                 });
 
         final Stream<Map.Entry<String, String>> finalFieldInitializers = getSerializationFields().stream()
+                .filter(field -> field.getDecodeStage().isAtInitialStage())
                 .filter(isPrimitive.negate())
-                .filter(field -> field.isFinal() || field.isCompleteInit())
                 .map(field -> {
                     final String castType = ConstTypeRenderer.apply(field.getVarType(), "style=type, class");
                     final String getFieldMethod = field.isCompleteInit() ? "get_complete_field" : "get_initial_field";

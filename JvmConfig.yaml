@@ -310,7 +310,6 @@ rules:
       - java/serialization/type_def.h
 
 # Implement decoder.
-# XXX placeholder for now
 - id: java.io.Serializable/__decoder__
   predicate:
     interface: false
@@ -325,40 +324,72 @@ rules:
       - java/serialization/module_fwd.h
   members:
   - type: method
-    name: __decoder_impl__
+    name: __decoder_comparable__
     static: true
     visibility: protected
     arguments:
     - name: _out_
       type:
-        cxx: ::cycle_ptr::cycle_gptr<$erasedType(model)$>
+        cxx: $erasedType(model)$&
     - name: __decoder__
       type:
         cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
         includes:
           declaration:
-          - cycle_ptr/cycle_ptr.h
-          - java/serialization/type_def_fwd.h
+          - java/serialization/decoder_fwd.h
           implementation:
-          - java/serialization/encdec.h
-    # XXX implement body
+          - java/serialization/decoder.h
     body: |
       $if (model.serializationFields)$$\\$
       using namespace ::std::string_view_literals;
 
       $ model.serializationFields
       : { f | $\\$
-          $if (!(f.serializationType.primitive && !f.serializationArray) && !f.final && !f.completeInit)$$\\$
-          _out_->$f.name$ = __decoder__.get_initial_field<$boundTemplateType(f.varType, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
-          $else$$\\$
-          // `$f.name$` handled by constructor.$\\$
+          $if (f.decodeStage.atComparableStage)$$\\$
+          _out_.$f.name$ = __decoder__.$if (f.completeInit)$get_complete_field$else$get_initial_field$endif$<$boundTemplateType(f.varType, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
           $endif$$\\$
         }
       ; anchor, separator = "\n"$
 
       $endif$
       $if (model.superClass.type.testInherits.({java.io.Serializable}))$$\\$
-      $erasedType(model.superClass.type)$::__decoder_impl__(_out_, __decoder__);
+      $erasedType(model.superClass.type)$::__decoder_comparable__(_out_, __decoder__);
+      $endif$
+    includes:
+      implementation:
+      - string_view
+      - java/serialization/decoder.h
+  - type: method
+    name: __decoder_complete__
+    static: true
+    visibility: protected
+    arguments:
+    - name: _out_
+      type:
+        cxx: $erasedType(model)$&
+    - name: __decoder__
+      type:
+        cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
+        includes:
+          declaration:
+          - java/serialization/decoder_fwd.h
+          implementation:
+          - java/serialization/decoder.h
+    body: |
+      $if (model.serializationFields)$$\\$
+      using namespace ::std::string_view_literals;
+
+      $ model.serializationFields
+      : { f | $\\$
+          $if (f.decodeStage.atCompleteStage)$$\\$
+          _out_.$f.name$ = __decoder__.get_initial_field<$boundTemplateType(f.varType, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
+          $endif$$\\$
+        }
+      ; anchor, separator = "\n"$
+
+      $endif$
+      $if (model.superClass.type.testInherits.({java.io.Serializable}))$$\\$
+      $erasedType(model.superClass.type)$::__decoder_complete__(_out_, __decoder__);
       $endif$
     includes:
       implementation:
@@ -413,6 +444,7 @@ rules:
         using ::java::serialization::class_decoder_intf::class_decoder_intf;
         ~decoder_impl() noexcept override = default;
 
+       private:
         auto init() -> ::java::lang::Object override {
           $if (model.devMode)$
           // Be nice with the `dev_mode` classes: don't instantiate them if they are not working.
@@ -427,11 +459,17 @@ rules:
         }
 
         auto init_comparable() -> dependent_set override {
-          $erasedType(model)$::__decoder_impl__(dst, *this);
+          assert(dst != nullptr);
+          $erasedType(model)$::__decoder_comparable__(*dst, *this);
           return this->::java::serialization::class_decoder_intf::init_comparable();
         }
 
-       private:
+        auto complete() -> dependent_set override {
+          assert(dst != nullptr);
+          $erasedType(model)$::__decoder_complete__(*dst, *this);
+          return this->::java::serialization::class_decoder_intf::init_comparable();
+        }
+
         ::cycle_ptr::cycle_member_ptr<$erasedType(model)$> dst;
       };
 
@@ -446,6 +484,7 @@ rules:
       - memory
       - iterator
       - type_traits
+      - cassert
 
 # Specialize all __decoder__ implementations for enum.
 - predicate:

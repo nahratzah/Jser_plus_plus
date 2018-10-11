@@ -1,5 +1,6 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
+import com.github.nahratzah.jser_plus_plus.config.cplusplus.DecodeStage;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
@@ -301,6 +302,46 @@ public class FieldType {
     }
 
     /**
+     * Get the decode stage at which this field must be present.
+     *
+     * If the field is a primitive, final, or a non-java const field, this will
+     * always return {@link DecodeStage#INITIAL INITIAL}.
+     *
+     * The default is to put fields that have a serialization name starting with
+     * {@code "this$"} as {@link DecodeStage#COMPLETE COMPLETE}, and others as
+     * {@link DecodeStage#COMPARABLE COMPARABLE}.
+     *
+     * If the field is specified as having
+     * {@link FieldType#isCompleteInit() complete-init}, the default is to use
+     * {@link DecodeStage#INITIAL INITIAL}.
+     *
+     * @return The decode stage of the field.
+     */
+    public DecodeStage getDecodeStage() {
+        if (this.getSerializationType().isPrimitive() && !this.isSerializationArray())
+            return DecodeStage.INITIAL;
+        if (this.getVarType() instanceof BoundTemplate) {
+            if (this.isFinal()) return DecodeStage.INITIAL;
+        } else {
+            if (this.isConst()) return DecodeStage.INITIAL;
+        }
+
+        if (decodeStage == null) {
+            if (this.isCompleteInit())
+                return DecodeStage.INITIAL;
+            if (this.getSerializationName().startsWith("this$"))
+                return DecodeStage.COMPLETE;
+            return DecodeStage.COMPARABLE;
+        }
+
+        return decodeStage;
+    }
+
+    public void setDecodeStage(DecodeStage decodeStage) {
+        this.decodeStage = decodeStage;
+    }
+
+    /**
      * Prerender the types.
      *
      * @param renderArgs Arguments to the renderer.
@@ -453,4 +494,5 @@ public class FieldType {
     private String docString = null;
     private String defaultInit = null;
     private boolean completeInit = false;
+    private DecodeStage decodeStage;
 }

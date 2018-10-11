@@ -1,6 +1,7 @@
 package com.github.nahratzah.jser_plus_plus.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.nahratzah.jser_plus_plus.config.cplusplus.DecodeStage;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 
 /**
@@ -89,6 +90,14 @@ public class CfgField {
         this.completeInit = completeInit;
     }
 
+    public DecodeStage getDecodeStage() {
+        return decodeStage;
+    }
+
+    public void setDecodeStage(DecodeStage decodeStage) {
+        this.decodeStage = decodeStage;
+    }
+
     @JsonProperty("getter")
     private Boolean getterFn;
     @JsonProperty("setter")
@@ -109,4 +118,6 @@ public class CfgField {
     private String rename;
     @JsonProperty(value = "decode_complete")
     private boolean completeInit = false;
+    @JsonProperty(value = "decode_stage")
+    private DecodeStage decodeStage;
 }
