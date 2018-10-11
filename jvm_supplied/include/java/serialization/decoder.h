@@ -37,16 +37,22 @@ class decoder_ctx {
 #if 0
   auto decoder(::cycle_ptr::cycle_gptr<const stream::new_enum> obj)
   -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
+#endif
 
-  auto decoder(::cycle_ptr::cycle_gptr<const stream::new_class> obj)
+  auto decoder(::cycle_ptr::cycle_gptr<const stream::new_class> cls)
   -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
 
+#if 0
   auto decoder(::cycle_ptr::cycle_gptr<const stream::new_array> obj)
   -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
 #endif
 
   auto decoder(::cycle_ptr::cycle_gptr<const stream::stream_element> obj)
   -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
+
+  auto get_module() const noexcept -> const module& {
+    return module_;
+  }
 
  private:
   decoder_map decoder_map_;

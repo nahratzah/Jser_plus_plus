@@ -5,6 +5,7 @@
 #include <utility>
 #include <stdexcept>
 #include <java/fwd/java/lang/String.h>
+#include <java/fwd/java/lang/Class.h>
 
 namespace java::serialization {
 
@@ -77,6 +78,12 @@ auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::stream_string> s
   return module_.decoder(::java::_tags::java::lang::String::u_name(), *this, std::move(str));
 }
 
+auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::new_class> cls)
+-> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
+  if (cls == nullptr) return decoder(nullptr);
+  return module_.decoder(::java::_tags::java::lang::Class::u_name(), *this, std::move(cls));
+}
+
 auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::stream_element> elem)
 -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
   if (elem == nullptr) return decoder(nullptr);
@@ -96,12 +103,14 @@ auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::stream_element> 
     auto enm = ::std::dynamic_pointer_cast<const stream::new_enum>(elem);
     if (enm != nullptr) return decoder(std::move(enm));
   }
+#endif
 
   {
     auto cls = ::std::dynamic_pointer_cast<const stream::new_class>(elem);
     if (cls != nullptr) return decoder(std::move(cls));
   }
 
+#if 0 // XXX
   {
     auto arr = ::std::dynamic_pointer_cast<const stream::new_array>(elem);
     if (arr != nullptr) return decoder(std::move(arr));
