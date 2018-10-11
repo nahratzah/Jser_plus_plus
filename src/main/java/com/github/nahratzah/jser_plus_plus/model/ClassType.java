@@ -634,6 +634,18 @@ public class ClassType implements JavaType {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieve the fields that have encoder for serialization enabled.
+     *
+     * @return List of fields for which serialization is enabled.
+     */
+    public List<FieldType> getEncoderSerializationFields() {
+        return fields.stream()
+                .filter(f -> f.isEncodeEnabled())
+                .filter(f -> !f.isOmit() || f.getEncoderExpr() != null)
+                .collect(Collectors.toList());
+    }
+
     @Override
     public boolean isInterface() {
         return Modifier.isInterface(this.c.getModifiers());

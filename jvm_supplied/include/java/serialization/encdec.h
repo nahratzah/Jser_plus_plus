@@ -503,7 +503,7 @@ struct new_object
                 std::int64_t,
                 std::int16_t,
                 bool,
-                cycle_ptr::cycle_member_ptr<const stream_element>>>>;
+                cycle_ptr::cycle_gptr<const stream_element>>>>;
     using annotation_initializer_list = std::initializer_list<
         std::variant<
             cycle_ptr::cycle_gptr<const stream_element>,
@@ -604,21 +604,55 @@ struct new_object
       std::for_each(
           new_fields.begin(), new_fields.end(),
           [this](const auto& pair) {
-            std::visit(
-                [this, &pair](const auto& v) {
-                  if constexpr(std::is_convertible_v<std::decay_t<decltype(v)>, cycle_ptr::cycle_gptr<const stream_element>>)
-                    fields.emplace(
-                        std::piecewise_construct,
-                        std::forward_as_tuple(pair.first),
-                        std::forward_as_tuple(std::in_place_type<cycle_ptr::cycle_member_ptr<const stream_element>>, v));
-                  else
-                    fields.emplace(
-                        std::piecewise_construct,
-                        std::forward_as_tuple(pair.first),
-                        std::forward_as_tuple(std::in_place_type<std::decay_t<decltype(v)>>, v));
-                },
-                pair.second);
+            this->set_field(pair.first, pair.second);
           });
+    }
+
+    template<typename String, typename Field>
+    auto set_field(String&& key, Field&& field)
+    -> void {
+      set_field(fields, key, std::forward<Field>(field));
+    }
+
+    template<typename String, typename Field>
+    static auto set_field(field_map& fields, String&& key, Field&& field)
+    -> void {
+#if __has_cpp_attribute(__cpp_lib_unordered_map_try_emplace) >= 201411
+      std::visit(
+          [&fields, &key](auto&& v) {
+            if constexpr(std::is_convertible_v<std::decay_t<decltype(v)>, cycle_ptr::cycle_gptr<const stream_element>>) {
+              const auto emplace_result = fields.try_emplace(
+                  stream_string(std::forward<String>(key)),
+                  std::in_place_type<cycle_ptr::cycle_member_ptr<const stream_element>>, std::forward<decltype(v)>(v));
+              if (!emplace_result.second)
+                emplace_result.first->second.template emplace<cycle_ptr::cycle_member_ptr<const stream_element>>(std::forward<decltype(v)>(v));
+            } else {
+              const auto emplace_result = fields.try_emplace(
+                  stream_string(std::forward<String>(key)),
+                  std::in_place_type<std::decay_t<decltype(v)>>, std::forward<decltype(v)>(v));
+              if (!emplace_result.second)
+                emplace_result.first->second.template emplace<std::decay_t<decltype(v)>>(std::forward<decltype(v)>(v));
+            }
+          },
+          std::forward<Field>(field));
+#else
+      fields.erase(stream_string(key));
+      std::visit(
+          [&fields, &key](auto&& v) {
+            if constexpr(std::is_convertible_v<std::decay_t<decltype(v)>, cycle_ptr::cycle_gptr<const stream_element>>) {
+              fields.emplace(
+                  std::piecewise_construct,
+                  std::forward_as_tuple(std::forward<String>(key)),
+                  std::forward_as_tuple(std::in_place_type<cycle_ptr::cycle_member_ptr<const stream_element>>, std::forward<decltype(v)>(v)));
+            } else {
+              fields.emplace(
+                  std::piecewise_construct,
+                  std::forward_as_tuple(std::forward<String>(key)),
+                  std::forward_as_tuple(std::in_place_type<std::decay_t<decltype(v)>>, std::forward<decltype(v)>(v)));
+            }
+          },
+          std::forward<Field>(field));
+#endif
     }
 
     template<typename AnnotationVector>

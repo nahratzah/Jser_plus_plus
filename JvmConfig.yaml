@@ -229,12 +229,13 @@ rules:
       using namespace ::std::literals;
       using namespace ::java::serialization::stream;
 
+      $if (model.writeMethod)$const auto emplace_result = $endif$$\\$
       obj.data.emplace(
           ::std::piecewise_construct,
           ::std::forward_as_tuple($erasedType(model)$::__serializable_class__(handler_)),
           std::forward_as_tuple(
-              std::initializer_list<class_desc::field_map::value_type>{
-                $ model.serializationFields
+              new_object::field_initializer_list{
+                $ model.encoderSerializationFields
                 : { f | $\\$
                     { stream_string($u16StringView(f.serializationName)$),$"\n  "$$\\$
                       $if (f.serializationType.primitive && !f.serializationArray)$$\\$
@@ -245,8 +246,12 @@ rules:
                       $" "$\}$\\$
                   }
                 ; anchor, separator = ",\n"$
-              },
-              ::std::initializer_list<::std::variant<::cycle_ptr::cycle_gptr<const stream_element>, blockdata>>{}));
+              }));
+
+      $if (model.writeMethod)$$\\$
+      $if (model.devMode)$// $endif$$\\$
+      emplace_result.first->second.assign_annotation(this->$erasedType(model)$::__encoder_annotation__(handler_, emplace_result.first->second.fields));
+      $endif$
 
       $if (model.superClass.type.testInherits.({java.io.Serializable}))$
       this->$erasedType(model.superClass.type)$::__encoder_fields__(handler_, obj);
@@ -345,6 +350,11 @@ rules:
           $endif$$\\$
         }
       ; anchor, separator = "\n"$
+
+      $endif$
+      $if (model.writeMethod)$$\\$
+      $if (model.devMode)$// $endif$$\\$
+      this->$erasedType(model)$::__decoder_annotation__(__decoder__);
 
       $endif$
       $if (model.superClass.type.testInherits.({java.io.Serializable}))$$\\$
@@ -3963,7 +3973,11 @@ classes:
     fields:
       value:
         omit: true
-        encoder_expr: this->__encoder_value__()
+      count:
+        omit: true
+      shared:
+        omit: true
+        encoder_expr: "false"
     members:
     - type: constructor
     - type: constructor
@@ -3976,16 +3990,64 @@ classes:
             - string_view
       super: s
     - type: method
-      name: __encoder_value__
+      name: __decoder_annotation__
+      visibility: private
+      arguments:
+      - name: decoder
+        type:
+          cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
+          includes:
+            declaration:
+            - java/serialization/decoder_fwd.h
+            implementation:
+            - java/serialization/decoder.h
+      body: |
+        using namespace ::std::string_view_literals;
+        using conversion_type = ::std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>,
+            char16_t>;
+
+        auto len = decoder.get_primitive_field<::java::int_t>($u16StringView("count")$);
+        if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative array size})$);
+
+        auto data = decoder.get_complete_field<::java::array_type<::java::char_t>>($u16StringView("value")$);
+        if (data.size() < ::std::size_t(len)) throw ::java::serialization::decoding_error($cxxString({$model.name$: insufficient characters})$);
+
+        conversion_type conversion;
+        this->$boundTemplateType(java.({java.lang.AbstractStringBuilder}), "style=erased")$::value = conversion.to_bytes(&data.begin()[0], &data.begin()[len]);
+      includes:
+        implementation:
+        - locale
+        - codecvt
+    - type: method
+      name: __encoder_annotation__
       visibility: private
       const: true
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+          includes:
+            declaration:
+            - java/serialization/type_def_fwd.h
+      - name: fields
+        type:
+          cxx: ::java::serialization::stream::new_object::class_data::field_map&
+          includes:
+            declaration:
+            - java/serialization/encdec.h
       return:
-        cxx: ::java::array_type<::java::char_t>
+        cxx: ::std::vector<::std::variant<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>, ::java::serialization::stream::blockdata>>
         includes:
           declaration:
-          - java/array.h
-          - java/primitives.h
+          - vector
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
       body: |
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
         using conversion_type = ::std::wstring_convert<
             std::codecvt_utf8_utf16<char16_t>,
             char16_t>;
@@ -3993,11 +4055,26 @@ classes:
         conversion_type conversion;
         const auto converted = conversion.from_bytes(this->value);
 
-        return ::java::array_type<::java::char_t>(::java::allocate, converted.begin(), converted.end());
+        auto data = ::java::array_type<::java::char_t>(::java::allocate, converted.begin(), converted.end());
+        if (data.size() > 0x7fffffffu)
+          throw ::std::logic_error($cxxString({$model.name$: size too large})$);
+
+        new_object::class_data::set_field(
+            fields,
+            $u16StringView("count")$,
+            primitive_desc::value_type(::std::in_place_type<::java::int_t>, data.size()));
+        new_object::class_data::set_field(
+            fields,
+            $u16StringView("value")$,
+            object_desc::value_type(handler_.encode_field(data)));
+
+        return {};
       includes:
         implementation:
         - locale
         - codecvt
+        - string_view
+        - java/serialization/encdec.h
     - type: method
       name: subSequence
       override: true
