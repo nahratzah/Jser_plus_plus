@@ -3460,12 +3460,6 @@ classes:
     fields:
       size:
         omit: true
-        encoder_expr: |
-          [this]() {
-            if (this->data_.size() > 0x7fffffffu)
-              throw ::std::logic_error($cxxString({$model.name$: size too large})$);
-            return ::java::int_t(this->data_.size());
-          }(/* invoke */)
       data_:
         visibility: private
         type:
@@ -3724,6 +3718,112 @@ classes:
         java: E
       body: |
         return data_.back();
+    - type: method
+      name: __decoder_annotation__
+      visibility: private
+      arguments:
+      - name: decoder
+        type:
+          cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
+          includes:
+            declaration:
+            - java/serialization/decoder_fwd.h
+            implementation:
+            - java/serialization/decoder.h
+      body: |
+        using namespace ::std::string_view_literals;
+        using conversion_type = ::std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>,
+            char16_t>;
+
+        auto annotation = ::java::serialization::annotation_reader(decoder.get_annotation());
+
+        auto len = decoder.get_primitive_field<::java::int_t>($u16StringView("size")$);
+        if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative collection size})$);
+
+        annotation.read_int(); // discard unused capacity field
+
+        data_.reserve(len);
+        ::std::generate_n(
+            ::std::back_inserter(data_),
+            ::std::size_t(len),
+            [&annotation, this]() {
+              if (comparator != nullptr)
+                return annotation.read_complete_object<$boundTemplateType(java.({E}), "style=type, class")$>();
+              else
+                return annotation.read_comparable_object<$boundTemplateType(java.({E}), "style=type, class")$>();
+            });
+
+        // If the comparator doesn't follow the same ordering, we need to re-order the collection to maintain the heap invariant.
+        if (!::std::is_heap(data_.begin(), data_.end(),
+                            [this](const auto& x, const auto& y) {
+                              return compare_(x, y);
+                            })) {
+          std::make_heap(data_.begin(), data_.end(),
+                         [this](const auto& x, const auto& y) {
+                           return compare_(x, y);
+                         });
+        }
+      includes:
+        implementation:
+        - algorithm
+        - iterator
+        - string_view
+    - type: method
+      name: __encoder_annotation__
+      visibility: private
+      const: true
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+          includes:
+            declaration:
+            - java/serialization/type_def_fwd.h
+      - name: fields
+        type:
+          cxx: ::java::serialization::stream::new_object::class_data::field_map&
+          includes:
+            declaration:
+            - java/serialization/encdec.h
+      return:
+        cxx: ::std::vector<::std::variant<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>, ::java::serialization::stream::blockdata>>
+        includes:
+          declaration:
+          - vector
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
+      body: |
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+
+        auto annotation = ::java::serialization::annotation_writer(handler_);
+
+        if (data_.size() > 0x7ffffffeu) // One less than max, because of how capacity is written out.
+          throw ::std::logic_error($cxxString({$model.name$: size too large})$);
+
+        new_object::class_data::set_field(
+            fields,
+            $u16StringView("size")$,
+            primitive_desc::value_type(::std::in_place_type<::java::int_t>, data_.size()));
+
+        // capacity
+        if (data_.empty())
+          annotation.write_int(2);
+        else
+          annotation.write_int(data_.size() + 1u);
+
+        for (const auto& i : data_) annotation.write_object(i);
+
+        return std::move(annotation).data();
+      includes:
+        implementation:
+        - stdexcept
+        - java/serialization/writer.h
+        - java/serialization/encdec.h
+        - string_view
 
 
   java.lang.CharSequence:
