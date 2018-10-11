@@ -2855,7 +2855,7 @@ classes:
           throw ::std::logic_error($cxxString({$model.name$: size too large})$);
 
         annotation.write_int(data_.size());
-        for (auto i : data_) annotation.write_object(i);
+        for (const auto& i : data_) annotation.write_object(i);
 
         return std::move(annotation).data();
       includes:
@@ -5876,3 +5876,85 @@ classes:
           - java/iterator.h
       body: |
         return ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>(data_.find(std::move(e)));
+    - type: method
+      name: __decoder_annotation__
+      visibility: private
+      arguments:
+      - name: decoder
+        type:
+          cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
+          includes:
+            declaration:
+            - java/serialization/decoder_fwd.h
+            implementation:
+            - java/serialization/decoder.h
+      body: |
+        using conversion_type = ::std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>,
+            char16_t>;
+
+        auto annotation = ::java::serialization::annotation_reader(decoder.get_annotation());
+
+        annotation.read_int(); // capacity
+        annotation.read_float(); // load factor
+
+        auto len = annotation.read_int();
+        if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative collection size})$);
+
+        data_.reserve(len);
+        ::std::generate_n(
+            ::std::inserter(data_, data_.end()),
+            ::std::size_t(len),
+            [&annotation]() {
+              return annotation.read_comparable_object<$boundTemplateType(java.({E}), "style=type, class")$>();
+            });
+
+        if (data_.size() != ::std::size_t(len))
+          throw ::java::serialization::decoding_error($cxxString({$model.name$: lost elements while loading hash set})$);
+      includes:
+        implementation:
+        - algorithm
+        - iterator
+        - java/serialization/exception.h
+    - type: method
+      name: __encoder_annotation__
+      visibility: private
+      const: true
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+          includes:
+            declaration:
+            - java/serialization/type_def_fwd.h
+      - name: _fields_
+        type:
+          cxx: ::java::serialization::stream::new_object::class_data::field_map&
+          includes:
+            declaration:
+            - java/serialization/encdec.h
+      return:
+        cxx: ::std::vector<::std::variant<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>, ::java::serialization::stream::blockdata>>
+        includes:
+          declaration:
+          - vector
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
+      body: |
+        auto annotation = ::java::serialization::annotation_writer(handler_);
+
+        if (data_.size() > 0x7fffffffu)
+          throw ::std::logic_error($cxxString({$model.name$: size too large})$);
+
+        annotation.write_int(data_.size()); // capacity
+        annotation.write_float(1); // load factor
+        annotation.write_int(data_.size());
+        for (const auto& i : data_) annotation.write_object(i);
+
+        return std::move(annotation).data();
+      includes:
+        implementation:
+        - stdexcept
+        - java/serialization/writer.h
