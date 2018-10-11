@@ -3,6 +3,7 @@
 
 #include <java/serialization/decoder_fwd.h>
 #include <java/serialization/module_fwd.h>
+#include <java/serialization/reader.h>
 #include <java/serialization/encdec.h>
 #include <java/inline.h>
 #include <java/ref.h>
@@ -238,6 +239,11 @@ class basic_class_decoder {
   JSER_INLINE auto get_complete_field(::std::u16string_view name) const
   -> T {
     return ::java::cast<T>(get_complete_field_(name));
+  }
+
+  JSER_INLINE auto get_annotation() const
+  -> annotation_reader {
+    return annotation_reader(intf_, cd_.annotation);
   }
 
  private:
