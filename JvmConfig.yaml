@@ -2572,6 +2572,24 @@ classes:
 
   java.util.ArrayList<E>:
     dev_mode: false
+    fields:
+      size:
+        omit: true
+        encoder_expr: |
+          [this]() {
+            if (this->data_.size() > 0x7fffffffu)
+              throw ::std::logic_error($cxxString({$model.name$: size too large})$);
+            return ::java::int_t(this->data_.size());
+          }(/* invoke */)
+      data_:
+        visibility: private
+        type:
+          cxx: ::std::vector<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>
+          includes:
+            declaration:
+            - vector
+            - cycle_ptr/allocator.h
+        default: ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
     members:
     - type: constructor
     - type: constructor
@@ -2771,24 +2789,79 @@ classes:
         java: const E
       body: |
         return data_.at(index);
-    fields:
-      size:
-        omit: true
-        encoder_expr: |
-          [this]() {
-            if (this->data_.size() > 0x7fffffffu)
-              throw ::std::logic_error($cxxString({$model.name$: size too large})$);
-            return ::java::int_t(this->data_.size());
-          }(/* invoke */)
-      data_:
-        visibility: private
+    - type: method
+      name: __decoder_annotation__
+      visibility: private
+      arguments:
+      - name: decoder
         type:
-          cxx: ::std::vector<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>
+          cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
           includes:
             declaration:
-            - vector
-            - cycle_ptr/allocator.h
-        default: ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+            - java/serialization/decoder_fwd.h
+            implementation:
+            - java/serialization/decoder.h
+      body: |
+        using conversion_type = ::std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>,
+            char16_t>;
+
+        auto annotation = ::java::serialization::annotation_reader(decoder.get_annotation());
+
+        auto len = annotation.read_int();
+        if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative collection size})$);
+
+        data_.reserve(len);
+        ::std::generate_n(
+            ::std::back_inserter(data_),
+            ::std::size_t(len),
+            [&annotation]() {
+              return annotation.read_initial_object<$boundTemplateType(java.({E}), "style=type, class")$>();
+            });
+      includes:
+        implementation:
+        - algorithm
+        - iterator
+    - type: method
+      name: __encoder_annotation__
+      visibility: private
+      const: true
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+          includes:
+            declaration:
+            - java/serialization/type_def_fwd.h
+      - name: _fields_
+        type:
+          cxx: ::java::serialization::stream::new_object::class_data::field_map&
+          includes:
+            declaration:
+            - java/serialization/encdec.h
+      return:
+        cxx: ::std::vector<::std::variant<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>, ::java::serialization::stream::blockdata>>
+        includes:
+          declaration:
+          - vector
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
+      body: |
+        auto annotation = ::java::serialization::annotation_writer(handler_);
+
+        if (data_.size() > 0x7fffffffu)
+          throw ::std::logic_error($cxxString({$model.name$: size too large})$);
+
+        annotation.write_int(data_.size());
+        for (auto i : data_) annotation.write_object(i);
+
+        return std::move(annotation).data();
+      includes:
+        implementation:
+        - stdexcept
+        - java/serialization/writer.h
 
 
   java.util.LinkedList<E>:
@@ -4024,7 +4097,6 @@ classes:
           implementation:
           - java/serialization/encdec.h
       body: |
-        using namespace ::java::serialization::stream;
         using conversion_type = ::std::wstring_convert<
             std::codecvt_utf8_utf16<char16_t>,
             char16_t>;
@@ -4046,7 +4118,6 @@ classes:
         implementation:
         - locale
         - codecvt
-        - string_view
         - java/serialization/writer.h
 
 
