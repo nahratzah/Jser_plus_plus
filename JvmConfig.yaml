@@ -175,7 +175,7 @@ rules:
                 field_descriptor($u16StringView(model.name)$),
                 $model.serialVersionUID_string$, // serialVersionUID
                 $if (model.superClass.type.testInherits.({java.io.Serializable}))$$boundTemplateType(model.superClass, "style=erased")$::__serializable_class__(handler),$else$nullptr, // No serializable super class.$endif$
-                SC_SERIALIZABLE, // flags (XXX actual flags)
+                SC_SERIALIZABLE$if (model.writeMethod)$ | SC_WRITE_METHOD$endif$,
                 ::std::initializer_list<field_desc>{
                   $ model.serializationFields
                   : { f | $\\$

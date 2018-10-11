@@ -18,6 +18,7 @@ import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.ConstTypeRenderer;
 import com.github.nahratzah.jser_plus_plus.output.builtins.FunctionAttrMap;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
+import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
@@ -100,6 +101,17 @@ public class ClassType implements JavaType {
         LOG.log(Level.FINE, "Rename map for {0} = {1}", new Object[]{c, argRename});
 
         final ObjectStreamClass streamClass = ObjectStreamClass.lookupAny(this.c);
+
+        // Figure out if the class has a write method.
+        try {
+            final java.lang.reflect.Method method = this.c.getDeclaredMethod("writeObject", new Class<?>[]{ObjectOutputStream.class});
+            final int mods = method.getModifiers();
+            this.writeMethod = (method.getReturnType() == Void.TYPE)
+                    && ((mods & Modifier.STATIC) == 0)
+                    && ((mods & Modifier.PRIVATE) != 0);
+        } catch (NoSuchMethodException ex) {
+            this.writeMethod = false;
+        }
 
         this.serialVersionUID = streamClass.getSerialVersionUID();
         initTemplateArguments(ctx, classCfg, cTypeParameters, argRename);
@@ -573,6 +585,10 @@ public class ClassType implements JavaType {
 
     public long getSerialVersionUID() {
         return serialVersionUID;
+    }
+
+    public boolean isWriteMethod() {
+        return writeMethod;
     }
 
     public String getSerialVersionUID_string() {
@@ -1503,6 +1519,10 @@ public class ClassType implements JavaType {
      * The serial version UID of the class.
      */
     private long serialVersionUID = 0;
+    /**
+     * If set, the class has a write method.
+     */
+    private boolean writeMethod = false;
     /**
      * List of fields.
      */
