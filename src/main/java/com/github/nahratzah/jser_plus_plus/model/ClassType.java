@@ -266,6 +266,9 @@ public class ClassType implements JavaType {
                     iField.setCompleteInit(fieldCfg.isCompleteInit());
                     if (fieldCfg.getDecodeStage() != null)
                         iField.setDecodeStage(fieldCfg.getDecodeStage());
+                    iField.setOmit(fieldCfg.isOmit());
+                    if (fieldCfg.getEncoderExpr() != null)
+                        iField.setEncoderExpr(fieldCfg.getEncoderExpr());
                 })
                 .peek(iField -> {
                     iField.prerender(singletonMap("model", this), getTemplateArgumentNames());
@@ -330,6 +333,7 @@ public class ClassType implements JavaType {
                         "optional")));
 
         final Stream<Map.Entry<String, String>> primitiveFieldInitializers = getSerializationFields().stream()
+                .filter(field -> !field.isOmit())
                 .filter(field -> field.getDecodeStage().isAtInitialStage())
                 .filter(isPrimitive)
                 .map(field -> {
@@ -344,6 +348,7 @@ public class ClassType implements JavaType {
                 });
 
         final Stream<Map.Entry<String, String>> finalFieldInitializers = getSerializationFields().stream()
+                .filter(field -> !field.isOmit())
                 .filter(field -> field.getDecodeStage().isAtInitialStage())
                 .filter(isPrimitive.negate())
                 .map(field -> {
@@ -597,7 +602,9 @@ public class ClassType implements JavaType {
      * @return The fields of this type.
      */
     public List<FieldType> getFields() {
-        return fields;
+        return fields.stream()
+                .filter(f -> !f.isOmit())
+                .collect(Collectors.toList());
     }
 
     /**
@@ -606,7 +613,7 @@ public class ClassType implements JavaType {
      * @return List of fields for which serialization is enabled.
      */
     public List<FieldType> getSerializationFields() {
-        return getFields().stream()
+        return fields.stream()
                 .filter(f -> f.isDecodeEnabled() || f.isEncodeEnabled())
                 .collect(Collectors.toList());
     }

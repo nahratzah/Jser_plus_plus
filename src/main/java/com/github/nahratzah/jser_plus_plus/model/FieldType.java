@@ -342,6 +342,40 @@ public class FieldType {
     }
 
     /**
+     * Test if the field is to be omitted from the class declaration.
+     *
+     * @return True if the field is to be omitted from the class declaration.
+     */
+    public boolean isOmit() {
+        return omit;
+    }
+
+    public void setOmit(boolean omit) {
+        this.omit = omit;
+    }
+
+    /**
+     * Specialized encoder expression.
+     *
+     * @return Encoder expression.
+     */
+    public String getEncoderExpr() {
+        if (encoderExpr == null) return null;
+
+        String expr = encoderExpr;
+        if (expr.endsWith("\n")) expr = expr.substring(0, expr.length() - 1);
+
+        return new ST(StCtx.BUILTINS, expr)
+                .add("model", declaringClass)
+                .add("this", "_self_")
+                .render(Locale.ROOT);
+    }
+
+    public void setEncoderExpr(String encoderExpr) {
+        this.encoderExpr = encoderExpr;
+    }
+
+    /**
      * Prerender the types.
      *
      * @param renderArgs Arguments to the renderer.
@@ -495,4 +529,6 @@ public class FieldType {
     private String defaultInit = null;
     private boolean completeInit = false;
     private DecodeStage decodeStage;
+    private boolean omit = false;
+    private String encoderExpr;
 }

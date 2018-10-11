@@ -240,9 +240,9 @@ rules:
                 : { f | $\\$
                     { stream_string($u16StringView(f.serializationName)$),$"\n  "$$\\$
                       $if (f.serializationType.primitive && !f.serializationArray)$$\\$
-                      primitive_desc::value_type(::std::in_place_type<::$[f.serializationType.namespace, f.serializationType.className]; separator = "::"$>, _self_.$f.name$)$\\$
+                      primitive_desc::value_type(::std::in_place_type<::$[f.serializationType.namespace, f.serializationType.className]; separator = "::"$>, $if (f.encoderExpr)$${$f.encoderExpr; anchor$}$$else$_self_.$f.name$$endif$)$\\$
                       $else$$\\$
-                      object_desc::value_type(handler_.$if (f.shared)$encode_field$else$encode_field_unshared$endif$(_self_.$f.name$))$\\$
+                      object_desc::value_type(handler_.$if (f.shared)$encode_field$else$encode_field_unshared$endif$($if (f.encoderExpr)$${$f.encoderExpr; anchor$}$$else$_self_.$f.name$$endif$))$\\$
                       $endif$$\\$
                       $" "$\}$\\$
                   }
@@ -345,8 +345,8 @@ rules:
 
       $ model.serializationFields
       : { f | $\\$
-          $if (f.decodeStage.atComparableStage)$$\\$
-          _out_.$f.name$ = __decoder__.$if (f.completeInit)$get_complete_field$else$get_initial_field$endif$<$boundTemplateType(f.varType, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
+          $if (f.decodeStage.atComparableStage && !f.omit)$$\\$
+          _out_.$f.name$ = __decoder__.$if (f.completeInit)$get_complete_field$else$get_initial_field$endif$<$boundTemplateType(f.type, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
           $endif$$\\$
         }
       ; anchor, separator = "\n"$
@@ -381,8 +381,8 @@ rules:
 
       $ model.serializationFields
       : { f | $\\$
-          $if (f.decodeStage.atCompleteStage)$$\\$
-          _out_.$f.name$ = __decoder__.get_initial_field<$boundTemplateType(f.varType, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
+          $if (f.decodeStage.atCompleteStage && !f.omit)$$\\$
+          _out_.$f.name$ = __decoder__.get_initial_field<$boundTemplateType(f.type, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
           $endif$$\\$
         }
       ; anchor, separator = "\n"$
@@ -2771,9 +2771,13 @@ classes:
         return data_.at(index);
     fields:
       size:
-        visibility: private
-        # XXX implement field removal
-        rename: xxx_implement_remove_
+        omit: true
+        encoder_expr: |
+          [&]() {
+            if ($this$.data_.size() > 0x7fffffffu)
+              throw ::std::logic_error($cxxString({$model.name$: size too large})$);
+            return ::java::int_t($this$.data_.size());
+          }(/* invoke */)
       data_:
         visibility: private
         type:
@@ -3302,9 +3306,13 @@ classes:
       \attention Java's priority queue is a min-heap, in contrast to the one in C++, which is a max heap.
     fields:
       size:
-        visibility: private
-        # XXX implement field removal
-        rename: xxx_implement_remove_
+        omit: true
+        encoder_expr: |
+          [&]() {
+            if ($this$.data_.size() > 0x7fffffffu)
+              throw ::std::logic_error($cxxString({$model.name$: size too large})$);
+            return ::java::int_t($this$.data_.size());
+          }(/* invoke */)
       data_:
         visibility: private
         type:
@@ -3962,9 +3970,8 @@ classes:
     dev_mode: false
     fields:
       value:
-        visibility: private
-        # XXX implement field removal
-        rename: xxx_implement_remove_
+        omit: true
+        encoder_expr: $this$.__encoder_value__()
     members:
     - type: constructor
     - type: constructor
@@ -3976,6 +3983,25 @@ classes:
             declaration:
             - string_view
       super: s
+    - type: method
+      name: __encoder_value__
+      visibility: private
+      const: true
+      return:
+        cxx: ::java::array_type<::java::char_t>
+        includes:
+          declaration:
+          - java/array.h
+          - java/primitives.h
+      body: |
+        using conversion_type = ::std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>,
+            char16_t>;
+
+        conversion_type conversion;
+        const auto converted = conversion.from_bytes(this->value);
+
+        return ::java::array_type<::java::char_t>(::java::allocate, converted.begin(), converted.end());
     - type: method
       name: subSequence
       override: true

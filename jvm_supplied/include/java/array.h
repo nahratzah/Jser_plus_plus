@@ -3,7 +3,9 @@
 
 #include <java/array_fwd.h>
 #include <cstddef>
+#include <initializer_list>
 #include <string>
+#include <utility>
 #include <vector>
 #include <java/primitives.h>
 #include <java/object_intf.h>
@@ -105,6 +107,16 @@ class array<::java::boolean_t> final
 
  public:
   array() = default;
+
+  explicit array(::std::initializer_list<::java::boolean_t> init)
+  : data_(std::move(init))
+  {}
+
+  template<typename Iter, typename = std::enable_if_t<std::is_constructible_v<vector_type, Iter, Iter>>>
+  explicit array(Iter b, Iter e)
+  : data_(std::move(b), std::move(e))
+  {}
+
   ~array() noexcept override;
 
   JSER_INLINE auto empty() const noexcept -> bool {
@@ -186,6 +198,16 @@ class array<::java::byte_t> final
 
  public:
   array() = default;
+
+  explicit array(::std::initializer_list<::java::byte_t> init)
+  : data_(std::move(init))
+  {}
+
+  template<typename Iter, typename = std::enable_if_t<std::is_constructible_v<vector_type, Iter, Iter>>>
+  explicit array(Iter b, Iter e)
+  : data_(std::move(b), std::move(e))
+  {}
+
   ~array() noexcept override;
 
   JSER_INLINE auto empty() const noexcept -> bool {
@@ -267,6 +289,16 @@ class array<::java::short_t> final
 
  public:
   array() = default;
+
+  explicit array(::std::initializer_list<::java::short_t> init)
+  : data_(std::move(init))
+  {}
+
+  template<typename Iter, typename = std::enable_if_t<std::is_constructible_v<vector_type, Iter, Iter>>>
+  explicit array(Iter b, Iter e)
+  : data_(std::move(b), std::move(e))
+  {}
+
   ~array() noexcept override;
 
   JSER_INLINE auto empty() const noexcept -> bool {
@@ -348,6 +380,16 @@ class array<::java::int_t> final
 
  public:
   array() = default;
+
+  explicit array(::std::initializer_list<::java::int_t> init)
+  : data_(std::move(init))
+  {}
+
+  template<typename Iter, typename = std::enable_if_t<std::is_constructible_v<vector_type, Iter, Iter>>>
+  explicit array(Iter b, Iter e)
+  : data_(std::move(b), std::move(e))
+  {}
+
   ~array() noexcept override;
 
   JSER_INLINE auto empty() const noexcept -> bool {
@@ -429,6 +471,16 @@ class array<::java::long_t> final
 
  public:
   array() = default;
+
+  explicit array(::std::initializer_list<::java::long_t> init)
+  : data_(std::move(init))
+  {}
+
+  template<typename Iter, typename = std::enable_if_t<std::is_constructible_v<vector_type, Iter, Iter>>>
+  explicit array(Iter b, Iter e)
+  : data_(std::move(b), std::move(e))
+  {}
+
   ~array() noexcept override;
 
   JSER_INLINE auto empty() const noexcept -> bool {
@@ -510,6 +562,16 @@ class array<::java::float_t> final
 
  public:
   array() = default;
+
+  explicit array(::std::initializer_list<::java::float_t> init)
+  : data_(std::move(init))
+  {}
+
+  template<typename Iter, typename = std::enable_if_t<std::is_constructible_v<vector_type, Iter, Iter>>>
+  explicit array(Iter b, Iter e)
+  : data_(std::move(b), std::move(e))
+  {}
+
   ~array() noexcept override;
 
   JSER_INLINE auto empty() const noexcept -> bool {
@@ -591,6 +653,16 @@ class array<::java::double_t> final
 
  public:
   array() = default;
+
+  explicit array(::std::initializer_list<::java::double_t> init)
+  : data_(std::move(init))
+  {}
+
+  template<typename Iter, typename = std::enable_if_t<std::is_constructible_v<vector_type, Iter, Iter>>>
+  explicit array(Iter b, Iter e)
+  : data_(std::move(b), std::move(e))
+  {}
+
   ~array() noexcept override;
 
   JSER_INLINE auto empty() const noexcept -> bool {
@@ -672,6 +744,16 @@ class array<::java::char_t> final
 
  public:
   array() = default;
+
+  explicit array(::std::initializer_list<::java::char_t> init)
+  : data_(std::move(init))
+  {}
+
+  template<typename Iter, typename = std::enable_if_t<std::is_constructible_v<vector_type, Iter, Iter>>>
+  explicit array(Iter b, Iter e)
+  : data_(std::move(b), std::move(e))
+  {}
+
   ~array() noexcept override;
 
   JSER_INLINE auto empty() const noexcept -> bool {
@@ -1479,6 +1561,22 @@ class basic_ref<PtrImpl, Type*> final {
       p_ = ::cycle_ptr::make_cycle<NewArrayType>();
     else
       p_ = ::cycle_ptr::make_cycle<NewArrayType>(::java::_erased::java::get_array_elem_class_<Type>::get_class());
+  }
+
+  template<
+      typename... Args,
+      typename NewArraySelector = typename ::java::_erased::java::select_array_new_impl_<Type>,
+      typename NewArrayType = typename NewArraySelector::type,
+      typename = std::enable_if_t<
+          ( ::java::_erased::java::array_impl_is_primitive_<Type>::value
+          ? ::std::is_constructible_v<NewArrayType, Args...>
+          : ::std::is_constructible_v<::java::lang::Class<::java::G::pack<>>, NewArrayType, Args...>
+          )>>
+  explicit JSER_INLINE basic_ref([[maybe_unused]] allocate_t a, Args&&... args) {
+    if constexpr(::java::_erased::java::array_impl_is_primitive_<Type>::value)
+      p_ = ::cycle_ptr::make_cycle<NewArrayType>(::std::forward<Args>(args)...);
+    else
+      p_ = ::cycle_ptr::make_cycle<NewArrayType>(::java::_erased::java::get_array_elem_class_<Type>::get_class(), ::std::forward<Args>(args)...);
   }
 
   template<template<typename> class OPtrImpl, typename OType,

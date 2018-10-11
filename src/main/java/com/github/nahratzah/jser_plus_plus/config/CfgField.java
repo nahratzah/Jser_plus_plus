@@ -98,6 +98,22 @@ public class CfgField {
         this.decodeStage = decodeStage;
     }
 
+    public boolean isOmit() {
+        return omit;
+    }
+
+    public void setOmit(boolean omit) {
+        this.omit = omit;
+    }
+
+    public String getEncoderExpr() {
+        return encoderExpr;
+    }
+
+    public void setEncoderExpr(String encoderExpr) {
+        this.encoderExpr = encoderExpr;
+    }
+
     @JsonProperty("getter")
     private Boolean getterFn;
     @JsonProperty("setter")
@@ -112,12 +128,16 @@ public class CfgField {
     private String docString = null;
     @JsonProperty(value = "type", required = true)
     private CfgType type;
-    @JsonProperty(value = "default")
+    @JsonProperty("default")
     private String defaultInit;
-    @JsonProperty(value = "rename")
+    @JsonProperty("rename")
     private String rename;
-    @JsonProperty(value = "decode_complete")
+    @JsonProperty("decode_complete")
     private boolean completeInit = false;
-    @JsonProperty(value = "decode_stage")
-    private DecodeStage decodeStage;
+    @JsonProperty("decode_stage")
+    private DecodeStage decodeStage = null;
+    @JsonProperty("omit")
+    private boolean omit = false;
+    @JsonProperty("encoder_expr")
+    private String encoderExpr = null;
 }
