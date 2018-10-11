@@ -264,6 +264,8 @@ public class ClassType implements JavaType {
                     if (fieldCfg.getRename() != null)
                         iField.setName(fieldCfg.getRename());
                     iField.setCompleteInit(fieldCfg.isCompleteInit());
+                    if (fieldCfg.getDecodeStage() != null)
+                        iField.setDecodeStage(fieldCfg.getDecodeStage());
                 })
                 .peek(iField -> {
                     iField.prerender(singletonMap("model", this), getTemplateArgumentNames());
