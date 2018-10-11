@@ -1630,12 +1630,12 @@ class basic_ref<PtrImpl, Type*> final {
     return p_ != nullptr;
   }
 
-  JSER_INLINE auto empty() const noexcept -> bool {
+  JSER_INLINE auto empty() const -> bool {
     if (!*this) throw ::java::null_error();
     return p_->empty();
   }
 
-  JSER_INLINE auto size() const noexcept -> size_type {
+  JSER_INLINE auto size() const -> size_type {
     if (!*this) throw ::java::null_error();
     return p_->size();
   }
@@ -1770,12 +1770,12 @@ class basic_ref<PtrImpl, Type*const> final {
     return p_ != nullptr;
   }
 
-  JSER_INLINE auto empty() const noexcept -> bool {
+  JSER_INLINE auto empty() const -> bool {
     if (!*this) throw ::java::null_error();
     return p_->empty();
   }
 
-  JSER_INLINE auto size() const noexcept -> size_type {
+  JSER_INLINE auto size() const -> size_type {
     if (!*this) throw ::java::null_error();
     return p_->size();
   }
