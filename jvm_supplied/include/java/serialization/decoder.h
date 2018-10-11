@@ -34,10 +34,8 @@ class decoder_ctx {
   auto decoder(::cycle_ptr::cycle_gptr<const stream::stream_string> obj)
   -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
 
-#if 0
-  auto decoder(::cycle_ptr::cycle_gptr<const stream::new_enum> obj)
+  auto decoder(::cycle_ptr::cycle_gptr<const stream::new_enum> enm)
   -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;
-#endif
 
   auto decoder(::cycle_ptr::cycle_gptr<const stream::new_class> cls)
   -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder>;

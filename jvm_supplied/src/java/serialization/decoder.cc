@@ -78,6 +78,25 @@ auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::stream_string> s
   return module_.decoder(::java::_tags::java::lang::String::u_name(), *this, std::move(str));
 }
 
+auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::new_enum> enm)
+-> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
+  if (enm == nullptr) return decoder(nullptr);
+
+  if (!enm->type) throw decoding_error("encoded object has no class");
+
+  // New object is an object class.
+  auto cd = dynamic_cast<const stream::new_class_desc__class_desc*>(enm->type.get());
+  if (cd == nullptr) throw decoding_error("encoded enum class is not a plain class");
+  const stream::field_descriptor& class_name = cd->class_name;
+
+  if (class_name.is_primitive())
+    throw decoding_error("encoded enum declares itself as primitive (primitives are not objects)");
+  if (class_name.is_array())
+    throw decoding_error("encoded enum declares itself an array (arrays have dedicated encoding)");
+
+  return module_.decoder(::std::get<::std::u16string_view>(class_name.type()), *this, std::move(enm));
+}
+
 auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::new_class> cls)
 -> ::cycle_ptr::cycle_gptr<::java::serialization::decoder> {
   if (cls == nullptr) return decoder(nullptr);
@@ -98,12 +117,10 @@ auto decoder_ctx::decoder(::cycle_ptr::cycle_gptr<const stream::stream_element> 
     if (str != nullptr) return decoder(std::move(str));
   }
 
-#if 0 // XXX
   {
     auto enm = ::std::dynamic_pointer_cast<const stream::new_enum>(elem);
     if (enm != nullptr) return decoder(std::move(enm));
   }
-#endif
 
   {
     auto cls = ::std::dynamic_pointer_cast<const stream::new_class>(elem);
