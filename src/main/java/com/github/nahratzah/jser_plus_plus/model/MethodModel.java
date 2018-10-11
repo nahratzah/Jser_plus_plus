@@ -215,6 +215,16 @@ public interface MethodModel {
     }
 
     /**
+     * Test if it is okay that this member hides the same methods from super
+     * types.
+     *
+     * @return True if it is okay that this method hides super type methods.
+     */
+    public default boolean isHideOk() {
+        return false;
+    }
+
+    /**
      * Retrieve the override selector of the method.
      *
      * @param ctx Lookup context to resolve classes.

@@ -209,11 +209,9 @@ rules:
   - type: method
     name: __encoder_fields__
     visibility: protected
-    static: true
+    const: true
+    allow_hide: true
     arguments:
-    - name: _self_
-      type:
-        cxx: const $erasedType(model)$&
     - name: handler_
       type:
         cxx: ::java::serialization::cycle_handler&
@@ -240,9 +238,9 @@ rules:
                 : { f | $\\$
                     { stream_string($u16StringView(f.serializationName)$),$"\n  "$$\\$
                       $if (f.serializationType.primitive && !f.serializationArray)$$\\$
-                      primitive_desc::value_type(::std::in_place_type<::$[f.serializationType.namespace, f.serializationType.className]; separator = "::"$>, $if (f.encoderExpr)$${$f.encoderExpr; anchor$}$$else$_self_.$f.name$$endif$)$\\$
+                      primitive_desc::value_type(::std::in_place_type<::$[f.serializationType.namespace, f.serializationType.className]; separator = "::"$>, $if (f.encoderExpr)$${$f.encoderExpr; anchor$}$$else$this->$f.name$$endif$)$\\$
                       $else$$\\$
-                      object_desc::value_type(handler_.$if (f.shared)$encode_field$else$encode_field_unshared$endif$($if (f.encoderExpr)$${$f.encoderExpr; anchor$}$$else$_self_.$f.name$$endif$))$\\$
+                      object_desc::value_type(handler_.$if (f.shared)$encode_field$else$encode_field_unshared$endif$($if (f.encoderExpr)$${$f.encoderExpr; anchor$}$$else$this->$f.name$$endif$))$\\$
                       $endif$$\\$
                       $" "$\}$\\$
                   }
@@ -251,7 +249,7 @@ rules:
               ::std::initializer_list<::std::variant<::cycle_ptr::cycle_gptr<const stream_element>, blockdata>>{}));
 
       $if (model.superClass.type.testInherits.({java.io.Serializable}))$
-      $erasedType(model.superClass.type)$::__encoder_fields__(_self_, handler_, obj);
+      this->$erasedType(model.superClass.type)$::__encoder_fields__(handler_, obj);
       $endif$
     includes:
       declaration:
@@ -297,7 +295,7 @@ rules:
           this->shared_from_this(this),
           [this](::java::serialization::cycle_handler& handler, new_object& obj) {
             obj.cls = $erasedType(model)$::__serializable_class__(handler);
-            $erasedType(model)$::__encoder_fields__(*this, handler, obj);
+            this->$erasedType(model)$::__encoder_fields__(handler, obj);
           });
     includes:
       declaration:
@@ -2773,10 +2771,10 @@ classes:
       size:
         omit: true
         encoder_expr: |
-          [&]() {
-            if ($this$.data_.size() > 0x7fffffffu)
+          [this]() {
+            if (this->data_.size() > 0x7fffffffu)
               throw ::std::logic_error($cxxString({$model.name$: size too large})$);
-            return ::java::int_t($this$.data_.size());
+            return ::java::int_t(this->data_.size());
           }(/* invoke */)
       data_:
         visibility: private
@@ -3308,10 +3306,10 @@ classes:
       size:
         omit: true
         encoder_expr: |
-          [&]() {
-            if ($this$.data_.size() > 0x7fffffffu)
+          [this]() {
+            if (this->data_.size() > 0x7fffffffu)
               throw ::std::logic_error($cxxString({$model.name$: size too large})$);
-            return ::java::int_t($this$.data_.size());
+            return ::java::int_t(this->data_.size());
           }(/* invoke */)
       data_:
         visibility: private
@@ -3971,7 +3969,7 @@ classes:
     fields:
       value:
         omit: true
-        encoder_expr: $this$.__encoder_value__()
+        encoder_expr: this->__encoder_value__()
     members:
     - type: constructor
     - type: constructor
@@ -4002,6 +4000,10 @@ classes:
         const auto converted = conversion.from_bytes(this->value);
 
         return ::java::array_type<::java::char_t>(::java::allocate, converted.begin(), converted.end());
+      includes:
+        implementation:
+        - locale
+        - codecvt
     - type: method
       name: subSequence
       override: true

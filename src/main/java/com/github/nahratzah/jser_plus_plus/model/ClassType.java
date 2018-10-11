@@ -991,7 +991,11 @@ public class ClassType implements JavaType {
 
             // If the method is not virtual, add it directly.
             if (!myFn.getUnderlyingMethod().isVirtual()) {
-                if (!overrideFns.isEmpty())
+                if (overrideFns.stream()
+                        .map(ClassMemberModel.OverrideSelector::getUnderlyingMethod)
+                        .anyMatch(method -> method.isVirtual()))
+                    LOG.log(Level.WARNING, "{0} not declared virtual, but overrides virtual methods!", myFn);
+                if (!overrideFns.isEmpty() && !myFn.getUnderlyingMethod().isHideOk())
                     LOG.log(Level.WARNING, "{0} hides {1}", new Object[]{myFn, overrideFns});
                 classMemberFunctions.add(myFn.getUnderlyingMethod());
                 return;

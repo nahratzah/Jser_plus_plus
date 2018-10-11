@@ -237,6 +237,11 @@ public interface ClassMemberModel {
             return method.isFinal();
         }
 
+        @Override
+        public boolean isHideOk() {
+            return method.isHideOk();
+        }
+
         /**
          * Returns the noexcept specification.
          *

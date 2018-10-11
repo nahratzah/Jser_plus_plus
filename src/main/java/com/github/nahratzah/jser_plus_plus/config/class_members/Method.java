@@ -43,6 +43,8 @@ public class Method implements ClassMember {
     private String docString;
     @JsonProperty("covariant_return")
     private Boolean covariantReturn = null;
+    @JsonProperty("allow_hide")
+    private boolean hideOk = false;
 
     public Method() {
         returnType = new CfgType("void", null);
@@ -229,5 +231,20 @@ public class Method implements ClassMember {
 
     public void setCovariantReturn(boolean covariantReturn) {
         this.covariantReturn = covariantReturn;
+    }
+
+    /**
+     * If the method is allowed to silently hide methods with the same signature
+     * from the super class.
+     *
+     * @return True if it is okay for this method to hide similar methods from
+     * super class.
+     */
+    public boolean isHideOk() {
+        return hideOk;
+    }
+
+    public void setHideOk(boolean hideOk) {
+        this.hideOk = hideOk;
     }
 }
