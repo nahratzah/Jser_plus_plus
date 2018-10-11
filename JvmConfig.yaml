@@ -5584,7 +5584,7 @@ classes:
       name: insert
       override: true
       arguments:
-      - name: e
+      - name: _e_
         type:
           java: E
       body: |
