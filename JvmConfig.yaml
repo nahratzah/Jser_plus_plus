@@ -323,12 +323,9 @@ rules:
   members:
   - type: method
     name: __decoder_comparable__
-    static: true
     visibility: protected
+    allow_hide: true
     arguments:
-    - name: _out_
-      type:
-        cxx: $erasedType(model)$&
     - name: __decoder__
       type:
         cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
@@ -344,14 +341,14 @@ rules:
       $ model.serializationFields
       : { f | $\\$
           $if (f.decodeStage.atComparableStage && !f.omit)$$\\$
-          _out_.$f.name$ = __decoder__.$if (f.completeInit)$get_complete_field$else$get_initial_field$endif$<$boundTemplateType(f.type, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
+          this->$f.name$ = __decoder__.$if (f.completeInit)$get_complete_field$else$get_initial_field$endif$<$boundTemplateType(f.type, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
           $endif$$\\$
         }
       ; anchor, separator = "\n"$
 
       $endif$
       $if (model.superClass.type.testInherits.({java.io.Serializable}))$$\\$
-      $erasedType(model.superClass.type)$::__decoder_comparable__(_out_, __decoder__);
+      this->$erasedType(model.superClass.type)$::__decoder_comparable__(__decoder__);
       $endif$
     includes:
       implementation:
@@ -359,12 +356,9 @@ rules:
       - java/serialization/decoder.h
   - type: method
     name: __decoder_complete__
-    static: true
     visibility: protected
+    allow_hide: true
     arguments:
-    - name: _out_
-      type:
-        cxx: $erasedType(model)$&
     - name: __decoder__
       type:
         cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
@@ -380,14 +374,14 @@ rules:
       $ model.serializationFields
       : { f | $\\$
           $if (f.decodeStage.atCompleteStage && !f.omit)$$\\$
-          _out_.$f.name$ = __decoder__.get_initial_field<$boundTemplateType(f.type, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
+          this->$f.name$ = __decoder__.get_initial_field<$boundTemplateType(f.type, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
           $endif$$\\$
         }
       ; anchor, separator = "\n"$
 
       $endif$
       $if (model.superClass.type.testInherits.({java.io.Serializable}))$$\\$
-      $erasedType(model.superClass.type)$::__decoder_complete__(_out_, __decoder__);
+      this->$erasedType(model.superClass.type)$::__decoder_complete__(__decoder__);
       $endif$
     includes:
       implementation:
@@ -458,13 +452,13 @@ rules:
 
         auto init_comparable() -> dependent_set override {
           assert(dst != nullptr);
-          $erasedType(model)$::__decoder_comparable__(*dst, *this);
+          this->dst->$erasedType(model)$::__decoder_comparable__(*this);
           return this->::java::serialization::class_decoder_intf::init_comparable();
         }
 
         auto complete() -> dependent_set override {
           assert(dst != nullptr);
-          $erasedType(model)$::__decoder_complete__(*dst, *this);
+          this->dst->$erasedType(model)$::__decoder_complete__(*this);
           return this->::java::serialization::class_decoder_intf::init_comparable();
         }
 
