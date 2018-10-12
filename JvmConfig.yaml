@@ -6136,3 +6136,59 @@ classes:
         implementation:
         - stdexcept
         - java/serialization/writer.h
+
+
+  java.util.SortedSet<E>:
+    dev_mode: false
+    doc_string: |
+      \brief A sorted set of elements.
+      \details Essentially the java equivalent of std::map.
+    members:
+    - type: method
+      name: comparator
+      const: true
+      virtual: true
+      return:
+        java: const java.util.Comparator<? super E>
+    - type: method
+      name: front
+      virtual: true
+      const: true
+      return:
+        java: const E
+      doc_string: |
+        \brief Retrieve the first element from the queue.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      const: true
+      return:
+        java: const E
+      doc_string: |
+        \brief Retrieve the last element from the queue.
+        \returns The last element.
+    - type: method
+      name: front
+      virtual: true
+      return:
+        java: E
+      doc_string: |
+        \brief Retrieve the first element from the queue.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      return:
+        java: E
+      doc_string: |
+        \brief Retrieve the last element from the queue.
+        \returns The last element.
+
+
+  java.util.NavigableSet<E>:
+    doc_string: |
+      \brief A sorted set of elements.
+      \details Essentially the java equivalent of std::map.
+      \note Unlike the java counterpart, we're not concerned with creating descending set operations.
+    dev_mode: false
