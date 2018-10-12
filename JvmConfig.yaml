@@ -6142,7 +6142,7 @@ classes:
     dev_mode: false
     doc_string: |
       \brief A sorted set of elements.
-      \details Essentially the java equivalent of std::map.
+      \details Essentially the java equivalent of std::set.
     members:
     - type: method
       name: comparator
@@ -6189,6 +6189,6 @@ classes:
   java.util.NavigableSet<E>:
     doc_string: |
       \brief A sorted set of elements.
-      \details Essentially the java equivalent of std::map.
+      \details Essentially the java equivalent of std::set.
       \note Unlike the java counterpart, we're not concerned with creating descending set operations.
     dev_mode: false
