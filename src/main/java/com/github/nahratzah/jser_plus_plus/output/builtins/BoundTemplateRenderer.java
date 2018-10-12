@@ -190,24 +190,22 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
     }
 
     private static enum ClassWrapper {
-        IDENTITY("", "", false),
-        RETURN("::java::return_t<", ">", true),
-        PARAM("::java::param_t<", ">", true),
-        FIELD("::java::field_t<", ">", true);
+        IDENTITY("", ""),
+        RETURN("::java::return_t<", ">"),
+        PARAM("::java::param_t<", ">"),
+        FIELD("::java::field_t<", ">");
 
-        private ClassWrapper(String prefix, String suffix, boolean isClassEmitter) {
+        private ClassWrapper(String prefix, String suffix) {
             this.prefix = requireNonNull(prefix);
             this.suffix = requireNonNull(suffix);
-            this.isClassEmitter = isClassEmitter;
         }
 
         private final String prefix, suffix;
-        private final boolean isClassEmitter;
 
         public String apply(String s, Config config) {
             final StringBuilder result = new StringBuilder(s);
 
-            if (config.emitConst && isClassEmitter) {
+            if (config.emitConst) {
                 result.insert(0, "::java::const_ref<");
                 result.append('>');
             }

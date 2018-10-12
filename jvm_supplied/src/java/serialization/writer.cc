@@ -54,11 +54,11 @@ auto annotation_writer::write_char(::java::char_t v) -> void {
   write_bytes_(&v, sizeof(v));
 }
 
-auto annotation_writer::write_object(::java::lang::Object v) -> void {
+auto annotation_writer::write_object(::java::const_ref<::java::lang::Object> v) -> void {
   data_.emplace_back(handler_.encode_field(v));
 }
 
-auto annotation_writer::write_object_unshared(::java::lang::Object v) -> void {
+auto annotation_writer::write_object_unshared(::java::const_ref<::java::lang::Object> v) -> void {
   data_.emplace_back(handler_.encode_field_unshared(v));
 }
 

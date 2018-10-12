@@ -54,7 +54,7 @@ public class StCtx {
                         template = (BoundTemplate) type;
 
                     registry.accept(template);
-                    return template;
+                    return type;
                 }));
         contextGroup.importTemplates(BUILTINS);
         return contextGroup;

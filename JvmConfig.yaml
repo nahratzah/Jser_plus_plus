@@ -4578,7 +4578,7 @@ classes:
       arguments:
       - name: e
         type:
-          java: E
+          java: const E
       return:
         cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
         includes:
@@ -5229,7 +5229,7 @@ classes:
         return set->contains(e);
     - type: method
       name: find
-      virtual: true
+      override: true
       const: true
       arguments:
       - name: e
@@ -5244,11 +5244,11 @@ classes:
         return set->find(e);
     - type: method
       name: find
-      virtual: true
+      override: true
       arguments:
       - name: e
         type:
-          java: E
+          java: const E
       return:
         cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
         includes:
@@ -5487,14 +5487,13 @@ classes:
     fields:
       c:
         final: true
-        const: true
         visibility: private
     members:
     - type: constructor
       arguments:
       - name: c
         type:
-          java: const java.util.Collection<E>
+          java: java.util.Collection<E>
       initializers:
         c: std::move(c)
       body: |
@@ -5569,14 +5568,13 @@ classes:
     fields:
       list:
         final: true
-        const: true
         visibility: private
     members:
     - type: constructor
       arguments:
       - name: list
         type:
-          java: const java.util.List<E>
+          java: java.util.List<E>
       super: list
       initializers:
         list: std::move(list)
@@ -5648,17 +5646,20 @@ classes:
   java.util.Collections$UnmodifiableSet<E>:
     dev_mode: true
     fields:
-      list:
+      set_:
+        type:
+          java: java.util.Set<E>
         final: true
-        const: true
         visibility: private
     members:
     - type: constructor
       arguments:
       - name: set
         type:
-          java: const java.util.Set<E>
-      super: std::move(set)
+          java: java.util.Set<E>
+      super: set
+      initializers:
+        set_: set
     - type: method
       name: __hash_code__
       noexcept: true
@@ -5713,6 +5714,97 @@ classes:
             - java/object_intf.h
       body: |
         this->$boundTemplateType(java.({java.util.Collections\$UnmodifiableCollection}), "style=erased")$::__equal__(specialized, eq, other);
+
+
+  java.util.Collections$CheckedNavigableSet<E>:
+    dev_mode: true
+    fields:
+      set_:
+        type:
+          java: java.util.NavigableSet<E>
+        final: true
+        visibility: private
+    members:
+    - type: constructor
+      arguments:
+      - name: set
+        type:
+          java: const java.util.NavigableSet<E>
+      super: set
+      initializers:
+        set_: set
+    members:
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return set_->begin();
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return set_->end();
+    - type: method
+      name: begin
+      const: true
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return set_->begin();
+    - type: method
+      name: end
+      const: true
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return set_->end();
+    - type: method
+      name: find
+      override: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return set_->find(std::move(e));
+    - type: method
+      name: find
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return set_->find(std::move(e));
 
 
   java.util.concurrent.CopyOnWriteArrayList<E>:
@@ -6027,7 +6119,7 @@ classes:
         return data_.erase(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e)));
     - type: method
       name: find
-      virtual: true
+      override: true
       const: true
       arguments:
       - name: e
@@ -6042,18 +6134,18 @@ classes:
         return ::java::forward_iterator<const $boundTemplateType(java.({E}), "style=type")$>(data_.find(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e))));
     - type: method
       name: find
-      virtual: true
+      override: true
       arguments:
       - name: e
         type:
-          java: E
+          java: const E
       return:
         cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
         includes:
           declaration:
           - java/iterator.h
       body: |
-        return ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>(data_.find(std::move(e)));
+        return ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>(data_.find(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e))));
     - type: method
       name: __decoder_annotation__
       visibility: private
@@ -6067,10 +6159,6 @@ classes:
             implementation:
             - java/serialization/decoder.h
       body: |
-        using conversion_type = ::std::wstring_convert<
-            std::codecvt_utf8_utf16<char16_t>,
-            char16_t>;
-
         auto annotation = ::java::serialization::annotation_reader(decoder.get_annotation());
 
         annotation.read_int(); // capacity
@@ -6088,7 +6176,7 @@ classes:
             });
 
         if (data_.size() != ::std::size_t(len))
-          throw ::java::serialization::decoding_error($cxxString({$model.name$: lost elements while loading hash set})$);
+          throw ::java::serialization::decoding_error($cxxString({$model.name$: lost elements while loading set})$);
       includes:
         implementation:
         - algorithm
@@ -6192,3 +6280,433 @@ classes:
       \details Essentially the java equivalent of std::set.
       \note Unlike the java counterpart, we're not concerned with creating descending set operations.
     dev_mode: false
+    members:
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: begin
+      override: true
+      const: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      override: true
+      const: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: find
+      override: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: find
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+
+
+  java.util.TreeSet<E>:
+    dev_mode: false
+    doc_string: |
+      \brief A tree set of elements.
+      \details Implemented in terms of std::set.
+    fields:
+      comparator_:
+        type:
+          java: java.util.Comparator<? super E>
+        visibility: private
+        getter: false
+        setter: false
+        const: true
+        final: true
+      data_:
+        type:
+          cxx: ::std::set<$boundTemplateType(java.({E}), "style=type, class")$, decltype(::std::bind(&$model.className$::compare_, ::std::declval<$model.className$*>(), ::std::placeholders::_1, ::std::placeholders::_2))>
+          includes:
+            declaration:
+            - set
+            - functional
+            - type_traits
+        getter: false
+        setter: false
+        default: ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+    members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: b
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      initializers:
+        data_: std::move(b), std::move(e), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          cxx: ::std::initializer_list<$boundTemplateType(java.({E}), "style=type, class")$>
+          includes:
+            declaration:
+            - initializer_list
+      initializers:
+        data_: std::move(init), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          java: java.lang.Iterable<? extends E>
+      initializers:
+        data_: init->begin(), init->end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+    - type: constructor
+      arguments:
+      - name: cmp
+        type:
+          java: const java.util.Comparator<? super E>
+      initializers:
+        comparator_: std::move(cmp)
+    - type: constructor
+      arguments:
+      - name: b
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: cmp
+        type:
+          java: const java.util.Comparator<? super E>
+      initializers:
+        comparator_: std::move(cmp)
+        data_: std::move(b), std::move(e), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          cxx: ::std::initializer_list<$boundTemplateType(java.({E}), "style=type, class")$>
+          includes:
+            declaration:
+            - initializer_list
+      - name: cmp
+        type:
+          java: const java.util.Comparator<? super E>
+      initializers:
+        comparator_: std::move(cmp)
+        data_: std::move(init), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          java: java.lang.Iterable<? extends E>
+      - name: cmp
+        type:
+          java: const java.util.Comparator<? super E>
+      initializers:
+        comparator_: std::move(cmp)
+        data_: init->begin(), init->end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+    - type: method
+      name: comparator
+      const: true
+      override: true
+      return:
+        java: const java.util.Comparator<? super E>
+      body: |
+        return comparator_;
+    - type: method
+      name: compare_
+      visibility: private
+      arguments:
+      - name: x
+        type:
+          java: E
+      - name: y
+        type:
+          java: E
+      return:
+        cxx: bool
+      body: |
+        if (this->comparator_ == nullptr)
+          return $boundTemplateType(java.("java.util.Comparator<E>"), "style=type, class")$::naturalOrder()->compare(std::move(x), std::move(y)) > 0;
+        return this->comparator_->compare(std::move(x), std::move(y)) < 0;
+    - type: method
+      name: front
+      override: true
+      const: true
+      return:
+        java: const E
+      body: |
+        return *data_.begin();
+    - type: method
+      name: back
+      override: true
+      const: true
+      return:
+        java: const E
+      body: |
+        return *data_.rbegin();
+    - type: method
+      name: front
+      override: true
+      return:
+        java: E
+      body: |
+        return *data_.begin();
+    - type: method
+      name: back
+      override: true
+      return:
+        java: E
+      body: |
+        return *data_.rbegin();
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.begin());
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.end());
+    - type: method
+      name: begin
+      const: true
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>(data_.begin());
+    - type: method
+      name: end
+      const: true
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>(data_.end());
+    - type: method
+      name: empty
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+      body: |
+        return data_.empty();
+    - type: method
+      name: size
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return data_.size();
+    - type: method
+      name: clear
+      override: true
+      body: |
+        data_.clear();
+    - type: method
+      name: insert
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        data_.insert(std::move(e));
+    - type: method
+      name: erase
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return data_.erase(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e)));
+    - type: method
+      name: find
+      override: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<const $boundTemplateType(java.({E}), "style=type")$>(data_.find(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e))));
+    - type: method
+      name: find
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<$boundTemplateType(java.({E}), "style=type")$>(data_.find(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e))));
+    - type: method
+      name: __decoder_annotation__
+      visibility: private
+      arguments:
+      - name: decoder
+        type:
+          cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
+          includes:
+            declaration:
+            - java/serialization/decoder_fwd.h
+            implementation:
+            - java/serialization/decoder.h
+      body: |
+        auto annotation = ::java::serialization::annotation_reader(decoder.get_annotation());
+
+        assert(data_.empty());
+        const_cast<$boundTemplateType(java.({const java.util.Comparator<? super E>}), "style=type, class=field")$&>(comparator_) = annotation.read_complete_object<$boundTemplateType(java.({java.util.Comparator<? super E>}), "style=type, class=field")$>();
+
+        auto len = annotation.read_int();
+        if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative collection size})$);
+
+        ::std::generate_n(
+            ::std::inserter(data_, data_.end()),
+            ::std::size_t(len),
+            [&annotation, this]() {
+              if (comparator_ != nullptr)
+                return annotation.read_complete_object<$boundTemplateType(java.({E}), "style=type, class")$>();
+              else
+                return annotation.read_comparable_object<$boundTemplateType(java.({E}), "style=type, class")$>();
+            });
+
+        if (data_.size() != ::std::size_t(len))
+          throw ::java::serialization::decoding_error($cxxString({$model.name$: lost elements while loading set})$);
+      includes:
+        implementation:
+        - cassert
+        - algorithm
+        - iterator
+        - java/serialization/exception.h
+    - type: method
+      name: __encoder_annotation__
+      visibility: private
+      const: true
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+          includes:
+            declaration:
+            - java/serialization/type_def_fwd.h
+      - name: _fields_
+        type:
+          cxx: ::java::serialization::stream::new_object::class_data::field_map&
+          includes:
+            declaration:
+            - java/serialization/encdec.h
+      return:
+        cxx: ::std::vector<::std::variant<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>, ::java::serialization::stream::blockdata>>
+        includes:
+          declaration:
+          - vector
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
+      body: |
+        auto annotation = ::java::serialization::annotation_writer(handler_);
+
+        if (data_.size() > 0x7fffffffu)
+          throw ::std::logic_error($cxxString({$model.name$: size too large})$);
+
+        annotation.write_object(comparator_);
+        annotation.write_int(data_.size());
+        for (const auto& i : data_) annotation.write_object(i);
+
+        return std::move(annotation).data();
+      includes:
+        implementation:
+        - stdexcept
+        - java/serialization/writer.h

@@ -6,6 +6,7 @@
 #include <vector>
 #include <cycle_ptr/cycle_ptr.h>
 #include <java/primitives.h>
+#include <java/ref.h>
 #include <java/serialization/type_def_fwd.h>
 #include <java/serialization/encdec.h>
 #include <java/lang/Object.h>
@@ -29,8 +30,8 @@ class annotation_writer {
   auto write_double(::java::double_t v) -> void;
   auto write_char(::java::char_t v) -> void;
 
-  auto write_object(::java::lang::Object v) -> void;
-  auto write_object_unshared(::java::lang::Object v) -> void;
+  auto write_object(::java::const_ref<::java::lang::Object> v) -> void;
+  auto write_object_unshared(::java::const_ref<::java::lang::Object> v) -> void;
 
   auto data() const &
   -> const vector& {
