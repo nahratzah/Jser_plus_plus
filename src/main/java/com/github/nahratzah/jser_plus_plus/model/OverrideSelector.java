@@ -21,11 +21,7 @@ public class OverrideSelector {
     public OverrideSelector(Context ctx, MethodModel method) {
         this.ctx = requireNonNull(ctx);
         this.method = requireNonNull(method);
-        this.declaringType = new BoundTemplate.ClassBinding<>(
-                method.getDeclaringClass(),
-                method.getDeclaringClass().getTemplateArgumentNames().stream()
-                        .map(BoundTemplate.VarBinding::new)
-                        .collect(Collectors.toList()));
+        this.declaringType = method.getArgumentDeclaringClass();
         this.arguments = requireNonNull(method.getArgumentTypes()).stream()
                 .map(type -> {
                     return type.prerender(
@@ -35,7 +31,10 @@ public class OverrideSelector {
                 })
                 .collect(Collectors.toList());
         this.returnType = method.getReturnType()
-                .prerender(this.ctx, singletonMap("model", this.declaringType.getType()), this.declaringType.getBindingsMap());
+                .prerender(
+                        this.ctx,
+                        singletonMap("model", this.declaringType.getType()),
+                        this.declaringType.getBindingsMap());
     }
 
     private OverrideSelector(OverrideSelector parent, Map<String, ? extends BoundTemplate> rebindMap) {
@@ -51,7 +50,10 @@ public class OverrideSelector {
                 })
                 .collect(Collectors.toList());
         this.returnType = method.getReturnType()
-                .prerender(this.ctx, singletonMap("model", this.declaringType.getType()), this.declaringType.getBindingsMap());
+                .prerender(
+                        this.ctx,
+                        singletonMap("model", this.declaringType.getType()),
+                        this.declaringType.getBindingsMap());
     }
 
     public OverrideSelector rebind(Map<String, ? extends BoundTemplate> rebindMap) {
@@ -160,7 +162,7 @@ public class OverrideSelector {
      *
      * @return Declaring class with any variable substitutions applied.
      */
-    public BoundTemplate.ClassBinding<ClassType> getDeclaringType() {
+    public BoundTemplate.ClassBinding<? extends ClassType> getDeclaringType() {
         return declaringType;
     }
 
@@ -211,7 +213,7 @@ public class OverrideSelector {
     }
 
     private final Context ctx; // Not significant for equality.
-    private final BoundTemplate.ClassBinding<ClassType> declaringType; //Not significant for equality.
+    private final BoundTemplate.ClassBinding<? extends ClassType> declaringType; //Not significant for equality.
     private final MethodModel method; // Not significant for equality.
     private final List<Type> arguments; // Significant for equality.
     private final Type returnType; // Significant for equality.

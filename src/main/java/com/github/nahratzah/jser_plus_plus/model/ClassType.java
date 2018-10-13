@@ -939,7 +939,7 @@ public class ClassType implements JavaType {
                 .map(Map.Entry::getValue) // And then restore the mapping to its original.
                 .collect(Collectors.toList());
 
-        if (WRITE_POST_PROCESSING_RESULT && java.util.HashSet.class.getName().equals(getName())) {
+        if (WRITE_POST_PROCESSING_RESULT) {
             System.out.println("========================================================");
             System.out.println(getName() + (getTemplateArgumentNames().isEmpty() ? "" : getTemplateArgumentNames().stream().collect(Collectors.joining(", ", "<", ">"))));
             System.out.println("--------------------------------------------------------");
@@ -970,6 +970,7 @@ public class ClassType implements JavaType {
 
             classMemberFunctions.add(new MethodModel.SimpleMethodModel(
                     this,
+                    declare.getDeclaringType(),
                     declare.getName(),
                     new Includes(
                             declare.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
@@ -1067,8 +1068,9 @@ public class ClassType implements JavaType {
                     final com.github.nahratzah.jser_plus_plus.model.Type overrideTag = new CxxType("$tagType(model)$", new Includes())
                             .prerender(ctx, singletonMap("model", overrideFn.getDeclaringClass()), EMPTY_LIST);
 
-                    classMemberFunctions.add(new MethodModel.SimpleMethodModel(
+                    final MethodModel.SimpleMethodModel overrideImpl = new MethodModel.SimpleMethodModel(
                             this,
+                            superMethod.getDeclaringType(),
                             VIRTUAL_FUNCTION_PREFIX + overrideFn.getName(),
                             new Includes(
                                     overrideFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
@@ -1087,7 +1089,9 @@ public class ClassType implements JavaType {
                             overrideFn.getUnderlyingMethod().isFinal(),
                             overrideFn.getUnderlyingMethod().getNoexcept(),
                             Visibility.PRIVATE, // Make actual virtual method private: it's only accessed via the untagged forwarding function.
-                            null));
+                            null);
+                    LOG.log(Level.FINE, "declaring override: {0}", overrideImpl.getOverrideSelector(ctx));
+                    classMemberFunctions.add(overrideImpl);
                 });
             }
 
@@ -1097,6 +1101,7 @@ public class ClassType implements JavaType {
                 // XXX overrideFns.size() > 1 does not do the correct job of figuring out ambiguity: it trips too often.
                 classMemberFunctions.add(new MethodModel.SimpleMethodModel(
                         this,
+                        this.getBoundType(),
                         myFn.getName(),
                         new Includes(
                                 myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
@@ -1122,6 +1127,7 @@ public class ClassType implements JavaType {
             if (covariantReturn || !myFn.getUnderlyingMethod().isPureVirtual() || !allReturnTypesMatch)
                 classMemberFunctions.add(new MethodModel.SimpleMethodModel(
                         this,
+                        this.getBoundType(),
                         (covariantReturn ? VIRTUAL_FUNCTION_PREFIX : "") + myFn.getName(),
                         new Includes(
                                 myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),

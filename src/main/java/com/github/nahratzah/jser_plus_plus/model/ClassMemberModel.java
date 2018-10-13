@@ -166,6 +166,11 @@ public interface ClassMemberModel {
         }
 
         @Override
+        public BoundTemplate.ClassBinding<? extends ClassType> getArgumentDeclaringClass() {
+            return cdef.getBoundType();
+        }
+
+        @Override
         public Includes getIncludes() {
             return method.getIncludes();
         }

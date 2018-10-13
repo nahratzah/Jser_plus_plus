@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -25,6 +24,13 @@ public interface MethodModel {
      * @return Class owning this method.
      */
     public ClassType getDeclaringClass();
+
+    /**
+     * The class that declared the arguments and return type.
+     *
+     * @return Class that the declaration originated from.
+     */
+    public BoundTemplate.ClassBinding<? extends ClassType> getArgumentDeclaringClass();
 
     /**
      * Method name.
@@ -240,7 +246,7 @@ public interface MethodModel {
      */
     public static class SimpleMethodModel implements MethodModel {
         private final ClassType declaringClass;
-        private final BoundTemplate.ClassBinding<ClassType> argumentDeclaringClass;
+        private final BoundTemplate.ClassBinding<? extends ClassType> argumentDeclaringClass;
         private final String name;
         private final Includes includes;
         private final Set<Type> declarationTypes;
@@ -259,9 +265,9 @@ public interface MethodModel {
         private final Visibility visibility;
         private final String docString;
 
-        public SimpleMethodModel(ClassType declaringClass, String name, Includes includes, Set<Type> declarationTypes, Set<Type> implementationTypes, Type returnType, List<Type> argumentTypes, List<String> argumentNames, String body, boolean staticVar, boolean virtualVar, boolean pureVirtualVar, boolean overrideVar, boolean constVar, boolean finalVar, Object noexcept, Visibility visibility, String docString) {
+        public SimpleMethodModel(ClassType declaringClass, BoundTemplate.ClassBinding<? extends ClassType> argumentDeclaringClass, String name, Includes includes, Set<Type> declarationTypes, Set<Type> implementationTypes, Type returnType, List<Type> argumentTypes, List<String> argumentNames, String body, boolean staticVar, boolean virtualVar, boolean pureVirtualVar, boolean overrideVar, boolean constVar, boolean finalVar, Object noexcept, Visibility visibility, String docString) {
             this.declaringClass = declaringClass;
-            this.argumentDeclaringClass = new BoundTemplate.ClassBinding<>(declaringClass, declaringClass.getTemplateArgumentNames().stream().map(BoundTemplate.VarBinding::new).collect(Collectors.toList())); // XXX turn into constructor argument.
+            this.argumentDeclaringClass = argumentDeclaringClass;
             this.name = name;
             this.includes = includes;
             this.declarationTypes = declarationTypes;
@@ -284,6 +290,11 @@ public interface MethodModel {
         @Override
         public ClassType getDeclaringClass() {
             return declaringClass;
+        }
+
+        @Override
+        public BoundTemplate.ClassBinding<? extends ClassType> getArgumentDeclaringClass() {
+            return argumentDeclaringClass;
         }
 
         @Override
