@@ -6792,7 +6792,7 @@ classes:
 
 
   java.util.Vector<E>:
-    dev_mode: true
+    dev_mode: false
     doc_string: |
       \brief Implementation of java.util.Vector.
       \details This class functions the same as ArrayList.
