@@ -6035,6 +6035,7 @@ classes:
             declaration:
             - unordered_set
             - functional
+            - cycle_ptr/allocator.h
         visibility: private
         default: 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
     members:
