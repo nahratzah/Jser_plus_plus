@@ -64,6 +64,8 @@ class array_intf
 
   auto push_back(::java::lang::Object obj) -> void;
 
+  auto clone() -> ::cycle_ptr::cycle_gptr<array_intf>;
+
  protected:
   auto check_(::java::lang::Object elem) const -> ::java::lang::Object;
 
@@ -83,6 +85,12 @@ class array_intf
   virtual auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> = 0;
   virtual auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> = 0;
   virtual auto push_back_(::java::lang::Object obj) -> void = 0;
+
+  auto _virtual_clone([[maybe_unused]] ::java::_tags::java::lang::Cloneable _tag_)
+  -> ::java::return_t<::java::lang::Cloneable> override final;
+
+  virtual auto clone_()
+  -> ::cycle_ptr::cycle_gptr<array_intf> = 0;
 };
 
 /**
@@ -160,6 +168,8 @@ class array<::java::boolean_t> final
     data_.push_back(b);
   }
 
+  auto clone() -> ::cycle_ptr::cycle_gptr<array>;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -198,6 +208,7 @@ class array<::java::boolean_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   vector_type data_;
 };
@@ -260,6 +271,8 @@ class array<::java::byte_t> final
     data_.push_back(b);
   }
 
+  auto clone() -> ::cycle_ptr::cycle_gptr<array>;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -298,6 +311,7 @@ class array<::java::byte_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   vector_type data_;
 };
@@ -360,6 +374,8 @@ class array<::java::short_t> final
     data_.push_back(b);
   }
 
+  auto clone() -> ::cycle_ptr::cycle_gptr<array>;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -398,6 +414,7 @@ class array<::java::short_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   vector_type data_;
 };
@@ -460,6 +477,8 @@ class array<::java::int_t> final
     data_.push_back(b);
   }
 
+  auto clone() -> ::cycle_ptr::cycle_gptr<array>;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -498,6 +517,7 @@ class array<::java::int_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   vector_type data_;
 };
@@ -560,6 +580,8 @@ class array<::java::long_t> final
     data_.push_back(b);
   }
 
+  auto clone() -> ::cycle_ptr::cycle_gptr<array>;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -598,6 +620,7 @@ class array<::java::long_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   vector_type data_;
 };
@@ -660,6 +683,8 @@ class array<::java::float_t> final
     data_.push_back(b);
   }
 
+  auto clone() -> ::cycle_ptr::cycle_gptr<array>;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -698,6 +723,7 @@ class array<::java::float_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   vector_type data_;
 };
@@ -760,6 +786,8 @@ class array<::java::double_t> final
     data_.push_back(b);
   }
 
+  auto clone() -> ::cycle_ptr::cycle_gptr<array>;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -798,6 +826,7 @@ class array<::java::double_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   vector_type data_;
 };
@@ -860,6 +889,8 @@ class array<::java::char_t> final
     data_.push_back(b);
   }
 
+  auto clone() -> ::cycle_ptr::cycle_gptr<array>;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -898,6 +929,7 @@ class array<::java::char_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   vector_type data_;
 };
@@ -933,6 +965,8 @@ class array<::java::lang::Object> final
   }
 
   auto reserve(::std::size_t sz) -> void override;
+
+  auto clone() -> ::cycle_ptr::cycle_gptr<array>;
 
  private:
   auto empty_() const noexcept -> bool override;
@@ -972,6 +1006,7 @@ class array<::java::lang::Object> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   const ::java::field_t<::java::lang::Class<::java::G::pack<>>> element_type_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1037,6 +1072,7 @@ class array_of_array<::java::boolean_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1102,6 +1138,7 @@ class array_of_array<::java::byte_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1167,6 +1204,7 @@ class array_of_array<::java::short_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1232,6 +1270,7 @@ class array_of_array<::java::int_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1297,6 +1336,7 @@ class array_of_array<::java::long_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1362,6 +1402,7 @@ class array_of_array<::java::float_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1427,6 +1468,7 @@ class array_of_array<::java::double_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1492,6 +1534,7 @@ class array_of_array<::java::char_t> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1557,6 +1600,7 @@ class array_of_array<::java::lang::Object> final
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto push_back_(::java::lang::Object obj) -> void override;
+  auto clone_() -> ::cycle_ptr::cycle_gptr<array_intf> override;
 
   const ::java::field_t<::java::lang::Class<::java::G::pack<>>> element_type_;
   const ::std::size_t dim_;

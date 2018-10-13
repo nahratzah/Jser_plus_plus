@@ -35,7 +35,7 @@ public final class CxxType implements Type {
     @Override
     public CxxType prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
         final Collection<Type> newDeclTypes = new HashSet<>(declTypes);
-        final ST stringTemplate = new ST(StCtx.contextGroup(ctx, variables, newDeclTypes::add), getTemplate());
+        final ST stringTemplate = new ST(StCtx.contextGroup(ctx, variables, null, newDeclTypes::add), getTemplate());
         renderArgs.forEach(stringTemplate::add);
         return new CxxType(template, includes, newDeclTypes, stringTemplate.render(Locale.ROOT));
     }
@@ -63,6 +63,11 @@ public final class CxxType implements Type {
     public Stream<JavaType> getAllJavaTypes() {
         return declTypes.stream()
                 .flatMap(Type::getAllJavaTypes);
+    }
+
+    @Override
+    public final boolean isJavaType() {
+        return false;
     }
 
     public String getTemplate() {

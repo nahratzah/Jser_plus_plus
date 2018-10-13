@@ -80,15 +80,23 @@ public interface Type {
     public Stream<JavaType> getAllJavaTypes();
 
     /**
+     * Test if the type is a java type.
+     *
+     * @return True if the type is a java type, false otherwise.
+     */
+    public boolean isJavaType();
+
+    /**
      * Create a {@link Type} from a {@link CfgType configuration type}.
      *
      * @param cfgType A type in the configuration.
      * @param ctx Class lookup context.
      * @param variables Type variables that are declared in the context.
+     * @param thisType Type when encountering the `this` keyword.
      * @return Instance of {@link CxxType} or {@link BoundTemplate}
      * corresponding to the configuration type.
      */
-    public static Type typeFromCfgType(CfgType cfgType, Context ctx, Collection<String> variables) {
+    public static Type typeFromCfgType(CfgType cfgType, Context ctx, Collection<String> variables, BoundTemplate.ClassBinding<?> thisType) {
         if (cfgType.getCxxType() == null && cfgType.getJavaType() == null)
             throw new NullPointerException("no types");
 
@@ -97,7 +105,7 @@ public interface Type {
         } else if (cfgType.getJavaType() != null) {
             final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
                     .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
-            return BoundTemplate.fromString(cfgType.getJavaType(), ctx, variablesMap);
+            return BoundTemplate.fromString(cfgType.getJavaType(), ctx, variablesMap, thisType);
         }
 
         throw new IllegalStateException("may only specify one of \"cxx\" or \"java\" for return type");

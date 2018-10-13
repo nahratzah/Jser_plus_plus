@@ -33,6 +33,11 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
     }
 
     @Override
+    public default boolean isJavaType() {
+        return !isPrimitive();
+    }
+
+    @Override
     public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables);
 
     @Override
@@ -768,8 +773,8 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         private Set<BoundTemplate> types;
     }
 
-    public static Type fromString(String text, Context ctx, Map<String, ? extends BoundTemplate> variables) {
-        return new BoundTemplateParser(ctx, variables).parse(text);
+    public static Type fromString(String text, Context ctx, Map<String, ? extends BoundTemplate> variables, BoundTemplate.ClassBinding<?> thisType) {
+        return new BoundTemplateParser(ctx, variables, thisType).parse(text);
     }
 }
 
@@ -809,13 +814,18 @@ class BoundTemplateParser {
      */
     final Map<String, ? extends BoundTemplate> variables;
     /**
+     * Current type, for `this`.
+     */
+    final BoundTemplate.ClassBinding<?> thisType;
+    /**
      * The string on which we are attempting to match.
      */
     private CharSequence s;
 
-    public BoundTemplateParser(Context ctx, Map<String, ? extends BoundTemplate> variables) {
+    public BoundTemplateParser(Context ctx, Map<String, ? extends BoundTemplate> variables, BoundTemplate.ClassBinding<?> thisType) {
         this.ctx = requireNonNull(ctx);
         this.variables = variables;
+        this.thisType = thisType;
         if (variables.isEmpty())
             VARIABLES_STARTS = null;
         else
@@ -864,8 +874,12 @@ class BoundTemplateParser {
             s = s.subSequence(var.end(), s.length());
             return Objects.requireNonNull(variables.get(varName));
         } else if (cls.find()) {
-            final JavaType type = ctx.resolveClass(cls.group().replaceAll("\\s", ""));
+            final String clsGroup = cls.group().replaceAll("\\s", "");
             s = s.subSequence(cls.end(), s.length());
+
+            if ("this".equals(clsGroup)) return thisType;
+
+            final JavaType type = ctx.resolveClass(clsGroup);
             return new BoundTemplate.ClassBinding<>(type, maybeParseTemplate_());
         } else {
             throw new IllegalArgumentException("Expected variable, class, or wildcard.");

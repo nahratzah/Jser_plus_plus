@@ -51,6 +51,11 @@ public final class ConstType implements Type {
     }
 
     @Override
+    public final boolean isJavaType() {
+        return type.isJavaType();
+    }
+
+    @Override
     public int hashCode() {
         int hash = 3;
         hash = 23 * hash + Objects.hashCode(this.type);

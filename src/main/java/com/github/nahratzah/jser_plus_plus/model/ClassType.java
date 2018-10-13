@@ -151,7 +151,7 @@ public class ClassType implements JavaType {
             this.finalVar = classCfg.isFinal();
 
         if (classCfg.getVarType() != null) {
-            this.varType = typeFromCfgType(classCfg.getVarType(), ctx, argRename.values())
+            this.varType = typeFromCfgType(classCfg.getVarType(), ctx, argRename.values(), getBoundType())
                     .prerender(ctx, singletonMap("model", this), argRename.values());
         }
 
@@ -270,7 +270,7 @@ public class ClassType implements JavaType {
                     if (fieldCfg.getDocString() != null)
                         iField.setDocString(fieldCfg.getDocString());
                     if (fieldCfg.getType() != null)
-                        iField.setType(typeFromCfgType(fieldCfg.getType(), ctx, argRename.values()));
+                        iField.setType(typeFromCfgType(fieldCfg.getType(), ctx, argRename.values(), getBoundType()));
                     if (fieldCfg.getDefault() != null)
                         iField.setDefault(fieldCfg.getDefault());
                     if (fieldCfg.getRename() != null)
@@ -381,7 +381,7 @@ public class ClassType implements JavaType {
 
     private void initFriendTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
         this.friends = classCfg.getFriends().stream()
-                .map(cfgType -> typeFromCfgType(cfgType, ctx, argRename.values()))
+                .map(cfgType -> typeFromCfgType(cfgType, ctx, argRename.values(), getBoundType()))
                 .map(type -> type.prerender(ctx, singletonMap("model", this), argRename.values()))
                 .collect(Collectors.toList());
     }
@@ -713,6 +713,18 @@ public class ClassType implements JavaType {
     public boolean getHasDefaultConstructor() {
         return getClassMembers().stream()
                 .anyMatch(ClassMemberModel::isDefaultConstructor);
+    }
+
+    /**
+     * Get a version of this type with all template arguments bound to their own
+     * variables.
+     *
+     * @return A bound type for this class.
+     */
+    public BoundTemplate.ClassBinding<ClassType> getBoundType() {
+        return new BoundTemplate.ClassBinding<>(
+                this,
+                getTemplateArgumentNames().stream().map(BoundTemplate.VarBinding::new).collect(Collectors.toList()));
     }
 
     /**

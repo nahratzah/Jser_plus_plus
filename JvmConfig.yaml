@@ -139,6 +139,43 @@ rules:
       implementation:
       - java/reflect.h
 
+# Implement cloneable support
+- id: java.lang.Cloneable/clone
+  predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.lang.Cloneable
+  members:
+  - type: method
+    name: clone
+    override: true
+    return:
+      java: this
+    body: |
+      $if (model.devMode)$
+      return nullptr; // Be nice to dev-mode implementations.
+      $else$
+      return $boundTemplateType(java.({this}), "style=type, class")$(::java::allocate,
+          $boundTemplateType(java.({this}), "style=type, class")$(
+              ::java::_direct(),
+              this->shared_from_this(this)));
+      $endif$
+- id: java.lang.Cloneable/clone
+  predicate:
+    interface: true
+    abstract: true
+    class: false
+    inherits:
+    - java.lang.Cloneable
+  members:
+  - type: method
+    name: clone
+    override: true
+    return:
+      java: this
+
 # Create serializable class description.
 - predicate:
     interface: false
@@ -2913,6 +2950,13 @@ classes:
             - initializer_list
       initializers:
         data_: init, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          java: java.lang.Iterable<? extends E>
+      initializers:
+        data_: init->begin(), init->end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
     - type: method
       name: empty
       override: true
@@ -6348,6 +6392,8 @@ classes:
 
   java.util.TreeSet<E>:
     dev_mode: false
+    suppress_local:
+    - java.lang.Cloneable/clone
     doc_string: |
       \brief A tree set of elements.
       \details Implemented in terms of std::set.
@@ -6362,15 +6408,17 @@ classes:
         final: true
       data_:
         type:
-          cxx: ::std::set<$boundTemplateType(java.({E}), "style=type, class")$, decltype(::std::bind(&$model.className$::compare_, ::std::declval<$model.className$*>(), ::std::placeholders::_1, ::std::placeholders::_2))>
+          cxx: ::std::set<$boundTemplateType(java.({E}), "style=type, class=field")$, ::std::decay_t<decltype(::std::bind(&$model.className$::compare_, ::std::declval<$model.className$*>(), ::std::placeholders::_1, ::std::placeholders::_2))>, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>>
           includes:
             declaration:
             - set
             - functional
             - type_traits
+            - cycle_ptr/allocator.h
+            - cycle_ptr/cycle_ptr.h
         getter: false
         setter: false
-        default: ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+        default: ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
     members:
     - type: constructor
     - type: constructor
@@ -6388,7 +6436,7 @@ classes:
             declaration:
             - java/iterator.h
       initializers:
-        data_: std::move(b), std::move(e), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+        data_: std::move(b), std::move(e), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
     - type: constructor
       arguments:
       - name: init
@@ -6398,14 +6446,14 @@ classes:
             declaration:
             - initializer_list
       initializers:
-        data_: std::move(init), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+        data_: init.begin(), init.end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
     - type: constructor
       arguments:
       - name: init
         type:
           java: java.lang.Iterable<? extends E>
       initializers:
-        data_: init->begin(), init->end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+        data_: init->begin(), init->end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
     - type: constructor
       arguments:
       - name: cmp
@@ -6432,7 +6480,7 @@ classes:
           java: const java.util.Comparator<? super E>
       initializers:
         comparator_: std::move(cmp)
-        data_: std::move(b), std::move(e), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+        data_: std::move(b), std::move(e), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
     - type: constructor
       arguments:
       - name: init
@@ -6446,7 +6494,7 @@ classes:
           java: const java.util.Comparator<? super E>
       initializers:
         comparator_: std::move(cmp)
-        data_: std::move(init), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+        data_: init.begin(), init.end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
     - type: constructor
       arguments:
       - name: init
@@ -6457,7 +6505,19 @@ classes:
           java: const java.util.Comparator<? super E>
       initializers:
         comparator_: std::move(cmp)
-        data_: init->begin(), init->end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2)
+        data_: init->begin(), init->end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
+# XXX This trips ambiguity with Iterable constructor.
+# XXX So we disable it for now.
+# XXX Note that due to the ambiguity, we can not select this constructor for clone,
+# XXX thus necesitating local suppression of clone && manual implementation.
+#    - type: constructor
+#      arguments:
+#      - name: init
+#        type:
+#          java: java.util.SortedSet<E>
+#      initializers:
+#        comparator_: init->comparator()
+#        data_: init->begin(), init->end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
     - type: method
       name: comparator
       const: true
@@ -6714,6 +6774,21 @@ classes:
         implementation:
         - stdexcept
         - java/serialization/writer.h
+    - type: method
+      name: clone
+      override: true
+      return:
+        java: this
+      body: |
+        $if (model.devMode)$
+        return nullptr; // Be nice to dev-mode implementations.
+        $else$
+        return $boundTemplateType(java.({this}), "style=type, class")$(::java::allocate,
+            $boundTemplateType(java.({this}), "style=type, class")$(
+                ::java::_direct(),
+                this->shared_from_this(this)),
+            comparator());
+        $endif$
 
 
   java.util.Vector<E>:
@@ -7027,3 +7102,13 @@ classes:
         implementation:
         - stdexcept
         - variant
+
+
+  java.lang.Cloneable:
+    dev_mode: false
+    members:
+    - type: method
+      name: clone
+      virtual: true
+      return:
+        java: this

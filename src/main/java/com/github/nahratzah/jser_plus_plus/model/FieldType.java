@@ -387,7 +387,7 @@ public class FieldType {
         if (varType != null)
             varType = varType.prerender(ctx, renderArgs, variables);
 
-        defaultInit = prerender(defaultInit, ctx, renderArgs, variables);
+        defaultInit = prerender(defaultInit, ctx, renderArgs, variables, declaringClass.getBoundType());
     }
 
     /**
@@ -402,20 +402,20 @@ public class FieldType {
         if (varType != null)
             varType = varType.prerender(ctx, renderArgs, variables);
 
-        defaultInit = prerender(defaultInit, ctx, renderArgs, variables);
+        defaultInit = prerender(defaultInit, ctx, renderArgs, variables, declaringClass.getBoundType());
     }
 
-    private static String prerender(String text, Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
+    private static String prerender(String text, Context ctx, Map<String, ?> renderArgs, Collection<String> variables, BoundTemplate.ClassBinding<?> thisType) {
         final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
                 .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
-        return prerender(text, ctx, renderArgs, variablesMap);
+        return prerender(text, ctx, renderArgs, variablesMap, thisType);
     }
 
-    private static String prerender(String text, Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
+    private static String prerender(String text, Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables, BoundTemplate.ClassBinding<?> thisType) {
         if (text == null) return null;
 
         final Collection<Type> newDeclTypes = new HashSet<>(); // XXX use
-        final ST stringTemplate = new ST(StCtx.contextGroup(ctx, variables, newDeclTypes::add), text);
+        final ST stringTemplate = new ST(StCtx.contextGroup(ctx, variables, thisType, newDeclTypes::add), text);
         renderArgs.forEach(stringTemplate::add);
         return stringTemplate.render(Locale.ROOT);
     }

@@ -87,6 +87,11 @@ class wrapped_arrayintf_iter
 
 array_intf::~array_intf() noexcept = default;
 
+auto array_intf::clone()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  return clone_();
+}
+
 auto array_intf::check_(::java::lang::Object elem) const
 -> ::java::lang::Object {
   return element_class_()->cast(elem);
@@ -117,12 +122,26 @@ auto array_intf::push_back(::java::lang::Object obj)
   push_back_(std::move(obj));
 }
 
+auto array_intf::_virtual_clone([[maybe_unused]] ::java::_tags::java::lang::Cloneable _tag_)
+-> ::java::return_t<::java::lang::Cloneable> {
+  return ::java::lang::Cloneable(
+      ::java::_direct(),
+      clone());
+}
+
 
 array<::java::boolean_t>::~array() noexcept = default;
 
 auto array<::java::boolean_t>::reserve(::std::size_t sz)
 -> void {
   data_.reserve(sz);
+}
+
+auto array<::java::boolean_t>::clone()
+-> ::cycle_ptr::cycle_gptr<array> {
+  auto result = ::cycle_ptr::make_cycle<array>();
+  result->data_ = data_;
+  return result;
 }
 
 auto array<::java::boolean_t>::empty_() const noexcept -> bool {
@@ -247,12 +266,24 @@ auto array<::java::boolean_t>::push_back_(::java::lang::Object obj)
   push_back(::java::cast<::java::lang::Boolean>(std::move(obj))->value());
 }
 
+auto array<::java::boolean_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  return clone();
+}
+
 
 array<::java::byte_t>::~array() noexcept = default;
 
 auto array<::java::byte_t>::reserve(::std::size_t sz)
 -> void {
   data_.reserve(sz);
+}
+
+auto array<::java::byte_t>::clone()
+-> ::cycle_ptr::cycle_gptr<array> {
+  auto result = ::cycle_ptr::make_cycle<array>();
+  result->data_ = data_;
+  return result;
 }
 
 auto array<::java::byte_t>::empty_() const noexcept -> bool {
@@ -377,12 +408,24 @@ auto array<::java::byte_t>::push_back_(::java::lang::Object obj)
   push_back(::java::cast<::java::lang::Byte>(std::move(obj))->value());
 }
 
+auto array<::java::byte_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  return clone();
+}
+
 
 array<::java::short_t>::~array() noexcept = default;
 
 auto array<::java::short_t>::reserve(::std::size_t sz)
 -> void {
   data_.reserve(sz);
+}
+
+auto array<::java::short_t>::clone()
+-> ::cycle_ptr::cycle_gptr<array> {
+  auto result = ::cycle_ptr::make_cycle<array>();
+  result->data_ = data_;
+  return result;
 }
 
 auto array<::java::short_t>::empty_() const noexcept -> bool {
@@ -507,12 +550,24 @@ auto array<::java::short_t>::push_back_(::java::lang::Object obj)
   push_back(::java::cast<::java::lang::Short>(std::move(obj))->value());
 }
 
+auto array<::java::short_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  return clone();
+}
+
 
 array<::java::int_t>::~array() noexcept = default;
 
 auto array<::java::int_t>::reserve(::std::size_t sz)
 -> void {
   data_.reserve(sz);
+}
+
+auto array<::java::int_t>::clone()
+-> ::cycle_ptr::cycle_gptr<array> {
+  auto result = ::cycle_ptr::make_cycle<array>();
+  result->data_ = data_;
+  return result;
 }
 
 auto array<::java::int_t>::empty_() const noexcept -> bool {
@@ -637,12 +692,24 @@ auto array<::java::int_t>::push_back_(::java::lang::Object obj)
   push_back(::java::cast<::java::lang::Integer>(std::move(obj))->value());
 }
 
+auto array<::java::int_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  return clone();
+}
+
 
 array<::java::long_t>::~array() noexcept = default;
 
 auto array<::java::long_t>::reserve(::std::size_t sz)
 -> void {
   data_.reserve(sz);
+}
+
+auto array<::java::long_t>::clone()
+-> ::cycle_ptr::cycle_gptr<array> {
+  auto result = ::cycle_ptr::make_cycle<array>();
+  result->data_ = data_;
+  return result;
 }
 
 auto array<::java::long_t>::empty_() const noexcept -> bool {
@@ -767,12 +834,24 @@ auto array<::java::long_t>::push_back_(::java::lang::Object obj)
   push_back(::java::cast<::java::lang::Long>(std::move(obj))->value());
 }
 
+auto array<::java::long_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  return clone();
+}
+
 
 array<::java::float_t>::~array() noexcept = default;
 
 auto array<::java::float_t>::reserve(::std::size_t sz)
 -> void {
   data_.reserve(sz);
+}
+
+auto array<::java::float_t>::clone()
+-> ::cycle_ptr::cycle_gptr<array> {
+  auto result = ::cycle_ptr::make_cycle<array>();
+  result->data_ = data_;
+  return result;
 }
 
 auto array<::java::float_t>::empty_() const noexcept -> bool {
@@ -897,12 +976,24 @@ auto array<::java::float_t>::push_back_(::java::lang::Object obj)
   push_back(::java::cast<::java::lang::Float>(std::move(obj))->value());
 }
 
+auto array<::java::float_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  return clone();
+}
+
 
 array<::java::double_t>::~array() noexcept = default;
 
 auto array<::java::double_t>::reserve(::std::size_t sz)
 -> void {
   data_.reserve(sz);
+}
+
+auto array<::java::double_t>::clone()
+-> ::cycle_ptr::cycle_gptr<array> {
+  auto result = ::cycle_ptr::make_cycle<array>();
+  result->data_ = data_;
+  return result;
 }
 
 auto array<::java::double_t>::empty_() const noexcept -> bool {
@@ -1027,12 +1118,24 @@ auto array<::java::double_t>::push_back_(::java::lang::Object obj)
   push_back(::java::cast<::java::lang::Double>(std::move(obj))->value());
 }
 
+auto array<::java::double_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  return clone();
+}
+
 
 array<::java::char_t>::~array() noexcept = default;
 
 auto array<::java::char_t>::reserve(::std::size_t sz)
 -> void {
   data_.reserve(sz);
+}
+
+auto array<::java::char_t>::clone()
+-> ::cycle_ptr::cycle_gptr<array> {
+  auto result = ::cycle_ptr::make_cycle<array>();
+  result->data_ = data_;
+  return result;
 }
 
 auto array<::java::char_t>::empty_() const noexcept -> bool {
@@ -1157,6 +1260,11 @@ auto array<::java::char_t>::push_back_(::java::lang::Object obj)
   push_back(::java::cast<::java::lang::Character>(std::move(obj))->value());
 }
 
+auto array<::java::char_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  return clone();
+}
+
 
 array<::java::lang::Object>::array(::java::lang::Class<::java::G::pack<>> element_type)
 : element_type_(std::move(element_type))
@@ -1170,6 +1278,14 @@ array<::java::lang::Object>::~array() noexcept = default;
 auto array<::java::lang::Object>::reserve(::std::size_t sz)
 -> void {
   data_.reserve(sz);
+}
+
+auto array<::java::lang::Object>::clone()
+-> ::cycle_ptr::cycle_gptr<array> {
+  auto result = ::cycle_ptr::make_cycle<array>(element_type_);
+  result->data_.reserve(data_.size());
+  for (const auto& i : data_) result->data_.emplace_back(i);
+  return result;
 }
 
 auto array<::java::lang::Object>::empty_() const noexcept -> bool {
@@ -1315,6 +1431,11 @@ auto array<::java::lang::Object>::push_back_(::java::lang::Object obj)
   data_.emplace_back(this->check_(std::move(obj)));
 }
 
+auto array<::java::lang::Object>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  return clone();
+}
+
 
 array_of_array<::java::boolean_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1441,6 +1562,14 @@ auto array_of_array<::java::boolean_t>::push_back_(::java::lang::Object obj)
   auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
   if (array_ptr == nullptr) throw ::std::bad_cast();
   data_.emplace_back(std::move(array_ptr));
+}
+
+auto array_of_array<::java::boolean_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  auto result = ::cycle_ptr::make_cycle<array_of_array>(dim_);
+  result->data_.reserve(data_.size());
+  for (const auto& i : data_) result->data_.emplace_back(i);
+  return result;
 }
 
 
@@ -1571,6 +1700,14 @@ auto array_of_array<::java::byte_t>::push_back_(::java::lang::Object obj)
   data_.emplace_back(std::move(array_ptr));
 }
 
+auto array_of_array<::java::byte_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  auto result = ::cycle_ptr::make_cycle<array_of_array>(dim_);
+  result->data_.reserve(data_.size());
+  for (const auto& i : data_) result->data_.emplace_back(i);
+  return result;
+}
+
 
 array_of_array<::java::short_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1697,6 +1834,14 @@ auto array_of_array<::java::short_t>::push_back_(::java::lang::Object obj)
   auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
   if (array_ptr == nullptr) throw ::std::bad_cast();
   data_.emplace_back(std::move(array_ptr));
+}
+
+auto array_of_array<::java::short_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  auto result = ::cycle_ptr::make_cycle<array_of_array>(dim_);
+  result->data_.reserve(data_.size());
+  for (const auto& i : data_) result->data_.emplace_back(i);
+  return result;
 }
 
 
@@ -1827,6 +1972,14 @@ auto array_of_array<::java::int_t>::push_back_(::java::lang::Object obj)
   data_.emplace_back(std::move(array_ptr));
 }
 
+auto array_of_array<::java::int_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  auto result = ::cycle_ptr::make_cycle<array_of_array>(dim_);
+  result->data_.reserve(data_.size());
+  for (const auto& i : data_) result->data_.emplace_back(i);
+  return result;
+}
+
 
 array_of_array<::java::long_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1953,6 +2106,14 @@ auto array_of_array<::java::long_t>::push_back_(::java::lang::Object obj)
   auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
   if (array_ptr == nullptr) throw ::std::bad_cast();
   data_.emplace_back(std::move(array_ptr));
+}
+
+auto array_of_array<::java::long_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  auto result = ::cycle_ptr::make_cycle<array_of_array>(dim_);
+  result->data_.reserve(data_.size());
+  for (const auto& i : data_) result->data_.emplace_back(i);
+  return result;
 }
 
 
@@ -2083,6 +2244,14 @@ auto array_of_array<::java::float_t>::push_back_(::java::lang::Object obj)
   data_.emplace_back(std::move(array_ptr));
 }
 
+auto array_of_array<::java::float_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  auto result = ::cycle_ptr::make_cycle<array_of_array>(dim_);
+  result->data_.reserve(data_.size());
+  for (const auto& i : data_) result->data_.emplace_back(i);
+  return result;
+}
+
 
 array_of_array<::java::double_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -2211,6 +2380,14 @@ auto array_of_array<::java::double_t>::push_back_(::java::lang::Object obj)
   data_.emplace_back(std::move(array_ptr));
 }
 
+auto array_of_array<::java::double_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  auto result = ::cycle_ptr::make_cycle<array_of_array>(dim_);
+  result->data_.reserve(data_.size());
+  for (const auto& i : data_) result->data_.emplace_back(i);
+  return result;
+}
+
 
 array_of_array<::java::char_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -2337,6 +2514,14 @@ auto array_of_array<::java::char_t>::push_back_(::java::lang::Object obj)
   auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
   if (array_ptr == nullptr) throw ::std::bad_cast();
   data_.emplace_back(std::move(array_ptr));
+}
+
+auto array_of_array<::java::char_t>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  auto result = ::cycle_ptr::make_cycle<array_of_array>(dim_);
+  result->data_.reserve(data_.size());
+  for (const auto& i : data_) result->data_.emplace_back(i);
+  return result;
 }
 
 
@@ -2468,6 +2653,14 @@ auto array_of_array<::java::lang::Object>::push_back_(::java::lang::Object obj)
   auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
   if (array_ptr == nullptr) throw ::std::bad_cast();
   data_.emplace_back(std::move(array_ptr));
+}
+
+auto array_of_array<::java::lang::Object>::clone_()
+-> ::cycle_ptr::cycle_gptr<array_intf> {
+  auto result = ::cycle_ptr::make_cycle<array_of_array>(element_type_, dim_);
+  result->data_.reserve(data_.size());
+  for (const auto& i : data_) result->data_.emplace_back(i);
+  return result;
 }
 
 

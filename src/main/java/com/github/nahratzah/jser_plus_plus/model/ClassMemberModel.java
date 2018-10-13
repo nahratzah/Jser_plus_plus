@@ -687,7 +687,7 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
             final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
                     .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
 
-            return new ST(StCtx.contextGroup(ctx, variablesMap, collection::add), text)
+            return new ST(StCtx.contextGroup(ctx, variablesMap, cdef.getBoundType(), collection::add), text)
                     .add("model", cdef)
                     .render(Locale.ROOT);
         };
@@ -698,14 +698,18 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
         this.returnType = prerender(returnType, ctx);
 
         {
+            final Map<String, BoundTemplate> squashMap = cdef.getErasedTemplateArguments().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             final List<Type> argumentTypesTmp = new ArrayList<>();
             final List<String> argumentNamesTmp = new ArrayList<>();
+            final List<Type> argumentTypesSquashedTmp = new ArrayList<>();
             arguments.forEach(arg -> {
                 argumentTypesTmp.add(prerender(arg.getType(), ctx));
                 argumentNamesTmp.add(arg.getName());
+                argumentTypesSquashedTmp.add(prerender(arg.getType(), ctx, squashMap));
             });
             this.argumentNames = unmodifiableList(argumentNamesTmp);
             this.argumentTypes = unmodifiableList(argumentTypesTmp);
+            this.argumentTypesSquashed = unmodifiableList(argumentTypesSquashedTmp);
         }
 
         if (body == null) {
@@ -727,8 +731,14 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
 
     private Type prerender(CfgType cfgType, Context ctx) {
         if (cfgType == null) return null;
-        return typeFromCfgType(cfgType, ctx, variables)
+        return typeFromCfgType(cfgType, ctx, variables, cdef.getBoundType())
                 .prerender(ctx, singletonMap("model", cdef), variables);
+    }
+
+    private Type prerender(CfgType cfgType, Context ctx, Map<String, ? extends BoundTemplate> rebindMap) {
+        if (cfgType == null) return null;
+        return typeFromCfgType(cfgType, ctx, variables, cdef.getBoundType())
+                .prerender(ctx, singletonMap("model", cdef), rebindMap);
     }
 
     protected final String renderDecl(String text) {
@@ -757,6 +767,10 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
         return argumentTypes;
     }
 
+    public final List<Type> getArgumentTypesSquashed() {
+        return argumentTypesSquashed;
+    }
+
     public final List<String> getArgumentNames() {
         return argumentNames;
     }
@@ -774,5 +788,6 @@ abstract class AbstractClassMemberModel implements ClassMemberModel {
     private final Type returnType;
     private final List<String> argumentNames;
     private final List<Type> argumentTypes;
+    private final List<Type> argumentTypesSquashed;
     private final String body;
 }

@@ -34,17 +34,18 @@ public class StCtx {
      *
      * @param context The resolver context to use to find classes.
      * @param variables A list of type variables that is known in this context.
+     * @param thisType The type for the `this` keyword.
      * @param registry A registry that listens for all types resolved using this
      * context.
      * @return A STGroup that imports {@link #BUILTINS} and contains the 'java'
      * dictionary.
      */
-    public static final STGroup contextGroup(Context context, Map<String, ? extends BoundTemplate> variables, Consumer<? super BoundTemplate> registry) {
+    public static final STGroup contextGroup(Context context, Map<String, ? extends BoundTemplate> variables, BoundTemplate.ClassBinding<?> thisType, Consumer<? super BoundTemplate> registry) {
         final STGroup contextGroup = new STGroupString("<context>", "", '$', '$');
         contextGroup.defineDictionary(
                 "java",
                 new FunctionAttrMap(text -> {
-                    final Type type = BoundTemplate.fromString(text, context, variables);
+                    final Type type = BoundTemplate.fromString(text, context, variables, thisType);
 
                     // XXX figure out a prettier way to do this.
                     final BoundTemplate template;
