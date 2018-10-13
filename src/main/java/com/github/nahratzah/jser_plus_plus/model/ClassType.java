@@ -383,6 +383,7 @@ public class ClassType implements JavaType {
         this.friends = classCfg.getFriends().stream()
                 .map(cfgType -> typeFromCfgType(cfgType, ctx, argRename.values(), getBoundType()))
                 .map(type -> type.prerender(ctx, singletonMap("model", this), argRename.values()))
+                .distinct()
                 .collect(Collectors.toList());
     }
 
