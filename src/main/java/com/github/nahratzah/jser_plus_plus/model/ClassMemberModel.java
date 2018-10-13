@@ -19,7 +19,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.Set;
@@ -472,322 +471,119 @@ public interface ClassMemberModel {
         private final Destructor destructor;
     }
 
-    /**
-     * The significant portion of a method for override comparisons.
-     */
-    public static class OverrideSelector {
-        public OverrideSelector(Context ctx, MethodModel method) {
-            this.ctx = requireNonNull(ctx);
-            this.method = requireNonNull(method);
-            this.declaringType = new BoundTemplate.ClassBinding<>(
-                    method.getDeclaringClass(),
-                    method.getDeclaringClass().getTemplateArgumentNames().stream()
-                            .map(BoundTemplate.VarBinding::new)
-                            .collect(Collectors.toList()));
-            this.arguments = requireNonNull(method.getArgumentTypes()).stream()
-                    .map(type -> {
-                        return type.prerender(
-                                this.ctx,
-                                singletonMap("model", requireNonNull(this.declaringType.getType())),
-                                this.declaringType.getBindingsMap());
-                    })
-                    .collect(Collectors.toList());
-            this.returnType = method.getReturnType()
-                    .prerender(this.ctx, singletonMap("model", this.declaringType.getType()), this.declaringType.getBindingsMap());
+    public static abstract class AbstractClassMemberModel implements ClassMemberModel {
+        public AbstractClassMemberModel(Context ctx, ClassType cdef, CfgType returnType, List<CfgArgument> arguments, String body) {
+            this.cdef = requireNonNull(cdef);
+            this.variables = unmodifiableList(cdef.getTemplateArguments().stream()
+                    .map(ClassTemplateArgument::getName)
+                    .collect(Collectors.toList()));
+
+            final BiFunction<String, Collection<Type>, String> basicRenderer = (text, collection) -> {
+                final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
+                        .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
+
+                return new ST(StCtx.contextGroup(ctx, variablesMap, cdef.getBoundType(), collection::add), text)
+                        .add("model", cdef)
+                        .render(Locale.ROOT);
+            };
+
+            this.declRenderer = (text) -> basicRenderer.apply(text, this.declarationTypes);
+            this.implRenderer = (text) -> basicRenderer.apply(text, this.implementationTypes);
+
+            this.returnType = prerender(returnType, ctx);
+
+            {
+                final Map<String, BoundTemplate> squashMap = cdef.getErasedTemplateArguments().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                final List<Type> argumentTypesTmp = new ArrayList<>();
+                final List<String> argumentNamesTmp = new ArrayList<>();
+                final List<Type> argumentTypesSquashedTmp = new ArrayList<>();
+                arguments.forEach(arg -> {
+                    argumentTypesTmp.add(prerender(arg.getType(), ctx));
+                    argumentNamesTmp.add(arg.getName());
+                    argumentTypesSquashedTmp.add(prerender(arg.getType(), ctx, squashMap));
+                });
+                this.argumentNames = unmodifiableList(argumentNamesTmp);
+                this.argumentTypes = unmodifiableList(argumentTypesTmp);
+                this.argumentTypesSquashed = unmodifiableList(argumentTypesSquashedTmp);
+            }
+
+            if (body == null) {
+                this.body = null;
+            } else {
+                String renderedBody = renderImpl(body);
+                // Remove newline at end, since the render engine will also generate one for us.
+                // This gets rid of the blank line at the end of method bodies.
+                if (renderedBody.endsWith("\n"))
+                    renderedBody = renderedBody.substring(0, renderedBody.length() - 1);
+                this.body = renderedBody;
+            }
         }
 
-        private OverrideSelector(OverrideSelector parent, Map<String, ? extends BoundTemplate> rebindMap) {
-            this.ctx = requireNonNull(parent.ctx);
-            this.method = requireNonNull(parent.method);
-            this.declaringType = parent.declaringType.rebind(rebindMap);
-            this.arguments = requireNonNull(method.getArgumentTypes()).stream()
-                    .map(type -> {
-                        return type.prerender(
-                                this.ctx,
-                                singletonMap("model", requireNonNull(this.declaringType.getType())),
-                                this.declaringType.getBindingsMap());
-                    })
-                    .collect(Collectors.toList());
-            this.returnType = method.getReturnType()
-                    .prerender(this.ctx, singletonMap("model", this.declaringType.getType()), this.declaringType.getBindingsMap());
+        @Override
+        public ClassType getDeclaringClass() {
+            return cdef;
         }
 
-        public OverrideSelector rebind(Map<String, ? extends BoundTemplate> rebindMap) {
-            return new OverrideSelector(this, rebindMap);
+        private Type prerender(CfgType cfgType, Context ctx) {
+            if (cfgType == null) return null;
+            return typeFromCfgType(cfgType, ctx, variables, cdef.getBoundType())
+                    .prerender(ctx, singletonMap("model", cdef), variables);
         }
 
-        /**
-         * Retrieve the method with erasure applied.
-         *
-         * @return The underlying method with type erasure applied.
-         */
-        public OverrideSelector getErasedMethod() {
-            final OverrideSelector erasedBaseCase = method.getOverrideSelector(ctx).orElseThrow(IllegalStateException::new);
-            final BoundTemplate.ClassBinding<ClassType> erasedBaseClassType = new BoundTemplate.ClassBinding<>(
-                    erasedBaseCase.getDeclaringClass(),
-                    erasedBaseCase.getDeclaringClass().getErasedTemplateArguments().stream()
-                            .map(Map.Entry::getValue)
-                            .collect(Collectors.toList()));
-            return erasedBaseCase.rebind(erasedBaseClassType.getBindingsMap());
+        private Type prerender(CfgType cfgType, Context ctx, Map<String, ? extends BoundTemplate> rebindMap) {
+            if (cfgType == null) return null;
+            return typeFromCfgType(cfgType, ctx, variables, cdef.getBoundType())
+                    .prerender(ctx, singletonMap("model", cdef), rebindMap);
         }
 
-        /**
-         * Test if the method had its arguments altered.
-         *
-         * @return True of the override has altered arguments, relative to the
-         * erased base type.
-         */
-        public boolean hasChangedArguments() {
-            return !Objects.equals(arguments, getErasedMethod().arguments);
+        protected final String renderDecl(String text) {
+            return declRenderer.apply(text);
         }
 
-        /**
-         * Test if the method had its return type altered.
-         *
-         * @return True if the override has an altered return type, relative to
-         * the erased base type.
-         */
-        public boolean hasChangedReturnType() {
-            return !Objects.equals(returnType, getErasedMethod().returnType);
+        protected final String renderImpl(String text) {
+            return implRenderer.apply(text);
         }
 
-        /**
-         * Test if any of the types of this method was changed from the original
-         * method.
-         *
-         * @return True if any of the types of this method was changed, relative
-         * to the base type.
-         */
-        public boolean hasAlteredTypes() {
-            return hasChangedReturnType() || hasChangedArguments();
+        @Override
+        public Stream<Type> getDeclarationTypes() {
+            return declarationTypes.stream();
         }
 
-        /**
-         * The name of the method.
-         *
-         * This is significant in determining override mapping.
-         *
-         * @return The name of the method.
-         */
-        public String getName() {
-            return method.getName();
+        @Override
+        public Stream<Type> getImplementationTypes() {
+            return implementationTypes.stream();
         }
 
-        /**
-         * Const qualification of the method.
-         *
-         * This is significant in determining override mapping.
-         *
-         * @return True if the method is const qualified.
-         */
-        public boolean isConst() {
-            return method.isConst();
-        }
-
-        /**
-         * List of method arguments.
-         *
-         * This is significant in determining override mapping.
-         *
-         * @return The arguments of the method.
-         */
-        public List<Type> getArguments() {
-            return arguments;
-        }
-
-        /**
-         * Return type of the method.
-         *
-         * @return The return type of the method.
-         */
-        public Type getReturnType() {
+        public final Type getReturnType() {
             return returnType;
         }
 
-        /**
-         * Retrieve the declaring class of the method.
-         *
-         * @return Declaring class of the method.
-         */
-        public ClassType getDeclaringClass() {
-            return getDeclaringType().getType();
+        public final List<Type> getArgumentTypes() {
+            return argumentTypes;
         }
 
-        /**
-         * Retrieves the bound type of the declaring class.
-         *
-         * @return Declaring class with any variable substitutions applied.
-         */
-        public BoundTemplate.ClassBinding<ClassType> getDeclaringType() {
-            return declaringType;
+        public final List<Type> getArgumentTypesSquashed() {
+            return argumentTypesSquashed;
         }
 
-        /**
-         * Retrieve the method from which this
-         * {@link OverrideSelector override selector} derives.
-         *
-         * @return The underlying method.
-         */
-        public MethodModel getUnderlyingMethod() {
-            return method;
+        public final List<String> getArgumentNames() {
+            return argumentNames;
         }
 
-        @Override
-        public int hashCode() {
-            int hash = 7;
-            hash = 97 * hash + Objects.hashCode(this.getName());
-            hash = 97 * hash + (this.isConst() ? 1 : 0);
-            hash = 97 * hash + Objects.hashCode(this.getArguments());
-            return hash;
+        public final String getBody() {
+            return body;
         }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
-            final OverrideSelector other = (OverrideSelector) obj;
-            if (this.isConst() != other.isConst()) return false;
-            if (!Objects.equals(this.getName(), other.getName())) return false;
-            if (!Objects.equals(this.getArguments(), other.getArguments()))
-                return false;
-            return true;
-        }
-
-        @Override
-        public String toString() {
-            return "auto "
-                    + getDeclaringType()
-                    + "::"
-                    + getName()
-                    + getArguments().stream()
-                            .map(Object::toString)
-                            .collect(Collectors.joining(", ", "(", ")"))
-                    + (isConst() ? " const" : "")
-                    + " -> "
-                    + getReturnType();
-        }
-
-        private final Context ctx; // Not significant for equality.
-        private final BoundTemplate.ClassBinding<ClassType> declaringType; //Not significant for equality.
-        private final MethodModel method; // Not significant for equality.
-        private final List<Type> arguments; // Significant for equality.
-        private final Type returnType; // Significant for equality.
+        protected final ClassType cdef;
+        protected final List<String> variables;
+        private final List<Type> declarationTypes = new ArrayList<>();
+        private final List<Type> implementationTypes = new ArrayList<>();
+        private final Function<String, String> declRenderer;
+        private final Function<String, String> implRenderer;
+        private final Type returnType;
+        private final List<String> argumentNames;
+        private final List<Type> argumentTypes;
+        private final List<Type> argumentTypesSquashed;
+        private final String body;
     }
-}
-
-abstract class AbstractClassMemberModel implements ClassMemberModel {
-    public AbstractClassMemberModel(Context ctx, ClassType cdef, CfgType returnType, List<CfgArgument> arguments, String body) {
-        this.cdef = requireNonNull(cdef);
-        this.variables = unmodifiableList(cdef.getTemplateArguments().stream()
-                .map(ClassTemplateArgument::getName)
-                .collect(Collectors.toList()));
-
-        final BiFunction<String, Collection<Type>, String> basicRenderer = (text, collection) -> {
-            final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
-                    .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
-
-            return new ST(StCtx.contextGroup(ctx, variablesMap, cdef.getBoundType(), collection::add), text)
-                    .add("model", cdef)
-                    .render(Locale.ROOT);
-        };
-
-        this.declRenderer = (text) -> basicRenderer.apply(text, this.declarationTypes);
-        this.implRenderer = (text) -> basicRenderer.apply(text, this.implementationTypes);
-
-        this.returnType = prerender(returnType, ctx);
-
-        {
-            final Map<String, BoundTemplate> squashMap = cdef.getErasedTemplateArguments().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            final List<Type> argumentTypesTmp = new ArrayList<>();
-            final List<String> argumentNamesTmp = new ArrayList<>();
-            final List<Type> argumentTypesSquashedTmp = new ArrayList<>();
-            arguments.forEach(arg -> {
-                argumentTypesTmp.add(prerender(arg.getType(), ctx));
-                argumentNamesTmp.add(arg.getName());
-                argumentTypesSquashedTmp.add(prerender(arg.getType(), ctx, squashMap));
-            });
-            this.argumentNames = unmodifiableList(argumentNamesTmp);
-            this.argumentTypes = unmodifiableList(argumentTypesTmp);
-            this.argumentTypesSquashed = unmodifiableList(argumentTypesSquashedTmp);
-        }
-
-        if (body == null) {
-            this.body = null;
-        } else {
-            String renderedBody = renderImpl(body);
-            // Remove newline at end, since the render engine will also generate one for us.
-            // This gets rid of the blank line at the end of method bodies.
-            if (renderedBody.endsWith("\n"))
-                renderedBody = renderedBody.substring(0, renderedBody.length() - 1);
-            this.body = renderedBody;
-        }
-    }
-
-    @Override
-    public ClassType getDeclaringClass() {
-        return cdef;
-    }
-
-    private Type prerender(CfgType cfgType, Context ctx) {
-        if (cfgType == null) return null;
-        return typeFromCfgType(cfgType, ctx, variables, cdef.getBoundType())
-                .prerender(ctx, singletonMap("model", cdef), variables);
-    }
-
-    private Type prerender(CfgType cfgType, Context ctx, Map<String, ? extends BoundTemplate> rebindMap) {
-        if (cfgType == null) return null;
-        return typeFromCfgType(cfgType, ctx, variables, cdef.getBoundType())
-                .prerender(ctx, singletonMap("model", cdef), rebindMap);
-    }
-
-    protected final String renderDecl(String text) {
-        return declRenderer.apply(text);
-    }
-
-    protected final String renderImpl(String text) {
-        return implRenderer.apply(text);
-    }
-
-    @Override
-    public Stream<Type> getDeclarationTypes() {
-        return declarationTypes.stream();
-    }
-
-    @Override
-    public Stream<Type> getImplementationTypes() {
-        return implementationTypes.stream();
-    }
-
-    public final Type getReturnType() {
-        return returnType;
-    }
-
-    public final List<Type> getArgumentTypes() {
-        return argumentTypes;
-    }
-
-    public final List<Type> getArgumentTypesSquashed() {
-        return argumentTypesSquashed;
-    }
-
-    public final List<String> getArgumentNames() {
-        return argumentNames;
-    }
-
-    public final String getBody() {
-        return body;
-    }
-
-    protected final ClassType cdef;
-    protected final List<String> variables;
-    private final List<Type> declarationTypes = new ArrayList<>();
-    private final List<Type> implementationTypes = new ArrayList<>();
-    private final Function<String, String> declRenderer;
-    private final Function<String, String> implRenderer;
-    private final Type returnType;
-    private final List<String> argumentNames;
-    private final List<Type> argumentTypes;
-    private final List<Type> argumentTypesSquashed;
-    private final String body;
 }

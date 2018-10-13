@@ -230,9 +230,9 @@ public interface MethodModel {
      * @param ctx Lookup context to resolve classes.
      * @return An optional containing an override selector.
      */
-    public default Optional<ClassMemberModel.OverrideSelector> getOverrideSelector(Context ctx) {
+    public default Optional<OverrideSelector> getOverrideSelector(Context ctx) {
         if (isStatic()) return Optional.empty();
-        return Optional.of(new ClassMemberModel.OverrideSelector(ctx, this));
+        return Optional.of(new OverrideSelector(ctx, this));
     }
 
     /**

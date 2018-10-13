@@ -67,7 +67,7 @@ import org.stringtemplate.v4.ST;
  */
 public class ClassType implements JavaType {
     private static final Logger LOG = Logger.getLogger(ClassType.class.getName());
-    private static final boolean WRITE_POST_PROCESSING_RESULT = false;
+    private static final boolean WRITE_POST_PROCESSING_RESULT = true;
     private static final String VIRTUAL_FUNCTION_PREFIX = "_virtual_";
     private static final String REDECLARE_BODY_TEMPLATE = "return "
             + "$if (needCast)$::java::cast<$boundTemplateType(declare.returnType, \"style=type, class\")$>($endif$"
@@ -780,7 +780,7 @@ public class ClassType implements JavaType {
                     return parentType.allResolvedMethods.stream();
                 })
                 .collect(Collectors.toSet());
-        final Predicate<ClassMemberModel.OverrideSelector> isParentResolvedMethod = (selector) -> allResolvedMethods.contains(new ResolvedMethod(selector));
+        final Predicate<OverrideSelector> isParentResolvedMethod = (selector) -> allResolvedMethods.contains(new ResolvedMethod(selector));
 
         // Figure out erased bindings for our type.
         final Map<String, BoundTemplate> erasedBindings = getErasedTemplateArguments().stream()
@@ -788,7 +788,7 @@ public class ClassType implements JavaType {
 
         // Maintain a mapping from erased type to template type.
         // We want to put template types, not erased types, into the {@link ClassType#allMethods} collection.
-        final Map<ClassType, Map<ClassMemberModel.OverrideSelector, ClassMemberModel.OverrideSelector>> erasedToTemplateMapping = parentModels.stream()
+        final Map<ClassType, Map<OverrideSelector, OverrideSelector>> erasedToTemplateMapping = parentModels.stream()
                 .flatMap(parentTemplate -> {
                     final Map<String, BoundTemplate> bindingMap = parentTemplate.getBindingsMap();
                     return parentTemplate.getType().getAllMethods().stream()
@@ -806,8 +806,8 @@ public class ClassType implements JavaType {
                                         throw new IllegalStateException("Collision between methods: " + selX + ", " + selY);
                                     return selX;
                                 })));
-        final Function<ClassMemberModel.OverrideSelector, ClassMemberModel.OverrideSelector> erasedToTemplate = (selector) -> {
-            final Map<ClassMemberModel.OverrideSelector, ClassMemberModel.OverrideSelector> classMap = requireNonNull(
+        final Function<OverrideSelector, OverrideSelector> erasedToTemplate = (selector) -> {
+            final Map<OverrideSelector, OverrideSelector> classMap = requireNonNull(
                     erasedToTemplateMapping.get(selector.getDeclaringClass()),
                     "Class " + selector.getDeclaringClass().getName() + " not found: " + selector);
             return requireNonNull(
@@ -822,14 +822,14 @@ public class ClassType implements JavaType {
 
         // All locally declared member functions,
         // mapped to the methods they override.
-        final Map<ClassMemberModel.OverrideSelector, List<ClassMemberModel.OverrideSelector>> myMethods;
+        final Map<OverrideSelector, List<OverrideSelector>> myMethods;
         {
-            final List<ClassMemberModel.OverrideSelector> myMethodsTmp = getClassMembers().stream()
+            final List<OverrideSelector> myMethodsTmp = getClassMembers().stream()
                     .map(classMemberModel -> classMemberModel.getOverrideSelector(ctx))
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .map(selector -> {
-                        final ClassMemberModel.OverrideSelector erasedSelector = selector.getErasedMethod();
+                        final OverrideSelector erasedSelector = selector.getErasedMethod();
                         // Record mapping while we're here.
                         erasedToTemplateMapping
                                 .computeIfAbsent(selector.getDeclaringClass(), x -> new HashMap<>())
@@ -879,7 +879,7 @@ public class ClassType implements JavaType {
                 .forEach(allResolvedMethods::add);
 
         // Figure out which methods need to be re-declared so that we can invoke them with the appropriate rebound types.
-        final Map<MethodModel, ClassMemberModel.OverrideSelector> redeclareMethods = erasedParentModels.stream()
+        final Map<MethodModel, OverrideSelector> redeclareMethods = erasedParentModels.stream()
                 .flatMap(parentTemplate -> parentTemplate.getType().redeclareMethods(ctx, parentTemplate.getBindingsMap()))
                 .filter(override -> !myMethods.containsKey(override))
                 .peek(override -> {
@@ -888,24 +888,24 @@ public class ClassType implements JavaType {
                         override.getUnderlyingMethod().getOverrideSelector(ctx).get(),
                         override});
                 })
-                .collect(Collectors.toMap(ClassMemberModel.OverrideSelector::getUnderlyingMethod, Function.identity()));
+                .collect(Collectors.toMap(OverrideSelector::getUnderlyingMethod, Function.identity()));
 
         // Figure out which other methods are available on the parent.
         // Only methods that are not re-declared and not overriden are here.
-        final List<ClassMemberModel.OverrideSelector> allKeptParentMethods;
+        final List<OverrideSelector> allKeptParentMethods;
         {
-            final Map<ClassMemberModel.OverrideSelector, List<ClassMemberModel.OverrideSelector>> allKeptParentMethodsTmp = erasedParentModels.stream()
+            final Map<OverrideSelector, List<OverrideSelector>> allKeptParentMethodsTmp = erasedParentModels.stream()
                     .flatMap(erasedParentTemplate -> {
                         return erasedParentTemplate.getType().getAllMethods().stream()
                                 .filter(isParentResolvedMethod.negate())
                                 .map(overrideSelector -> overrideSelector.rebind(erasedParentTemplate.getBindingsMap()));
                     })
-                    .filter(((Predicate<ClassMemberModel.OverrideSelector>) myMethods::containsKey).negate())
-                    .filter(((Predicate<ClassMemberModel.OverrideSelector>) new HashSet<>(redeclareMethods.values())::contains).negate())
+                    .filter(((Predicate<OverrideSelector>) myMethods::containsKey).negate())
+                    .filter(((Predicate<OverrideSelector>) new HashSet<>(redeclareMethods.values())::contains).negate())
                     .collect(Collectors.groupingBy(Function.identity()));
-            final Map<ClassMemberModel.OverrideSelector, Map<com.github.nahratzah.jser_plus_plus.model.Type, List<ClassMemberModel.OverrideSelector>>> ambiguities = new HashMap<>();
+            final Map<OverrideSelector, Map<com.github.nahratzah.jser_plus_plus.model.Type, List<OverrideSelector>>> ambiguities = new HashMap<>();
             allKeptParentMethodsTmp.forEach((key, methods) -> {
-                final Map<com.github.nahratzah.jser_plus_plus.model.Type, List<ClassMemberModel.OverrideSelector>> returnTypeMap = methods.stream()
+                final Map<com.github.nahratzah.jser_plus_plus.model.Type, List<OverrideSelector>> returnTypeMap = methods.stream()
                         .collect(Collectors.groupingBy(method -> method.getReturnType()));
                 if (returnTypeMap.size() != 1)
                     ambiguities.put(key, returnTypeMap);
@@ -939,7 +939,7 @@ public class ClassType implements JavaType {
                 .map(Map.Entry::getValue) // And then restore the mapping to its original.
                 .collect(Collectors.toList());
 
-        if (WRITE_POST_PROCESSING_RESULT) {
+        if (WRITE_POST_PROCESSING_RESULT && java.util.HashSet.class.getName().equals(getName())) {
             System.out.println("========================================================");
             System.out.println(getName() + (getTemplateArgumentNames().isEmpty() ? "" : getTemplateArgumentNames().stream().collect(Collectors.joining(", ", "<", ">"))));
             System.out.println("--------------------------------------------------------");
@@ -952,8 +952,6 @@ public class ClassType implements JavaType {
             classMemberFunctions.forEach(m -> System.out.println("  " + m.getOverrideSelector(ctx).map(Object::toString).orElse(m.toString())));
             System.out.println("--------------------------------------------------------");
         }
-
-//        throw new UnsupportedOperationException("XXX implement class post processing");
     }
 
     /**
@@ -962,8 +960,8 @@ public class ClassType implements JavaType {
      * @param redeclareMethods Mapping from original method to override selector
      * in current class.
      */
-    private void postProcessingApplyRedeclare(Map<MethodModel, ClassMemberModel.OverrideSelector> redeclareMethods) {
-        redeclareMethods.forEach((MethodModel underlying, ClassMemberModel.OverrideSelector declare) -> {
+    private void postProcessingApplyRedeclare(Map<MethodModel, OverrideSelector> redeclareMethods) {
+        redeclareMethods.forEach((MethodModel underlying, OverrideSelector declare) -> {
             final String body = new ST(StCtx.BUILTINS, REDECLARE_BODY_TEMPLATE)
                     .add("needCast", !Objects.equals(declare.getReturnType(), underlying.getReturnType()))
                     .add("declare", declare)
@@ -1001,13 +999,13 @@ public class ClassType implements JavaType {
      *
      * @param myMethods Mapping of function, to all functions it overrides.
      */
-    private void postProcessingApplyMyMethods(Context ctx, Map<ClassMemberModel.OverrideSelector, List<ClassMemberModel.OverrideSelector>> myMethods) {
+    private void postProcessingApplyMyMethods(Context ctx, Map<OverrideSelector, List<OverrideSelector>> myMethods) {
         myMethods.forEach((myFn, overrideFns) -> {
             final boolean covariantReturn = myFn.getUnderlyingMethod().isCovariantReturn();
 
             // Ensure all methods agree on whether they use covariant return or not.
             {
-                final List<ClassMemberModel.OverrideSelector> mismatchedCovariantReturnParents = overrideFns.stream()
+                final List<OverrideSelector> mismatchedCovariantReturnParents = overrideFns.stream()
                         .filter(fn -> fn.getUnderlyingMethod().isCovariantReturn() != covariantReturn)
                         .collect(Collectors.toList());
                 if (!mismatchedCovariantReturnParents.isEmpty()) {
@@ -1032,7 +1030,7 @@ public class ClassType implements JavaType {
             // If the method is not virtual, add it directly.
             if (!myFn.getUnderlyingMethod().isVirtual()) {
                 if (overrideFns.stream()
-                        .map(ClassMemberModel.OverrideSelector::getUnderlyingMethod)
+                        .map(OverrideSelector::getUnderlyingMethod)
                         .anyMatch(method -> method.isVirtual()))
                     LOG.log(Level.WARNING, "{0} not declared virtual, but overrides virtual methods!", myFn);
                 if (!overrideFns.isEmpty() && !myFn.getUnderlyingMethod().isHideOk())
@@ -1053,7 +1051,7 @@ public class ClassType implements JavaType {
                     .render(Locale.ROOT);
 
             // Figure out which super methods we actually have to replace.
-            final List<ClassMemberModel.OverrideSelector> superMethods = overrideFns.stream()
+            final List<OverrideSelector> superMethods = overrideFns.stream()
                     .map(overrideFn -> new SimpleMapEntry<>(overrideFn.getDeclaringClass(), overrideFn)) // Introduce declaring class.
                     .distinct() // Eliminate duplicates, using the declaring class as support.
                     .map(Map.Entry::getValue) // Undo declaring class introduction.
@@ -1064,7 +1062,7 @@ public class ClassType implements JavaType {
             if (!myFn.getUnderlyingMethod().isPureVirtual() && covariantReturn) {
                 // Emit overrideFns with extra tag argument.
                 superMethods.forEach(superMethod -> {
-                    final ClassMemberModel.OverrideSelector overrideFn = superMethod.getErasedMethod(); // We're going to override the original function.
+                    final OverrideSelector overrideFn = superMethod.getErasedMethod(); // We're going to override the original function.
 
                     final com.github.nahratzah.jser_plus_plus.model.Type overrideTag = new CxxType("$tagType(model)$", new Includes())
                             .prerender(ctx, singletonMap("model", overrideFn.getDeclaringClass()), EMPTY_LIST);
@@ -1152,12 +1150,11 @@ public class ClassType implements JavaType {
      *
      * @param ctx Type lookup context.
      * @param variablesMap Template variables that this class is bound to.
-     * @return Collection of
-     * {@link ClassMemberModel.OverrideSelector override selectors} for methods
-     * which had their arguments or return type change due to template
+     * @return Collection of {@link OverrideSelector override selectors} for
+     * methods which had their arguments or return type change due to template
      * specializations.
      */
-    public Stream<ClassMemberModel.OverrideSelector> redeclareMethods(Context ctx, Map<String, ? extends BoundTemplate> variablesMap) {
+    public Stream<OverrideSelector> redeclareMethods(Context ctx, Map<String, ? extends BoundTemplate> variablesMap) {
         final EnumSet<Visibility> visibilitySet = EnumSet.of(Visibility.PROTECTED, Visibility.PUBLIC);
 
         return getClassMembers().stream()
@@ -1166,7 +1163,7 @@ public class ClassType implements JavaType {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(overrideSelector -> overrideSelector.rebind(variablesMap))
-                .filter(ClassMemberModel.OverrideSelector::hasAlteredTypes);
+                .filter(OverrideSelector::hasAlteredTypes);
     }
 
     /**
@@ -1174,7 +1171,7 @@ public class ClassType implements JavaType {
      *
      * @return List of all methods in this class that can be overriden.
      */
-    public synchronized List<ClassMemberModel.OverrideSelector> getAllMethods() {
+    public synchronized List<OverrideSelector> getAllMethods() {
         if (!postProcessingDone)
             throw new IllegalStateException("Must have completed post processing stage.");
 
@@ -1434,7 +1431,7 @@ public class ClassType implements JavaType {
      * otherwise re-introduce it.
      */
     private static class ResolvedMethod {
-        public ResolvedMethod(ClassMemberModel.OverrideSelector selector) {
+        public ResolvedMethod(OverrideSelector selector) {
             requireNonNull(selector);
             this.selector = requireNonNull(selector.getErasedMethod());
             this.declaringClass = requireNonNull(selector.getDeclaringClass());
@@ -1456,7 +1453,7 @@ public class ClassType implements JavaType {
          *
          * @return The method selector.
          */
-        public ClassMemberModel.OverrideSelector getSelector() {
+        public OverrideSelector getSelector() {
             return selector;
         }
 
@@ -1481,7 +1478,7 @@ public class ClassType implements JavaType {
         }
 
         private final ClassType declaringClass;
-        private final ClassMemberModel.OverrideSelector selector;
+        private final OverrideSelector selector;
     }
 
     private class CfgType implements ClassConfig.CfgSuperType {
@@ -1580,7 +1577,7 @@ public class ClassType implements JavaType {
      * {@link #postProcess(com.github.nahratzah.jser_plus_plus.input.Context) post processing}
      * logic.
      */
-    private List<ClassMemberModel.OverrideSelector> allMethods;
+    private List<OverrideSelector> allMethods;
     /**
      * All methods that have been resolved by this class. Those methods are
      * inherited from the {@link #getSuperClass() super class} and
