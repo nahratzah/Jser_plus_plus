@@ -60,6 +60,13 @@ class array_intf
   auto end()
   -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>>;
 
+  virtual auto reserve(::std::size_t sz) -> void = 0;
+
+  auto push_back(::java::lang::Object obj) -> void;
+
+ protected:
+  auto check_(::java::lang::Object elem) const -> ::java::lang::Object;
+
  private:
   virtual auto empty_() const noexcept -> bool = 0;
   virtual auto size_() const noexcept -> std::size_t = 0;
@@ -75,6 +82,7 @@ class array_intf
   virtual auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> = 0;
   virtual auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> = 0;
   virtual auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> = 0;
+  virtual auto push_back_(::java::lang::Object obj) -> void = 0;
 };
 
 /**
@@ -144,6 +152,14 @@ class array<::java::boolean_t> final
     return data_.end();
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
+  using array_intf::push_back;
+
+  JSER_INLINE auto push_back(::java::boolean_t b) -> void {
+    data_.push_back(b);
+  }
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -181,6 +197,7 @@ class array<::java::boolean_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   vector_type data_;
 };
@@ -235,6 +252,14 @@ class array<::java::byte_t> final
     return data_.end();
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
+  using array_intf::push_back;
+
+  JSER_INLINE auto push_back(::java::byte_t b) -> void {
+    data_.push_back(b);
+  }
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -272,6 +297,7 @@ class array<::java::byte_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   vector_type data_;
 };
@@ -326,6 +352,14 @@ class array<::java::short_t> final
     return data_.end();
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
+  using array_intf::push_back;
+
+  JSER_INLINE auto push_back(::java::short_t b) -> void {
+    data_.push_back(b);
+  }
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -363,6 +397,7 @@ class array<::java::short_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   vector_type data_;
 };
@@ -417,6 +452,14 @@ class array<::java::int_t> final
     return data_.end();
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
+  using array_intf::push_back;
+
+  JSER_INLINE auto push_back(::java::int_t b) -> void {
+    data_.push_back(b);
+  }
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -454,6 +497,7 @@ class array<::java::int_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   vector_type data_;
 };
@@ -508,6 +552,14 @@ class array<::java::long_t> final
     return data_.end();
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
+  using array_intf::push_back;
+
+  JSER_INLINE auto push_back(::java::long_t b) -> void {
+    data_.push_back(b);
+  }
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -545,6 +597,7 @@ class array<::java::long_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   vector_type data_;
 };
@@ -599,6 +652,14 @@ class array<::java::float_t> final
     return data_.end();
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
+  using array_intf::push_back;
+
+  JSER_INLINE auto push_back(::java::float_t b) -> void {
+    data_.push_back(b);
+  }
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -636,6 +697,7 @@ class array<::java::float_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   vector_type data_;
 };
@@ -690,6 +752,14 @@ class array<::java::double_t> final
     return data_.end();
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
+  using array_intf::push_back;
+
+  JSER_INLINE auto push_back(::java::double_t b) -> void {
+    data_.push_back(b);
+  }
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -727,6 +797,7 @@ class array<::java::double_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   vector_type data_;
 };
@@ -781,6 +852,14 @@ class array<::java::char_t> final
     return data_.end();
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
+  using array_intf::push_back;
+
+  JSER_INLINE auto push_back(::java::char_t b) -> void {
+    data_.push_back(b);
+  }
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -818,6 +897,7 @@ class array<::java::char_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   vector_type data_;
 };
@@ -851,6 +931,8 @@ class array<::java::lang::Object> final
   JSER_INLINE auto dimensions() const noexcept -> std::size_t {
     return 1u;
   }
+
+  auto reserve(::std::size_t sz) -> void override;
 
  private:
   auto empty_() const noexcept -> bool override;
@@ -889,6 +971,7 @@ class array<::java::lang::Object> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   const ::java::field_t<::java::lang::Class<::java::G::pack<>>> element_type_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -920,6 +1003,8 @@ class array_of_array<::java::boolean_t> final
     return dim_;
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -951,6 +1036,7 @@ class array_of_array<::java::boolean_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -982,6 +1068,8 @@ class array_of_array<::java::byte_t> final
     return dim_;
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -1013,6 +1101,7 @@ class array_of_array<::java::byte_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1044,6 +1133,8 @@ class array_of_array<::java::short_t> final
     return dim_;
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -1075,6 +1166,7 @@ class array_of_array<::java::short_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1106,6 +1198,8 @@ class array_of_array<::java::int_t> final
     return dim_;
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -1137,6 +1231,7 @@ class array_of_array<::java::int_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1168,6 +1263,8 @@ class array_of_array<::java::long_t> final
     return dim_;
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -1199,6 +1296,7 @@ class array_of_array<::java::long_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1230,6 +1328,8 @@ class array_of_array<::java::float_t> final
     return dim_;
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -1261,6 +1361,7 @@ class array_of_array<::java::float_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1292,6 +1393,8 @@ class array_of_array<::java::double_t> final
     return dim_;
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -1323,6 +1426,7 @@ class array_of_array<::java::double_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1354,6 +1458,8 @@ class array_of_array<::java::char_t> final
     return dim_;
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -1385,6 +1491,7 @@ class array_of_array<::java::char_t> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   const ::std::size_t dim_;
   vector_type data_{ vector_type::allocator_type(*this) };
@@ -1416,6 +1523,8 @@ class array_of_array<::java::lang::Object> final
     return dim_;
   }
 
+  auto reserve(::std::size_t sz) -> void override;
+
  private:
   auto empty_() const noexcept -> bool override;
   auto size_() const noexcept -> std::size_t override;
@@ -1447,6 +1556,7 @@ class array_of_array<::java::lang::Object> final
   auto end_() const -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> override;
   auto begin_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
   auto end_() -> bidirectional_iterator<::java::type_of_t<::java::lang::Object>> override;
+  auto push_back_(::java::lang::Object obj) -> void override;
 
   const ::java::field_t<::java::lang::Class<::java::G::pack<>>> element_type_;
   const ::std::size_t dim_;
@@ -1658,14 +1768,25 @@ class basic_ref<PtrImpl, Type*> final {
   JSER_INLINE auto begin() const
   -> ::std::enable_if_t<Enable, ::java::bidirectional_iterator<Type>> {
     if (!*this) throw ::java::null_error();
-    return ::java::cast<::java::var_ref<Type>>(p_->begin());
+    return ::java::cast<::java::bidirectional_iterator<Type>>(p_->begin());
   }
 
   template<bool Enable = !::java::type_traits::is_java_primitive_v<Type>>
   JSER_INLINE auto end() const
   -> ::std::enable_if_t<Enable, ::java::bidirectional_iterator<Type>> {
     if (!*this) throw ::java::null_error();
-    return ::java::cast<::java::var_ref<Type>>(p_->end());
+    return ::java::cast<::java::bidirectional_iterator<Type>>(p_->end());
+  }
+
+  JSER_INLINE auto reserve(size_type sz) -> void {
+    if (!*this) throw ::java::null_error();
+    p_->reserve(sz);
+  }
+
+  JSER_INLINE auto push_back(::java::var_ref<Type> obj)
+  -> void {
+    if (!*this) throw ::java::null_error();
+    p_->push_back(std::move(obj));
   }
 
  private:
@@ -1798,14 +1919,14 @@ class basic_ref<PtrImpl, Type*const> final {
   JSER_INLINE auto begin() const
   -> ::std::enable_if_t<Enable, ::java::bidirectional_iterator<const Type>> {
     if (!*this) throw ::java::null_error();
-    return ::java::cast<::java::var_ref<const Type>>(p_->begin());
+    return ::java::cast<::java::bidirectional_iterator<const Type>>(p_->begin());
   }
 
   template<bool Enable = !::java::type_traits::is_java_primitive_v<Type>>
   JSER_INLINE auto end() const
   -> ::std::enable_if_t<Enable, ::java::bidirectional_iterator<const Type>> {
     if (!*this) throw ::java::null_error();
-    return ::java::cast<::java::var_ref<const Type>>(p_->end());
+    return ::java::cast<::java::bidirectional_iterator<const Type>>(p_->end());
   }
 
  private:

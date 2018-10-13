@@ -6,6 +6,8 @@
 #include <iterator>
 #include <locale>
 #include <type_traits>
+#include <typeinfo>
+#include <utility>
 #include <java/reflect.h>
 #include <java/hash.h>
 #include <java/lang/Class.h>
@@ -85,6 +87,11 @@ class wrapped_arrayintf_iter
 
 array_intf::~array_intf() noexcept = default;
 
+auto array_intf::check_(::java::lang::Object elem) const
+-> ::java::lang::Object {
+  return element_class_()->cast(elem);
+}
+
 auto array_intf::begin() const
 -> bidirectional_iterator<::java::type_of_t<::java::const_ref<::java::lang::Object>>> {
   return begin_();
@@ -105,8 +112,18 @@ auto array_intf::end()
   return end_();
 }
 
+auto array_intf::push_back(::java::lang::Object obj)
+-> void {
+  push_back_(std::move(obj));
+}
+
 
 array<::java::boolean_t>::~array() noexcept = default;
+
+auto array<::java::boolean_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array<::java::boolean_t>::empty_() const noexcept -> bool {
   return empty();
@@ -225,8 +242,18 @@ auto array<::java::boolean_t>::end_()
   return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Boolean>(end());
 }
 
+auto array<::java::boolean_t>::push_back_(::java::lang::Object obj)
+-> void {
+  push_back(::java::cast<::java::lang::Boolean>(std::move(obj))->value());
+}
+
 
 array<::java::byte_t>::~array() noexcept = default;
+
+auto array<::java::byte_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array<::java::byte_t>::empty_() const noexcept -> bool {
   return empty();
@@ -345,8 +372,18 @@ auto array<::java::byte_t>::end_()
   return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Byte>(end());
 }
 
+auto array<::java::byte_t>::push_back_(::java::lang::Object obj)
+-> void {
+  push_back(::java::cast<::java::lang::Byte>(std::move(obj))->value());
+}
+
 
 array<::java::short_t>::~array() noexcept = default;
+
+auto array<::java::short_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array<::java::short_t>::empty_() const noexcept -> bool {
   return empty();
@@ -465,8 +502,18 @@ auto array<::java::short_t>::end_()
   return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Short>(end());
 }
 
+auto array<::java::short_t>::push_back_(::java::lang::Object obj)
+-> void {
+  push_back(::java::cast<::java::lang::Short>(std::move(obj))->value());
+}
+
 
 array<::java::int_t>::~array() noexcept = default;
+
+auto array<::java::int_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array<::java::int_t>::empty_() const noexcept -> bool {
   return empty();
@@ -585,8 +632,18 @@ auto array<::java::int_t>::end_()
   return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Integer>(end());
 }
 
+auto array<::java::int_t>::push_back_(::java::lang::Object obj)
+-> void {
+  push_back(::java::cast<::java::lang::Integer>(std::move(obj))->value());
+}
+
 
 array<::java::long_t>::~array() noexcept = default;
+
+auto array<::java::long_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array<::java::long_t>::empty_() const noexcept -> bool {
   return empty();
@@ -705,8 +762,18 @@ auto array<::java::long_t>::end_()
   return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Long>(end());
 }
 
+auto array<::java::long_t>::push_back_(::java::lang::Object obj)
+-> void {
+  push_back(::java::cast<::java::lang::Long>(std::move(obj))->value());
+}
+
 
 array<::java::float_t>::~array() noexcept = default;
+
+auto array<::java::float_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array<::java::float_t>::empty_() const noexcept -> bool {
   return empty();
@@ -825,8 +892,18 @@ auto array<::java::float_t>::end_()
   return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Float>(end());
 }
 
+auto array<::java::float_t>::push_back_(::java::lang::Object obj)
+-> void {
+  push_back(::java::cast<::java::lang::Float>(std::move(obj))->value());
+}
+
 
 array<::java::double_t>::~array() noexcept = default;
+
+auto array<::java::double_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array<::java::double_t>::empty_() const noexcept -> bool {
   return empty();
@@ -945,8 +1022,18 @@ auto array<::java::double_t>::end_()
   return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Double>(end());
 }
 
+auto array<::java::double_t>::push_back_(::java::lang::Object obj)
+-> void {
+  push_back(::java::cast<::java::lang::Double>(std::move(obj))->value());
+}
+
 
 array<::java::char_t>::~array() noexcept = default;
+
+auto array<::java::char_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array<::java::char_t>::empty_() const noexcept -> bool {
   return empty();
@@ -1065,6 +1152,11 @@ auto array<::java::char_t>::end_()
   return wrapped_primitive_iter<vector_type::iterator, ::java::lang::Character>(end());
 }
 
+auto array<::java::char_t>::push_back_(::java::lang::Object obj)
+-> void {
+  push_back(::java::cast<::java::lang::Character>(std::move(obj))->value());
+}
+
 
 array<::java::lang::Object>::array(::java::lang::Class<::java::G::pack<>> element_type)
 : element_type_(std::move(element_type))
@@ -1074,6 +1166,11 @@ array<::java::lang::Object>::array(::java::lang::Class<::java::G::pack<>> elemen
 }
 
 array<::java::lang::Object>::~array() noexcept = default;
+
+auto array<::java::lang::Object>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array<::java::lang::Object>::empty_() const noexcept -> bool {
   return empty();
@@ -1213,6 +1310,11 @@ auto array<::java::lang::Object>::end_()
   return data_.end();
 }
 
+auto array<::java::lang::Object>::push_back_(::java::lang::Object obj)
+-> void {
+  data_.emplace_back(this->check_(std::move(obj)));
+}
+
 
 array_of_array<::java::boolean_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1222,6 +1324,11 @@ array_of_array<::java::boolean_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::boolean_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::boolean_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array_of_array<::java::boolean_t>::empty_() const noexcept -> bool {
   return empty();
@@ -1329,6 +1436,13 @@ auto array_of_array<::java::boolean_t>::end_()
   return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
+auto array_of_array<::java::boolean_t>::push_back_(::java::lang::Object obj)
+-> void {
+  auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
+  if (array_ptr == nullptr) throw ::std::bad_cast();
+  data_.emplace_back(std::move(array_ptr));
+}
+
 
 array_of_array<::java::byte_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1338,6 +1452,11 @@ array_of_array<::java::byte_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::byte_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::byte_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array_of_array<::java::byte_t>::empty_() const noexcept -> bool {
   return empty();
@@ -1445,6 +1564,13 @@ auto array_of_array<::java::byte_t>::end_()
   return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
+auto array_of_array<::java::byte_t>::push_back_(::java::lang::Object obj)
+-> void {
+  auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
+  if (array_ptr == nullptr) throw ::std::bad_cast();
+  data_.emplace_back(std::move(array_ptr));
+}
+
 
 array_of_array<::java::short_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1454,6 +1580,11 @@ array_of_array<::java::short_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::short_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::short_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array_of_array<::java::short_t>::empty_() const noexcept -> bool {
   return empty();
@@ -1561,6 +1692,13 @@ auto array_of_array<::java::short_t>::end_()
   return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
+auto array_of_array<::java::short_t>::push_back_(::java::lang::Object obj)
+-> void {
+  auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
+  if (array_ptr == nullptr) throw ::std::bad_cast();
+  data_.emplace_back(std::move(array_ptr));
+}
+
 
 array_of_array<::java::int_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1570,6 +1708,11 @@ array_of_array<::java::int_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::int_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::int_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array_of_array<::java::int_t>::empty_() const noexcept -> bool {
   return empty();
@@ -1677,6 +1820,13 @@ auto array_of_array<::java::int_t>::end_()
   return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
+auto array_of_array<::java::int_t>::push_back_(::java::lang::Object obj)
+-> void {
+  auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
+  if (array_ptr == nullptr) throw ::std::bad_cast();
+  data_.emplace_back(std::move(array_ptr));
+}
+
 
 array_of_array<::java::long_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1686,6 +1836,11 @@ array_of_array<::java::long_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::long_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::long_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array_of_array<::java::long_t>::empty_() const noexcept -> bool {
   return empty();
@@ -1793,6 +1948,13 @@ auto array_of_array<::java::long_t>::end_()
   return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
+auto array_of_array<::java::long_t>::push_back_(::java::lang::Object obj)
+-> void {
+  auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
+  if (array_ptr == nullptr) throw ::std::bad_cast();
+  data_.emplace_back(std::move(array_ptr));
+}
+
 
 array_of_array<::java::float_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1802,6 +1964,11 @@ array_of_array<::java::float_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::float_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::float_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array_of_array<::java::float_t>::empty_() const noexcept -> bool {
   return empty();
@@ -1909,6 +2076,13 @@ auto array_of_array<::java::float_t>::end_()
   return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
+auto array_of_array<::java::float_t>::push_back_(::java::lang::Object obj)
+-> void {
+  auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
+  if (array_ptr == nullptr) throw ::std::bad_cast();
+  data_.emplace_back(std::move(array_ptr));
+}
+
 
 array_of_array<::java::double_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -1918,6 +2092,11 @@ array_of_array<::java::double_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::double_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::double_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array_of_array<::java::double_t>::empty_() const noexcept -> bool {
   return empty();
@@ -2025,6 +2204,13 @@ auto array_of_array<::java::double_t>::end_()
   return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
+auto array_of_array<::java::double_t>::push_back_(::java::lang::Object obj)
+-> void {
+  auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
+  if (array_ptr == nullptr) throw ::std::bad_cast();
+  data_.emplace_back(std::move(array_ptr));
+}
+
 
 array_of_array<::java::char_t>::array_of_array(std::size_t dim)
 : dim_(dim)
@@ -2034,6 +2220,11 @@ array_of_array<::java::char_t>::array_of_array(std::size_t dim)
 }
 
 array_of_array<::java::char_t>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::char_t>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array_of_array<::java::char_t>::empty_() const noexcept -> bool {
   return empty();
@@ -2141,6 +2332,13 @@ auto array_of_array<::java::char_t>::end_()
   return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
 }
 
+auto array_of_array<::java::char_t>::push_back_(::java::lang::Object obj)
+-> void {
+  auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
+  if (array_ptr == nullptr) throw ::std::bad_cast();
+  data_.emplace_back(std::move(array_ptr));
+}
+
 
 array_of_array<::java::lang::Object>::array_of_array(::java::lang::Class<::java::G::pack<>> element_type, std::size_t dim)
 : element_type_(std::move(element_type)),
@@ -2153,6 +2351,11 @@ array_of_array<::java::lang::Object>::array_of_array(::java::lang::Class<::java:
 }
 
 array_of_array<::java::lang::Object>::~array_of_array() noexcept = default;
+
+auto array_of_array<::java::lang::Object>::reserve(::std::size_t sz)
+-> void {
+  data_.reserve(sz);
+}
 
 auto array_of_array<::java::lang::Object>::empty_() const noexcept -> bool {
   return empty();
@@ -2258,6 +2461,13 @@ auto array_of_array<::java::lang::Object>::begin_()
 auto array_of_array<::java::lang::Object>::end_()
 -> ::java::bidirectional_iterator<::java::type_of_t<::java::lang::Object>> {
   return wrapped_arrayintf_iter<vector_type::iterator>(data_.end());
+}
+
+auto array_of_array<::java::lang::Object>::push_back_(::java::lang::Object obj)
+-> void {
+  auto array_ptr = ::std::dynamic_pointer_cast<array_intf>(::java::raw_objintf_ptr(this->check_(std::move(obj))));
+  if (array_ptr == nullptr) throw ::std::bad_cast();
+  data_.emplace_back(std::move(array_ptr));
 }
 
 
