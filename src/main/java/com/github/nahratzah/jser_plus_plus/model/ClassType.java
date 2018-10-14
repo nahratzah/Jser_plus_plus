@@ -12,12 +12,18 @@ import com.github.nahratzah.jser_plus_plus.config.class_members.Method;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.java.ReflectUtil;
+import com.github.nahratzah.jser_plus_plus.misc.MethodModelComparator;
 import com.github.nahratzah.jser_plus_plus.misc.SimpleMapEntry;
 import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
 import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.ConstTypeRenderer;
 import com.github.nahratzah.jser_plus_plus.output.builtins.FunctionAttrMap;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Maps;
+import com.google.common.collect.MoreCollectors;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.lang.reflect.Field;
@@ -30,6 +36,7 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -37,7 +44,6 @@ import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,7 +55,9 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -67,8 +75,8 @@ import org.stringtemplate.v4.ST;
  */
 public class ClassType implements JavaType {
     private static final Logger LOG = Logger.getLogger(ClassType.class.getName());
-    private static final boolean WRITE_POST_PROCESSING_RESULT = true;
-    private static final String VIRTUAL_FUNCTION_PREFIX = "_virtual_";
+    private static final boolean WRITE_POST_PROCESSING_RESULT = false;
+    public static final String VIRTUAL_FUNCTION_PREFIX = "_virtual_";
     private static final String REDECLARE_BODY_TEMPLATE = "return "
             + "$if (needCast)$::java::cast<$boundTemplateType(declare.returnType, \"style=type, class\")$>($endif$"
             + "this->$underlying.declaringClass.className$::$underlying.name$"
@@ -79,7 +87,7 @@ public class ClassType implements JavaType {
             + "$if (covariantReturn)$" + VIRTUAL_FUNCTION_PREFIX + "$endif$"
             + "$fn.name$"
             + "("
-            + "$if (covariantReturn)$$tagType(model)$()$endif$$if (covariantReturn && fn.underlyingMethod.argumentNames)$, $endif$"
+            + "$if (covariantReturn)$$tagType(tagModel)$()$endif$$if (covariantReturn && fn.underlyingMethod.argumentNames)$, $endif$"
             + "$fn.underlyingMethod.argumentNames: { name | ::java::_maybe_cast(::std::forward<decltype($name$)>($name$))}; anchor, wrap, separator = \", \"$"
             + ")"
             + ";";
@@ -675,12 +683,7 @@ public class ClassType implements JavaType {
     }
 
     public Collection<MethodModel> getAccessorMethods() {
-        return getClassMembers().stream()
-                .filter(member -> !member.isStatic())
-                .filter(MethodModel.class::isInstance)
-                .map(MethodModel.class::cast)
-                .filter(((Predicate<MethodModel>) suppressedAccessorMethods::contains).negate())
-                .collect(Collectors.toList());
+        return accessorMethods;
     }
 
     public Collection<MethodModel> getStaticAccessorMethods() {
@@ -764,425 +767,504 @@ public class ClassType implements JavaType {
         if (postProcessingDone) return;
         postProcessingDone = true;
 
-        // All parents.
-        final List<BoundTemplate.ClassBinding<? extends ClassType>> parentModels = Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull), getInterfaces().stream())
-                .collect(Collectors.toList());
+        final Map<OverrideSelector, Collection<ImplementedClassMethod>> virtualClassMembersWithParentMethods, nonVirtualClassMembersWithParentMethods;
+        Collection<ImplementedClassMethod> keptParentMethodsWithChangedTypes;
+        final Collection<ImplementedClassMethod> keptParentMethodsWithoutChangedTypes;
 
-        // Ensure parent types have all had their post processing phase completed.
-        parentModels.stream()
-                .map(BoundTemplate.ClassBinding::getType)
-                .forEach(parentType -> parentType.postProcess(ctx));
-
-        // All methods from parents that have been superseded.
-        // We'll add our own suppressed methods to this during the post processing phase.
-        this.allResolvedMethods = parentModels.stream()
-                .flatMap(parentTemplate -> {
-                    final ClassType parentType = parentTemplate.getType();
-                    return parentType.allResolvedMethods.stream();
-                })
-                .collect(Collectors.toSet());
-        final Predicate<OverrideSelector> isParentResolvedMethod = (selector) -> allResolvedMethods.contains(new ResolvedMethod(selector));
-
-        // Figure out erased bindings for our type.
-        final Map<String, BoundTemplate> erasedBindings = getErasedTemplateArguments().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        // Maintain a mapping from erased type to template type.
-        // We want to put template types, not erased types, into the {@link ClassType#allMethods} collection.
-        final Map<ClassType, Map<OverrideSelector, OverrideSelector>> erasedToTemplateMapping = parentModels.stream()
-                .flatMap(parentTemplate -> {
-                    final Map<String, BoundTemplate> bindingMap = parentTemplate.getBindingsMap();
-                    return parentTemplate.getType().getAllMethods().stream()
-                            .map(selector -> selector.rebind(bindingMap));
-                })
-                .peek(selector -> LOG.log(Level.FINE, "{0}: importing parent method {1}", new Object[]{getName(), selector}))
-                .map(selector -> new SimpleMapEntry<>(selector.rebind(erasedBindings), selector))
-                .collect(Collectors.groupingBy(
-                        selector -> selector.getValue().getDeclaringClass(),
-                        Collectors.toMap(
-                                Map.Entry::getKey,
-                                Map.Entry::getValue,
-                                (selX, selY) -> {
-                                    if (!Objects.equals(selX.getDeclaringType(), selY.getDeclaringType()))
-                                        throw new IllegalStateException("Collision between methods: " + selX + ", " + selY);
-                                    return selX;
-                                })));
-        final Function<OverrideSelector, OverrideSelector> erasedToTemplate = (selector) -> {
-            final Map<OverrideSelector, OverrideSelector> classMap = requireNonNull(
-                    erasedToTemplateMapping.get(selector.getDeclaringClass()),
-                    "Class " + selector.getDeclaringClass().getName() + " not found: " + selector);
-            return requireNonNull(
-                    classMap.get(selector),
-                    "Selector " + selector + " not found in class " + selector.getDeclaringClass().getName());
-        };
-
-        // All parent models, but with their template arguments bound, such that our erased types are propagated.
-        final List<BoundTemplate.ClassBinding<? extends ClassType>> erasedParentModels = parentModels.stream()
-                .map(parentTemplate -> parentTemplate.rebind(erasedBindings))
-                .collect(Collectors.toList());
-
-        // All locally declared member functions,
-        // mapped to the methods they override.
-        final Map<OverrideSelector, List<OverrideSelector>> myMethods;
         {
-            final List<OverrideSelector> myMethodsTmp = getClassMembers().stream()
-                    .map(classMemberModel -> classMemberModel.getOverrideSelector(ctx))
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .map(selector -> {
-                        final OverrideSelector erasedSelector = selector.getErasedMethod();
-                        // Record mapping while we're here.
-                        erasedToTemplateMapping
-                                .computeIfAbsent(selector.getDeclaringClass(), x -> new HashMap<>())
-                                .put(erasedSelector, selector);
-                        return erasedSelector;
+            final List<ImplementedClassMethod> parentMethods = Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull), getInterfaces().stream())
+                    .flatMap(parentType -> {
+                        final ClassType parentClass = parentType.getType();
+                        parentClass.postProcess(ctx); // Ensure post processing of parent class has completed.
+                        return parentClass.implementedMethods.stream()
+                                .map(implementedMethod -> implementedMethod.rebind(parentType.getBindingsMap()));
                     })
                     .collect(Collectors.toList());
-            try {
-                myMethods = myMethodsTmp.stream()
-                        .collect(Collectors.toMap(Function.identity(), x -> new ArrayList<>()));
-            } catch (IllegalStateException ex) {
-                // Figure out all methods that cause collision and report them, then terminate with an exception.
-                myMethodsTmp.stream()
-                        .collect(Collectors.groupingBy(Function.identity()))
-                        .values().stream()
-                        .filter(methods -> methods.size() != 1)
-                        .forEach(methods -> LOG.log(Level.SEVERE, "Colliding methods in {0}: {1}", new Object[]{getName(), methods}));
-                throw new IllegalStateException("Method collision detected!", ex);
-            }
-
-            erasedParentModels.stream()
-                    // Rebind and retrieve the parent methods, to the binding map (which now holds out erased bindings).
-                    .flatMap(parentTemplate -> {
-                        final ClassType parentType = parentTemplate.getType();
-                        return Stream.concat(parentType.allResolvedMethods.stream().map(ResolvedMethod::getSelector), parentType.getAllMethods().stream())
-                                .map(parentMethod -> parentMethod.rebind(parentTemplate.getBindingsMap()));
-                    })
-                    // Keep the ones that match prototypes in our class.
-                    .filter(myMethods::containsKey)
-                    // Add them to the mapping of overrides.
-                    .forEach(parentMethod -> myMethods.get(parentMethod).add(parentMethod));
-        }
-
-        // Add all methods that we override to the set of resolved methods.
-        myMethods.entrySet().stream()
-                .filter(entry -> !entry.getValue().isEmpty())
-                .peek(entry -> {
-                    // Log override.
-                    LOG.log(Level.FINE, "class {0} declares method `{1}` overriding: {2}", new Object[]{
-                        getName(),
-                        entry.getKey(),
-                        entry.getValue()});
-                })
-                .map(Map.Entry::getValue)
-                .flatMap(Collection::stream)
-                .map(ResolvedMethod::new)
-                .forEach(allResolvedMethods::add);
-
-        // Figure out which methods need to be re-declared so that we can invoke them with the appropriate rebound types.
-        final Map<MethodModel, OverrideSelector> redeclareMethods = erasedParentModels.stream()
-                .flatMap(parentTemplate -> parentTemplate.getType().redeclareMethods(ctx, parentTemplate.getBindingsMap()))
-                .filter(override -> !myMethods.containsKey(override))
-                .peek(override -> {
-                    LOG.log(Level.FINE, "class {0} needs to redeclare `{1}` as `{2}`", new Object[]{
-                        getName(),
-                        override.getUnderlyingMethod().getOverrideSelector(ctx).get(),
-                        override});
-                })
-                .collect(Collectors.toMap(OverrideSelector::getUnderlyingMethod, Function.identity()));
-
-        // Figure out which other methods are available on the parent.
-        // Only methods that are not re-declared and not overriden are here.
-        final List<OverrideSelector> allKeptParentMethods;
-        {
-            final Map<OverrideSelector, List<OverrideSelector>> allKeptParentMethodsTmp = erasedParentModels.stream()
-                    .flatMap(erasedParentTemplate -> {
-                        return erasedParentTemplate.getType().getAllMethods().stream()
-                                .filter(isParentResolvedMethod.negate())
-                                .map(overrideSelector -> overrideSelector.rebind(erasedParentTemplate.getBindingsMap()));
-                    })
-                    .filter(((Predicate<OverrideSelector>) myMethods::containsKey).negate())
-                    .filter(((Predicate<OverrideSelector>) new HashSet<>(redeclareMethods.values())::contains).negate())
-                    .collect(Collectors.groupingBy(Function.identity()));
-            final Map<OverrideSelector, Map<com.github.nahratzah.jser_plus_plus.model.Type, List<OverrideSelector>>> ambiguities = new HashMap<>();
-            allKeptParentMethodsTmp.forEach((key, methods) -> {
-                final Map<com.github.nahratzah.jser_plus_plus.model.Type, List<OverrideSelector>> returnTypeMap = methods.stream()
-                        .collect(Collectors.groupingBy(method -> method.getReturnType()));
-                if (returnTypeMap.size() != 1)
-                    ambiguities.put(key, returnTypeMap);
+            LOG.log(Level.FINE, () -> {
+                if (parentMethods.isEmpty())
+                    return getName() + " has no parent methods";
+                return parentMethods.stream()
+                        .map(parentMethod -> getName() + " parent method: " + parentMethod)
+                        .collect(Collectors.joining());
             });
 
-            // Report on all ambiguities and then throw an error.
-            if (!ambiguities.isEmpty()) {
-                ambiguities.forEach((key, returnTypeMap) -> {
-                    LOG.log(Level.SEVERE, "{0} has ambiguous methods from super type, with return types {1}: {2}", new Object[]{
-                        getName(),
-                        returnTypeMap.keySet(),
-                        returnTypeMap.values().stream().flatMap(Collection::stream).collect(Collectors.toList())});
-                });
+            final Map<String, BoundTemplate> erasedClassBindings = getErasedTemplateArguments().stream()
+                    .collect(Collectors.collectingAndThen(
+                            Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue),
+                            Collections::unmodifiableMap));
 
-                throw new IllegalStateException("Ambiguous methods from super types.");
-            }
+            final Map<OverrideSelector, Collection<ImplementedClassMethod>> classMembersWithParentMethods = classMembers.stream()
+                    .peek(member -> LOG.log(Level.FINE, "{0}: examining {1}", new Object[]{getName(), member}))
+                    .filter(ClassMemberModel.ClassMethod.class::isInstance)
+                    .map(ClassMemberModel.ClassMethod.class::cast)
+                    .map(classMember -> classMember.getOverrideSelector(ctx))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.collectingAndThen(
+                            Collectors.toMap(
+                                    Function.identity(),
+                                    classMemberSelector -> {
+                                        return parentMethods.stream()
+                                                .filter(parentMethod -> {
+                                                    final boolean same = Objects.equals(parentMethod.getSelector().rebind(erasedClassBindings), classMemberSelector.rebind(erasedClassBindings));
+                                                    if (Objects.equals(parentMethod.getSelector().getName(), classMemberSelector.getName()))
+                                                        LOG.log(Level.FINE, "{0}:\n  {1}\n  {2}\n  have {3} signature", new Object[]{getName(), parentMethod, classMemberSelector, same ? "the same" : "a different"});
+                                                    return same;
+                                                })
+                                                .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableCollection));
+                                    }),
+                            Collections::unmodifiableMap));
 
-            allKeptParentMethods = allKeptParentMethodsTmp.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
+            final Predicate<OverrideSelector> isVirtualPredicate = selector -> selector.getUnderlyingMethod().isVirtual();
+            virtualClassMembersWithParentMethods = Maps.filterKeys(classMembersWithParentMethods, isVirtualPredicate::test);
+            nonVirtualClassMembersWithParentMethods = Maps.filterKeys(classMembersWithParentMethods, isVirtualPredicate.negate()::test);
+
+            final Set<ImplementedClassMethod> classMembersWithParentMethodsValues = classMembersWithParentMethods.values().stream()
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toSet());
+            final Collection<ImplementedClassMethod> keptParentMethods = Collections2.filter(
+                    parentMethods,
+                    parentMethod -> !classMembersWithParentMethodsValues.contains(parentMethod));
+            final Predicate<ImplementedClassMethod> implementedMethodHasChangedTypes = method -> method.hasChangedTypes(this);
+            keptParentMethodsWithChangedTypes = Collections2.filter(
+                    keptParentMethods,
+                    implementedMethodHasChangedTypes::test);
+            keptParentMethodsWithoutChangedTypes = Collections2.filter(
+                    keptParentMethods,
+                    implementedMethodHasChangedTypes.negate()::test);
         }
 
-        // Add redeclared methods to the classMemberFunctions list.
-        postProcessingApplyRedeclare(redeclareMethods);
-        // Add all my methods to the classMemberFunctions list.
-        postProcessingApplyMyMethods(ctx, myMethods);
+        final List<ImplementedClassMethod> nonVirtualClassMembers = postProcessNonVirtualClassMembers(nonVirtualClassMembersWithParentMethods);
+        final List<ImplementedClassMethod> virtualClassMembers = postProcessVirtualClassMembers(virtualClassMembersWithParentMethods);
 
-        allMethods = Stream.of(allKeptParentMethods, redeclareMethods.values(), myMethods.keySet())
+        // Apply type changes for parent methods.
+        keptParentMethodsWithChangedTypes = postProcessCreateAccessorsForChangedTypes(keptParentMethodsWithChangedTypes, ctx);
+        // Implement virtual functions.
+        postProcessEmitVirtualClassMembers(virtualClassMembers, ctx);
+        // Implement non-virtual functions.
+        postProcessEmitNonVirtualClassMembers(nonVirtualClassMembers);
+
+        // Record all methods we implement.
+        implementedMethods = Stream.of(keptParentMethodsWithChangedTypes, keptParentMethodsWithoutChangedTypes, nonVirtualClassMembers, virtualClassMembers)
                 .flatMap(Collection::stream)
-                .map(erasedToTemplate)
-                .map(method -> new SimpleMapEntry<>(method.getDeclaringClass(), method)) // Create mapping with declaring class.
-                .distinct() // Use mapping with declaring class to eliminate duplicates.
-                .map(Map.Entry::getValue) // And then restore the mapping to its original.
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
+        // Print out a friendly message on what we did.
         if (WRITE_POST_PROCESSING_RESULT) {
             System.out.println("========================================================");
             System.out.println(getName() + (getTemplateArgumentNames().isEmpty() ? "" : getTemplateArgumentNames().stream().collect(Collectors.joining(", ", "<", ">"))));
             System.out.println("--------------------------------------------------------");
             System.out.println("all methods:");
-            allMethods.forEach(m -> System.out.println("  " + m));
-            System.out.println("all suppressed methods:");
-            allResolvedMethods.forEach(m -> System.out.println("  " + m.getSelector()));
+            implementedMethods.forEach(m -> System.out.println("  " + m.getSelector()));
             System.out.println("--------------------------------------------------------");
             System.out.println("actually emitted methods:");
-            classMemberFunctions.forEach(m -> System.out.println("  " + m.getOverrideSelector(ctx).map(Object::toString).orElse(m.toString())));
+            classMemberFunctions.forEach(m -> System.out.println("  " + m.getOverrideSelector(ctx).map(Object::toString).orElseGet(() -> m.toString())));
             System.out.println("--------------------------------------------------------");
         }
     }
 
     /**
-     * Add all redeclare methods to {@link #classMemberFunctions}.
+     * Create accessor methods for all methods which had a type change.
      *
-     * @param redeclareMethods Mapping from original method to override selector
-     * in current class.
+     * @param keptParentMethodsWithChangedTypes List of all methods with a type
+     * change.
+     * @return Newly declared implemented methods.
      */
-    private void postProcessingApplyRedeclare(Map<MethodModel, OverrideSelector> redeclareMethods) {
-        redeclareMethods.forEach((MethodModel underlying, OverrideSelector declare) -> {
+    private List<ImplementedClassMethod> postProcessCreateAccessorsForChangedTypes(Collection<ImplementedClassMethod> keptParentMethodsWithChangedTypes, Context ctx) {
+        final List<ImplementedClassMethod> result = new ArrayList<>();
+        final Map<String, BoundTemplate> erasureBindingMap = getErasedTemplateArguments().stream()
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue),
+                        Collections::unmodifiableMap));
+
+        keptParentMethodsWithChangedTypes.forEach(method -> {
+            final OverrideSelector declare = method.getSelector()
+                    .rebind(erasureBindingMap);
+            final OverrideSelector underlying = method.getErasedSelector();
+
+            if (declare.getUnderlyingMethod().isVirtual() && !declare.getUnderlyingMethod().isCovariantReturn())
+                throw new IllegalStateException("Non-covariant virtual function " + declare + " changed type");
+            // XXX
+            if (declare.getUnderlyingMethod().isVirtual()) {
+                result.add(method);
+                return;
+            }
+
             final String body = new ST(StCtx.BUILTINS, REDECLARE_BODY_TEMPLATE)
                     .add("needCast", !Objects.equals(declare.getReturnType(), underlying.getReturnType()))
                     .add("declare", declare)
                     .add("underlying", underlying)
                     .render(Locale.ROOT, 78);
 
-            classMemberFunctions.add(new MethodModel.SimpleMethodModel(
+            // XXX change to inline
+            final MethodModel.SimpleMethodModel newMethod = new MethodModel.SimpleMethodModel(
                     this,
                     declare.getDeclaringType(),
                     declare.getName(),
                     new Includes(
                             declare.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                            Stream.of(declare.getUnderlyingMethod().getImplementationIncludes(), underlying.getDeclarationIncludes(), Stream.of("java/_maybe_cast.h"))
+                            Stream.of(declare.getUnderlyingMethod().getImplementationIncludes(), underlying.getUnderlyingMethod().getDeclarationIncludes(), Stream.of("java/_maybe_cast.h"))
                                     .flatMap(Function.identity())
                                     .collect(Collectors.toList())),
                     declare.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
-                    Stream.concat(declare.getUnderlyingMethod().getImplementationTypes(), underlying.getDeclarationTypes()).collect(Collectors.toSet()),
+                    Stream.concat(declare.getUnderlyingMethod().getImplementationTypes(), underlying.getUnderlyingMethod().getDeclarationTypes()).collect(Collectors.toSet()),
                     declare.getReturnType(),
                     declare.getArguments(),
                     declare.getUnderlyingMethod().getArgumentNames(),
                     body,
-                    underlying.isStatic(),
-                    false,// Accessor delegate is never virtual.
-                    false,// Accessor delegate is never pure virtual.
-                    false,// Accessor delegate is never override.
+                    underlying.getUnderlyingMethod().isStatic(),
+                    false,// delegate is never virtual.
+                    false,// delegate is never pure virtual.
+                    false,// delegate is never override.
                     underlying.isConst(),
-                    false,// Accessor delegate is never final.
-                    underlying.getNoexcept(),
-                    underlying.getVisibility(),
-                    underlying.getDocString()));
+                    false,// delegate is never final.
+                    underlying.getUnderlyingMethod().getNoexcept(),
+                    underlying.getUnderlyingMethod().getVisibility(),
+                    underlying.getUnderlyingMethod().getDocString());
+
+            result.add(new ImplementedClassMethod(
+                    this,
+                    null,
+                    newMethod.getOverrideSelector(ctx).orElseThrow(() -> new IllegalStateException("synthesized method did not create override selector")),
+                    EMPTY_LIST));
+
+            // We only add this to the
+            // {@link #classMemberFunctions class member functions}.
+            // We omit the accessor counterpart, since the original accessor
+            // will already contain the correct template to access this.
+            classMemberFunctions.add(newMethod);
         });
+
+        return result;
     }
 
     /**
-     * Apply member methods to classMemberFunction list.
+     * Each virtual method must keep track of the methods it overrides.
      *
-     * @param myMethods Mapping of function, to all functions it overrides.
+     * Some diagnostic warnings may be generated.
+     *
+     * This method also picks which tag to reuse, to keep the number of distinct
+     * virtual functions in check.
+     *
+     * @param virtualClassMembersWithParentMethods All virtual methods that are
+     * declared for this class, with the methods they'll hide or override.
+     * @return {@link ImplementedClassMethod implemented method} for each of the
+     * virtual methods.
      */
-    private void postProcessingApplyMyMethods(Context ctx, Map<OverrideSelector, List<OverrideSelector>> myMethods) {
-        myMethods.forEach((myFn, overrideFns) -> {
-            final boolean covariantReturn = myFn.getUnderlyingMethod().isCovariantReturn();
+    private List<ImplementedClassMethod> postProcessVirtualClassMembers(Map<OverrideSelector, Collection<ImplementedClassMethod>> virtualClassMembersWithParentMethods) {
+        final List<ImplementedClassMethod> result = new ArrayList<>();
 
-            // Ensure all methods agree on whether they use covariant return or not.
-            {
-                final List<OverrideSelector> mismatchedCovariantReturnParents = overrideFns.stream()
-                        .filter(fn -> fn.getUnderlyingMethod().isCovariantReturn() != covariantReturn)
-                        .collect(Collectors.toList());
-                if (!mismatchedCovariantReturnParents.isEmpty()) {
-                    LOG.log(Level.INFO, "{0} has {1}", new Object[]{myFn, covariantReturn ? "covariant return" : "non-covariant return"});
-                    mismatchedCovariantReturnParents.forEach(fn -> {
-                        LOG.log(Level.SEVERE, "{0} has conflicting covariance with {1}", new Object[]{myFn, fn});
-                    });
-                    throw new IllegalStateException("Override method and overriden method have conflicting ideas about covariant returns.");
-                }
+        final Predicate<ImplementedClassMethod> isVirtualPredicate = method -> method.getSelector().getUnderlyingMethod().isVirtual();
+        final BiPredicate<OverrideSelector, ImplementedClassMethod> sameReturnType = (selector, method) -> Objects.equals(selector.getErasedMethod(this).getReturnType(), method.getErasedSelector().getReturnType());
+
+        virtualClassMembersWithParentMethods.forEach((selector, overridenMethods) -> {
+            LOG.log(Level.FINE, "{0}: processing virtual class method {1}", new Object[]{getName(), selector});
+
+            final Predicate<ImplementedClassMethod> validationCovariantMismatch = method -> {
+                return selector.getUnderlyingMethod().isCovariantReturn()
+                        != method.getErasedSelector().getUnderlyingMethod().isCovariantReturn();
+            };
+            final Predicate<ImplementedClassMethod> validationReturnMismatch = method -> {
+                return !selector.getUnderlyingMethod().isCovariantReturn()
+                        && !sameReturnType.test(selector, method);
+            };
+
+            final Collection<ImplementedClassMethod> virtualOverridenMethods = Collections2.filter(
+                    overridenMethods,
+                    isVirtualPredicate::test);
+            final Collection<ImplementedClassMethod> nonPrivateHiddenMethods = Collections2.filter(
+                    overridenMethods,
+                    isVirtualPredicate.negate().and(method -> method.getSelector().getUnderlyingMethod().getVisibility() != Visibility.PRIVATE)::test);
+            final Collection<ImplementedClassMethod> validVirtualOverridenMethods = Collections2.filter(
+                    virtualOverridenMethods,
+                    validationCovariantMismatch.and(validationReturnMismatch).negate()::test);
+            final Collection<ImplementedClassMethod> tagReuseCandidates = Collections2.filter(
+                    validVirtualOverridenMethods,
+                    method -> !method.hasChangedTypes(this) && sameReturnType.test(selector, method));
+            final Collection<ImplementedClassMethod> covariantMismatchMethods = Collections2.filter(
+                    virtualOverridenMethods,
+                    validationCovariantMismatch::test);
+            final Collection<ImplementedClassMethod> returnMismatchMethods = Collections2.filter(
+                    virtualOverridenMethods,
+                    validationReturnMismatch::test);
+
+            // Figure out which tag type to use.
+            final ClassType tagType;
+            if (!selector.getUnderlyingMethod().isCovariantReturn()) {
+                tagType = null;
+            } else if (tagReuseCandidates.stream()
+                    .map(ImplementedClassMethod::getTagType)
+                    .distinct()
+                    .count() == 1) {
+                tagType = tagReuseCandidates.stream()
+                        .map(ImplementedClassMethod::getTagType)
+                        .distinct()
+                        .collect(MoreCollectors.onlyElement());
+            } else {
+                tagType = this;
             }
 
-            final boolean someReturnTypesMatch = !overrideFns.isEmpty()
-                    && overrideFns.stream()
-                            .anyMatch(fn -> Objects.equals(fn.getReturnType(), myFn.getReturnType()));
-            final boolean allReturnTypesMatch = !overrideFns.isEmpty()
-                    && overrideFns.stream()
-                            .allMatch(fn -> Objects.equals(fn.getReturnType(), myFn.getReturnType()));
+            // Declare the method.
+            final ImplementedClassMethod selectorImpl = new ImplementedClassMethod(this, tagType, selector, validVirtualOverridenMethods);
+            result.add(selectorImpl);
 
-            if (allReturnTypesMatch)
-                suppressedAccessorMethods.add(myFn.getUnderlyingMethod());
-
-            // If the method is not virtual, add it directly.
-            if (!myFn.getUnderlyingMethod().isVirtual()) {
-                if (overrideFns.stream()
-                        .map(OverrideSelector::getUnderlyingMethod)
-                        .anyMatch(method -> method.isVirtual()))
-                    LOG.log(Level.WARNING, "{0} not declared virtual, but overrides virtual methods!", myFn);
-                if (!overrideFns.isEmpty() && !myFn.getUnderlyingMethod().isHideOk())
-                    LOG.log(Level.WARNING, "{0} hides {1}", new Object[]{myFn, overrideFns});
-                classMemberFunctions.add(myFn.getUnderlyingMethod());
-                return;
+            if (!covariantMismatchMethods.isEmpty()) {
+                LOG.log(Level.WARNING,
+                        () -> {
+                            return selector.toString()
+                            + (selector.getUnderlyingMethod().isCovariantReturn() ? " has co-variant return" : " does not have co-variant return")
+                            + ", contrary to:\n"
+                            + covariantMismatchMethods.stream()
+                                    .map(ImplementedClassMethod::getSelector)
+                                    .map(OverrideSelector::toString)
+                                    .collect(Collectors.joining("\n"));
+                        });
             }
+            if (!returnMismatchMethods.isEmpty()) {
+                LOG.log(Level.WARNING,
+                        () -> {
+                            return selector.toString()
+                            + " has different return type from overriden methods:"
+                            + returnMismatchMethods.stream()
+                                    .map(ImplementedClassMethod::getSelector)
+                                    .map(OverrideSelector::toString)
+                                    .collect(Collectors.joining("\n"));
+                        });
+            }
+            if (!selectorImpl.getSelector().getUnderlyingMethod().isHideOk() && !nonPrivateHiddenMethods.isEmpty()) {
+                LOG.log(Level.WARNING,
+                        () -> {
+                            return selector.toString()
+                            + " hides:\n"
+                            + nonPrivateHiddenMethods.stream()
+                                    .map(ImplementedClassMethod::getSelector)
+                                    .map(OverrideSelector::toString)
+                                    .collect(Collectors.joining("\n"));
+                        });
+            }
+        });
 
-            // Figure out my tag type.
-            final com.github.nahratzah.jser_plus_plus.model.Type myTag = new CxxType("$tagType(model)$", new Includes())
-                    .prerender(ctx, singletonMap("model", this), EMPTY_LIST);
+        return result;
+    }
+
+    /**
+     * Each of the non-virtual methods is emitted as is.
+     *
+     * Some diagnostic warnings may be generated.
+     *
+     * @param nonVirtualClassMembersWithParentMethods All class members that are
+     * non-virtual.
+     * @return {@link ImplementedClassMethod Implemented method} for each of the
+     * methods in {@code nonVirtualClassMembersWithParentMethods}.
+     */
+    private List<ImplementedClassMethod> postProcessNonVirtualClassMembers(Map<OverrideSelector, Collection<ImplementedClassMethod>> nonVirtualClassMembersWithParentMethods) {
+        final List<ImplementedClassMethod> result = new ArrayList<>();
+
+        nonVirtualClassMembersWithParentMethods.forEach((selector, hiddenMethods) -> {
+            // Exclude private methods from parents from our view.
+            final Collection<ImplementedClassMethod> nonPrivateHiddenMethods = Collections2.filter(
+                    hiddenMethods,
+                    method -> method.getSelector().getUnderlyingMethod().getVisibility() != Visibility.PRIVATE);
+
+            final ImplementedClassMethod selectorImpl = new ImplementedClassMethod(this, null, selector, EMPTY_LIST);
+            if (hiddenMethods.stream().anyMatch(method -> method.getSelector().getUnderlyingMethod().isVirtual())) {
+                LOG.log(Level.WARNING,
+                        () -> {
+                            return "Non-virtual " + selector.toString()
+                            + " is effectively virtual due to virtual methods from parent type:\n"
+                            + hiddenMethods.stream()
+                                    .map(ImplementedClassMethod::getSelector)
+                                    .map(OverrideSelector::toString)
+                                    .collect(Collectors.joining("\n"));
+                        });
+            } else if (!selectorImpl.getSelector().getUnderlyingMethod().isHideOk() && !nonPrivateHiddenMethods.isEmpty()) {
+                LOG.log(Level.WARNING,
+                        () -> {
+                            return selector.toString()
+                            + " hides:\n"
+                            + nonPrivateHiddenMethods.stream()
+                                    .map(ImplementedClassMethod::getSelector)
+                                    .map(OverrideSelector::toString)
+                                    .collect(Collectors.joining("\n"));
+                        });
+            }
+            result.add(selectorImpl);
+        });
+
+        return result;
+    }
+
+    /**
+     * Create class members for the virtual functions.
+     *
+     * This creates the method implementation, as well as the forwarder (if
+     * tagging is used). This also creates the forwarders for overriden methods,
+     * if the implementation isn't a pure virtual function.
+     *
+     * @param virtualClassMembers List of virtual methods to emit.
+     * @param ctx Context for type resolution.
+     */
+    private void postProcessEmitVirtualClassMembers(List<ImplementedClassMethod> virtualClassMembers, Context ctx) {
+        virtualClassMembers.forEach(method -> {
+            final MethodModel underlyingMethod = method.getSelector().getUnderlyingMethod();
+            final boolean tagged = underlyingMethod.isCovariantReturn();
+            final String virtualMethodName = (tagged ? VIRTUAL_FUNCTION_PREFIX : "") + underlyingMethod.getName();
+            final com.github.nahratzah.jser_plus_plus.model.Type myTag;
+            if (tagged) {
+                myTag = new CxxType("$tagType(model)$", new Includes())
+                        .prerender(ctx, singletonMap("model", method.getTagType()), EMPTY_LIST);
+            } else {
+                myTag = null;
+            }
 
             // Figure out body of forwarders to private virtual method.
             final String forwardingBody = new ST(StCtx.BUILTINS, FORWARDING_BODY_TEMPLATE)
                     .add("model", this)
-                    .add("fn", myFn)
-                    .add("covariantReturn", covariantReturn)
+                    .add("tagModel", method.getTagType())
+                    .add("fn", method.getSelector())
+                    .add("covariantReturn", tagged)
                     .render(Locale.ROOT);
 
-            // Figure out which super methods we actually have to replace.
-            final List<OverrideSelector> superMethods = overrideFns.stream()
-                    .map(overrideFn -> new SimpleMapEntry<>(overrideFn.getDeclaringClass(), overrideFn)) // Introduce declaring class.
-                    .distinct() // Eliminate duplicates, using the declaring class as support.
-                    .map(Map.Entry::getValue) // Undo declaring class introduction.
-                    .filter(fn -> fn.getUnderlyingMethod().isVirtual())
-                    .sorted(Comparator.comparing(fn -> fn.getDeclaringType()))
-                    .collect(Collectors.toList());
+            // Emit the implementation.
+            {
+                final MethodModel.SimpleMethodModel methodImpl = new MethodModel.SimpleMethodModel(
+                        this,
+                        this.getBoundType(),
+                        virtualMethodName,
+                        new Includes(
+                                underlyingMethod.getDeclarationIncludes().collect(Collectors.toList()),
+                                underlyingMethod.getImplementationIncludes().collect(Collectors.toList())),
+                        underlyingMethod.getDeclarationTypes().collect(Collectors.toSet()),
+                        underlyingMethod.getImplementationTypes().collect(Collectors.toSet()),
+                        method.getSelector().getReturnType(),
+                        Stream.concat((tagged ? Stream.of(myTag) : Stream.empty()), method.getSelector().getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch, iff covariant.
+                        Stream.concat((tagged ? Stream.of("_tag_") : Stream.empty()), underlyingMethod.getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type, iff covariant.
+                        underlyingMethod.getBody(),
+                        underlyingMethod.isStatic(),
+                        underlyingMethod.isVirtual(),
+                        underlyingMethod.isPureVirtual(),
+                        (tagged ? method.getTagType() != this : underlyingMethod.isOverride()), // We always apply the `override` modifier if we can, but must hide it if we had to re-tag.
+                        underlyingMethod.isConst(),
+                        underlyingMethod.isFinal(),
+                        underlyingMethod.getNoexcept(),
+                        (tagged ? Visibility.PRIVATE : underlyingMethod.getVisibility()), // Make actual virtual method private: it's only accessed via the untagged forwarding function.
+                        underlyingMethod.getDocString());
+                // Always add to class.
+                // If the method is new or ambiguous, also to the accessor.
+                // As an extra optimization, we also add the method if this class is final,
+                // so the compiler has an opportunity to optimize out the vtable dispatch.
+                classMemberFunctions.add(methodImpl);
+                if (!tagged && (method.getOverridenMethods().size() != 1) || isFinal())
+                    accessorMethods.add(methodImpl);
+            }
 
-            if (!myFn.getUnderlyingMethod().isPureVirtual() && covariantReturn) {
-                // Emit overrideFns with extra tag argument.
-                superMethods.forEach(superMethod -> {
-                    final OverrideSelector overrideFn = superMethod.getErasedMethod(); // We're going to override the original function.
+            // Emit forwarder.
+            // The forwarder is the untagged version of this function, that
+            // then forwards to the implementation, using tag-dispatch.
+            //
+            // We emit this for tagged functions only.
+            // And only if at least one of:
+            // - the implementation introduces a new tag,
+            // - if we need to disambiguate between forwarders in the parent,
+            // - or this is the first declaration of the method.
+            // Otherwise, we rely on the existing forwarder in the parent.
+            if (tagged && (method.getTagType() == this || method.getOverridenMethods().size() != 1)) {
+                final MethodModel.SimpleMethodModel primaryForwarder = new MethodModel.SimpleMethodModel(
+                        this,
+                        this.getBoundType(),
+                        underlyingMethod.getName(),
+                        new Includes(
+                                underlyingMethod.getDeclarationIncludes().collect(Collectors.toList()),
+                                singletonList("java/_maybe_cast.h")),
+                        underlyingMethod.getDeclarationTypes().collect(Collectors.toSet()),
+                        underlyingMethod.getImplementationTypes().collect(Collectors.toSet()),
+                        method.getSelector().getReturnType(),
+                        method.getSelector().getArguments(),
+                        underlyingMethod.getArgumentNames(),
+                        forwardingBody,
+                        underlyingMethod.isStatic(),
+                        false, // Forwarding function is never virtual, so we can apply method hiding.
+                        false, // Forwarding function is never pure virtual.
+                        false, // Forwarding function is not overriding, but hiding instead.
+                        underlyingMethod.isConst(),
+                        false, // Forwarding function is not final, because it is not virtual.
+                        underlyingMethod.getNoexcept(),
+                        underlyingMethod.getVisibility(),
+                        underlyingMethod.getDocString());
+                // Add to both class and accessor implementation.
+                classMemberFunctions.add(primaryForwarder);
+                accessorMethods.add(primaryForwarder);
+            }
+
+            // Emit the forwarders from other implementations.
+            // We only need to emit those if we are using tags.
+            //
+            // We don't need to emit those if the method is a pure-virtual-function.
+            // We could, but then we would have to consider disambiguation between
+            // forwarding implementations in parents. And there would be a performance
+            // cost by invoking a chain of virtual functions, each requiring a
+            // vtable dispatch.
+            // Instead, it's easier and (probably) better for performance to emit
+            // all overrides. They're not very large, so there won't be much of a
+            // penalty either.
+            if (tagged && !underlyingMethod.isPureVirtual()) {
+                final Multimap<ClassType, ImplementedClassMethod> methodMapping = method.getAllOverridenMethods()
+                        .filter(overrideFn -> !Objects.equals(overrideFn.getTagType(), method.getTagType()))
+                        .collect(Multimaps.toMultimap(overrideFn -> overrideFn.getTagType(), Function.identity(), () -> Multimaps.newSetMultimap(new HashMap<>(), HashSet::new)));
+
+                methodMapping.asMap().forEach((tagType, overrideFns) -> {
+                    final ImplementedClassMethod overrideFn = overrideFns.iterator().next();
+                    final OverrideSelector erasedOverrideFn = overrideFn.getErasedSelector(); // We're going to override the original function.
 
                     final com.github.nahratzah.jser_plus_plus.model.Type overrideTag = new CxxType("$tagType(model)$", new Includes())
-                            .prerender(ctx, singletonMap("model", overrideFn.getDeclaringClass()), EMPTY_LIST);
+                            .prerender(ctx, singletonMap("model", tagType), EMPTY_LIST);
 
                     final MethodModel.SimpleMethodModel overrideImpl = new MethodModel.SimpleMethodModel(
                             this,
-                            superMethod.getDeclaringType(),
-                            VIRTUAL_FUNCTION_PREFIX + overrideFn.getName(),
+                            erasedOverrideFn.getDeclaringType(), // Type used to declare arguments and return type.
+                            VIRTUAL_FUNCTION_PREFIX + erasedOverrideFn.getName(),
                             new Includes(
-                                    overrideFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                                    Stream.concat(Stream.of("java/_maybe_cast.h"), myFn.getUnderlyingMethod().getDeclarationIncludes()).collect(Collectors.toList())),
-                            overrideFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
-                            myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
-                            overrideFn.getReturnType(),
-                            Stream.concat(Stream.of(overrideTag), overrideFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch.
-                            Stream.concat(Stream.of("_tag_"), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type.
+                                    erasedOverrideFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
+                                    Stream.concat(Stream.of("java/_maybe_cast.h"), underlyingMethod.getDeclarationIncludes()).collect(Collectors.toList())),
+                            erasedOverrideFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
+                            underlyingMethod.getDeclarationTypes().collect(Collectors.toSet()),
+                            erasedOverrideFn.getReturnType(),
+                            Stream.concat(Stream.of(overrideTag), erasedOverrideFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch.
+                            Stream.concat(Stream.of("_tag_"), underlyingMethod.getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type.
                             forwardingBody, // Apply forwarding rule.
-                            overrideFn.getUnderlyingMethod().isStatic(),
-                            overrideFn.getUnderlyingMethod().isVirtual(),
+                            erasedOverrideFn.getUnderlyingMethod().isStatic(),
+                            erasedOverrideFn.getUnderlyingMethod().isVirtual(),
                             false, // We're not pure virtual: we implement an override, forwarding to the new override.
                             true, // We do override the base implementation.
-                            overrideFn.getUnderlyingMethod().isConst(),
-                            overrideFn.getUnderlyingMethod().isFinal(),
-                            overrideFn.getUnderlyingMethod().getNoexcept(),
+                            erasedOverrideFn.getUnderlyingMethod().isConst(),
+                            erasedOverrideFn.getUnderlyingMethod().isFinal(),
+                            erasedOverrideFn.getUnderlyingMethod().getNoexcept(),
                             Visibility.PRIVATE, // Make actual virtual method private: it's only accessed via the untagged forwarding function.
                             null);
                     LOG.log(Level.FINE, "declaring override: {0}", overrideImpl.getOverrideSelector(ctx));
                     classMemberFunctions.add(overrideImpl);
                 });
             }
-
-            if (covariantReturn && (!allReturnTypesMatch || overrideFns.size() > 1)) {
-                // Emit normal forwarder for overrideFns.
-                // We only emit this if the function is covariant return and either has mismatched return types, or would be ambiguous.
-                // XXX overrideFns.size() > 1 does not do the correct job of figuring out ambiguity: it trips too often.
-                classMemberFunctions.add(new MethodModel.SimpleMethodModel(
-                        this,
-                        this.getBoundType(),
-                        myFn.getName(),
-                        new Includes(
-                                myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                                singletonList("java/_maybe_cast.h")),
-                        myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
-                        myFn.getUnderlyingMethod().getImplementationTypes().collect(Collectors.toSet()),
-                        myFn.getReturnType(),
-                        myFn.getArguments(),
-                        myFn.getUnderlyingMethod().getArgumentNames(),
-                        forwardingBody,
-                        myFn.getUnderlyingMethod().isStatic(),
-                        false, // Forwarding function is never virtual, so we can apply method hiding.
-                        false, // Forwarding function is never pure virtual.
-                        false, // Forwarding function is not overriding, but hiding instead.
-                        myFn.getUnderlyingMethod().isConst(),
-                        false, // Forwarding function is not final, because it is not virtual.
-                        myFn.getUnderlyingMethod().getNoexcept(),
-                        myFn.getUnderlyingMethod().getVisibility(),
-                        myFn.getUnderlyingMethod().getDocString()));
-            }
-
-            // Emit actual virtual method.
-            if (covariantReturn || !myFn.getUnderlyingMethod().isPureVirtual() || !allReturnTypesMatch)
-                classMemberFunctions.add(new MethodModel.SimpleMethodModel(
-                        this,
-                        this.getBoundType(),
-                        (covariantReturn ? VIRTUAL_FUNCTION_PREFIX : "") + myFn.getName(),
-                        new Includes(
-                                myFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                                myFn.getUnderlyingMethod().getImplementationIncludes().collect(Collectors.toList())),
-                        myFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
-                        myFn.getUnderlyingMethod().getImplementationTypes().collect(Collectors.toSet()),
-                        myFn.getReturnType(),
-                        Stream.concat((covariantReturn ? Stream.of(myTag) : Stream.empty()), myFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch, iff covariant.
-                        Stream.concat((covariantReturn ? Stream.of("_tag_") : Stream.empty()), myFn.getUnderlyingMethod().getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type, iff covariant.
-                        myFn.getUnderlyingMethod().getBody(),
-                        myFn.getUnderlyingMethod().isStatic(),
-                        myFn.getUnderlyingMethod().isVirtual(),
-                        myFn.getUnderlyingMethod().isPureVirtual(),
-                        !covariantReturn && (myFn.getUnderlyingMethod().isOverride() || someReturnTypesMatch),
-                        myFn.getUnderlyingMethod().isConst(),
-                        myFn.getUnderlyingMethod().isFinal(),
-                        myFn.getUnderlyingMethod().getNoexcept(),
-                        (covariantReturn ? Visibility.PRIVATE : myFn.getUnderlyingMethod().getVisibility()), // Make actual virtual method private: it's only accessed via the untagged forwarding function.
-                        myFn.getUnderlyingMethod().getDocString()));
         });
     }
 
     /**
-     * Retrieve members which need to be re-declared due to template type
-     * bindings.
+     * Emit both accessor and class methods for each declared non-virtual
+     * method.
      *
-     * @param ctx Type lookup context.
-     * @param variablesMap Template variables that this class is bound to.
-     * @return Collection of {@link OverrideSelector override selectors} for
-     * methods which had their arguments or return type change due to template
-     * specializations.
+     * @param nonVirtualClassMembers All non-virtual methods.
      */
-    public Stream<OverrideSelector> redeclareMethods(Context ctx, Map<String, ? extends BoundTemplate> variablesMap) {
-        final EnumSet<Visibility> visibilitySet = EnumSet.of(Visibility.PROTECTED, Visibility.PUBLIC);
-
-        return getClassMembers().stream()
-                .filter(member -> visibilitySet.contains(member.getVisibility()))
-                .map(member -> member.getOverrideSelector(ctx))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(overrideSelector -> overrideSelector.rebind(variablesMap))
-                .filter(OverrideSelector::hasAlteredTypes);
-    }
-
-    /**
-     * Retrieve all inherited and local virtual methods.
-     *
-     * @return List of all methods in this class that can be overriden.
-     */
-    public synchronized List<OverrideSelector> getAllMethods() {
-        if (!postProcessingDone)
-            throw new IllegalStateException("Must have completed post processing stage.");
-
-        return allMethods;
+    private void postProcessEmitNonVirtualClassMembers(List<ImplementedClassMethod> nonVirtualClassMembers) {
+        nonVirtualClassMembers.stream()
+                .map(ImplementedClassMethod::getSelector)
+                .map(OverrideSelector::getUnderlyingMethod)
+                .peek(method -> {
+                    assert !method.isVirtual();
+                })
+                .forEach(method -> {
+                    accessorMethods.add(method);
+                    classMemberFunctions.add(method);
+                });
     }
 
     /**
@@ -1430,64 +1512,6 @@ public class ClassType implements JavaType {
         private final Map<? super String, ? extends String> argRename;
     }
 
-    /**
-     * Models a method that has been overriden and replaced by a more-derived
-     * class or interface.
-     *
-     * This is used to suppress the same method, when diamond inheritance would
-     * otherwise re-introduce it.
-     */
-    private static class ResolvedMethod {
-        public ResolvedMethod(OverrideSelector selector) {
-            requireNonNull(selector);
-            this.selector = requireNonNull(selector.getErasedMethod());
-            this.declaringClass = requireNonNull(selector.getDeclaringClass());
-        }
-
-        /**
-         * Retrieve the class on which this method appeared.
-         *
-         * @return The class declaring this method.
-         */
-        public ClassType getDeclaringClass() {
-            return declaringClass;
-        }
-
-        /**
-         * Get the type-erased selector of the method.
-         *
-         * The erasure is based on the declaring class, only.
-         *
-         * @return The method selector.
-         */
-        public OverrideSelector getSelector() {
-            return selector;
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 5;
-            hash = 71 * hash + Objects.hashCode(this.declaringClass);
-            hash = 71 * hash + Objects.hashCode(this.selector);
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
-            final ResolvedMethod other = (ResolvedMethod) obj;
-            if (!Objects.equals(this.declaringClass, other.declaringClass))
-                return false;
-            if (!Objects.equals(this.selector, other.selector)) return false;
-            return true;
-        }
-
-        private final ClassType declaringClass;
-        private final OverrideSelector selector;
-    }
-
     private class CfgType implements ClassConfig.CfgSuperType {
         @Override
         public String getName() {
@@ -1578,31 +1602,13 @@ public class ClassType implements JavaType {
      */
     private boolean postProcessingDone = false;
     /**
-     * All methods of this class.
+     * Member functions for the class.
      *
      * Filled in by
      * {@link #postProcess(com.github.nahratzah.jser_plus_plus.input.Context) post processing}
      * logic.
      */
-    private List<OverrideSelector> allMethods;
-    /**
-     * All methods that have been resolved by this class. Those methods are
-     * inherited from the {@link #getSuperClass() super class} and
-     * {@link #getInterfaces() interfaces}, but have been overriden.
-     *
-     * Filled in by
-     * {@link #postProcess(com.github.nahratzah.jser_plus_plus.input.Context) post processing}
-     * logic.
-     */
-    private Set<ResolvedMethod> allResolvedMethods;
-    /**
-     * List of member functions for the class.
-     *
-     * Filled in by
-     * {@link #postProcess(com.github.nahratzah.jser_plus_plus.input.Context) post processing}
-     * logic.
-     */
-    private List<MethodModel> classMemberFunctions = new ArrayList<>();
+    private final Collection<MethodModel> classMemberFunctions = new TreeSet<>(new MethodModelComparator());
     /**
      * Documentation of the class.
      */
@@ -1615,8 +1621,19 @@ public class ClassType implements JavaType {
      */
     private boolean devMode = false;
     /**
-     * List of methods which, due to overriding from base and not changing
-     * signature, do not require redeclaration.
+     * Set holding all {@link ImplementedClassMethod implemented methods}.
+     *
+     * Filled in by
+     * {@link #postProcess(com.github.nahratzah.jser_plus_plus.input.Context) post processing}
+     * logic.
      */
-    private final Set<MethodModel> suppressedAccessorMethods = new HashSet<>();
+    private Set<ImplementedClassMethod> implementedMethods;
+    /**
+     * All accessor methods.
+     *
+     * Filled in by
+     * {@link #postProcess(com.github.nahratzah.jser_plus_plus.input.Context) post processing}
+     * logic.
+     */
+    private final Collection<MethodModel> accessorMethods = new TreeSet<>(new MethodModelComparator());
 }

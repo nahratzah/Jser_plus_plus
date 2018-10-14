@@ -29,7 +29,7 @@ public final class CxxType implements Type {
         this.template = requireNonNull(template);
         this.includes = requireNonNull(includes);
         this.declTypes = requireNonNull(declTypes);
-        this.preRendered = preRendered;
+        this.preRendered = (preRendered == null ? null : preRendered.trim());
     }
 
     @Override

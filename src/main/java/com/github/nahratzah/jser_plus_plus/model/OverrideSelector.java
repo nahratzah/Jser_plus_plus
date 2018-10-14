@@ -63,36 +63,12 @@ public class OverrideSelector {
     /**
      * Retrieve the method with erasure applied.
      *
+     * @param declaringClass The class that is initiating the erasure.
      * @return The underlying method with type erasure applied.
      */
-    public OverrideSelector getErasedMethod() {
-        final OverrideSelector erasedBaseCase = method.getOverrideSelector(ctx).orElseThrow(IllegalStateException::new);
-        final BoundTemplate.ClassBinding<ClassType> erasedBaseClassType = new BoundTemplate.ClassBinding<>(
-                erasedBaseCase.getDeclaringClass(),
-                erasedBaseCase.getDeclaringClass().getErasedTemplateArguments().stream()
-                        .map(Map.Entry::getValue)
-                        .collect(Collectors.toList()));
-        return erasedBaseCase.rebind(erasedBaseClassType.getBindingsMap());
-    }
-
-    /**
-     * Test if the method had its arguments altered.
-     *
-     * @return True of the override has altered arguments, relative to the
-     * erased base type.
-     */
-    public boolean hasChangedArguments() {
-        return !Objects.equals(arguments, getErasedMethod().arguments);
-    }
-
-    /**
-     * Test if the method had its return type altered.
-     *
-     * @return True if the override has an altered return type, relative to the
-     * erased base type.
-     */
-    public boolean hasChangedReturnType() {
-        return !Objects.equals(returnType, getErasedMethod().returnType);
+    public OverrideSelector getErasedMethod(ClassType declaringClass) {
+        final Map<String, BoundTemplate> rebindMap = declaringClass.getErasedTemplateArguments().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return rebind(rebindMap);
     }
 
     /**
@@ -103,7 +79,12 @@ public class OverrideSelector {
      * the base type.
      */
     public boolean hasAlteredTypes() {
-        return hasChangedReturnType() || hasChangedArguments();
+        final OverrideSelector raw = method.getOverrideSelector(ctx)
+                .orElseThrow(() -> new IllegalStateException("underlying method for selector can not create selectors"))
+                .getErasedMethod(method.getArgumentDeclaringClass().getType());
+
+        return !Objects.equals(arguments, raw.arguments)
+                || !Objects.equals(returnType, raw.returnType);
     }
 
     /**
@@ -149,19 +130,11 @@ public class OverrideSelector {
     }
 
     /**
-     * Retrieve the declaring class of the method.
-     *
-     * @return Declaring class of the method.
-     */
-    public ClassType getDeclaringClass() {
-        return getDeclaringType().getType();
-    }
-
-    /**
      * Retrieves the bound type of the declaring class.
      *
      * @return Declaring class with any variable substitutions applied.
      */
+    @Deprecated
     public BoundTemplate.ClassBinding<? extends ClassType> getDeclaringType() {
         return declaringType;
     }

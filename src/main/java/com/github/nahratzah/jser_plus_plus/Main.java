@@ -27,8 +27,6 @@ public class Main {
 
         final Config cfg = Config.fromFile(CONFIG_FILE);
 
-        LOG.log(Level.SEVERE, "cfg.classes = {0}", cfg.getClasses());
-
         try (final Scanner s = new Scanner(ADD_BOOT_CLASSPATH)) {
             final Processor p = new Processor(s.getClassLoader(), cfg);
 

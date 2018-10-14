@@ -21,6 +21,8 @@ import java.util.Locale;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -33,6 +35,7 @@ import org.stringtemplate.v4.ST;
  * @author ariane
  */
 public class EnumType extends ClassType {
+    private static final Logger LOG = Logger.getLogger(EnumType.class.getName());
     private static final List<String> EXTRA_PUBLIC_INCLUDES = unmodifiableList(Arrays.asList("string_view", "java/primitives.h"));
     private String enumTypeTemplate;
 
@@ -45,6 +48,15 @@ public class EnumType extends ClassType {
     @Override
     public void init(Context ctx, Config cfg) {
         super.init(ctx, cfg);
+
+        LOG.log(Level.FINE, () -> {
+            return "Enum " + getName() + " has superclass:\n"
+                    + "  " + this.getSuperClass() + "\n"
+                    + "Enum " + getName() + " has interfaces:\n"
+                    + this.getInterfaces().stream()
+                            .map(tmpl -> "  " + tmpl.toString())
+                            .collect(Collectors.joining("\n"));
+        });
 
         enumTypeTemplate = "::java::_static_accessor<$boundTemplateType(java.({" + getName().replaceAll(Pattern.quote("$"), Matcher.quoteReplacement("\\$")) + "}), \"style=tag\")$>::enum_t";
         initEnumFieldAndConstructor(ctx, cfg);
