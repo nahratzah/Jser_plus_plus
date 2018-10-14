@@ -7407,3 +7407,34 @@ classes:
         implementation:
         - stdexcept
         - java/serialization/writer.h
+
+
+  java.lang.AutoCloseable:
+    dev_mode: false
+    doc_string: |
+      \brief The java auto-closeable interface allows for release of resources.
+      \details In java, it is used for try-with-resources constructions.
+      In C++, this is generally unnecessary due to RAII.
+
+      Furthermore, this library is intended for data transfer, and not as a
+      complete translation of java into C++. Mostly, you should not need this
+      at all, because the data transfer objects should never hold resources.
+
+      Contrary to java, we do not have `finalize()` methods, nor a GC
+      implementation that delays collection of classes with that method.
+      Therefore, all resources should be quickly released at destruction time.
+
+      It may however be required for a type to implement a close method, so
+      completely omitting the functionality seems like a bad idea to me.
+      Therefore, this method provides a defaulted close method that simply does
+      nothing, but can still be overriden by derived classes.
+    members:
+    - type: method
+      name: close
+      virtual: true
+      doc_string: |
+        \brief Release resources held by this object.
+        \details
+        If it safe to call this method multiple times.
+      body: |
+        // Skip
