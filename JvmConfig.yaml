@@ -7446,7 +7446,7 @@ classes:
       \brief Java's idea of a functor, that takes no arguments and return no values.
     members:
     - type: method
-      name: operator()
+      name: run
       virtual: true
       doc_string: |
         \brief Run this runnable.
