@@ -7113,3 +7113,297 @@ classes:
       virtual: true
       return:
         java: this
+
+
+  java.util.ArrayDeque<E>:
+    dev_mode: false
+    doc_string: |
+      \brief The java equivalent of `std::deque`.
+      \details Implemented in terms of `std::deque`.
+    fields:
+      data_:
+        visibility: private
+        type:
+          cxx: ::std::deque<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>
+          includes:
+            declaration:
+            - deque
+            - cycle_ptr/allocator.h
+        default: ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+    members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: b
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      initializers:
+        data_: std::move(b), std::move(e), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          cxx: ::std::initializer_list<$boundTemplateType(java.("E"), "style=type, class")$>
+          includes:
+            declaration:
+            - initializer_list
+      initializers:
+        data_: init, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          java: java.lang.Iterable<? extends E>
+      initializers:
+        data_: init->begin(), init->end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+    - type: method
+      name: empty
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+      body: |
+        return data_.empty();
+    - type: method
+      name: size
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return data_.size();
+    - type: method
+      name: push_front
+      override: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        data_.push_front(std::move(e));
+        return true;
+    - type: method
+      name: push_back
+      override: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        data_.push_back(std::move(e));
+        return true;
+    - type: method
+      name: pop_back
+      override: true
+      return:
+        java: E
+      body: |
+        $boundTemplateType(java.("E"), "style=type, class")$ r = std::move(data_.back());
+        data_.pop_back();
+        return r;
+    - type: method
+      name: pop_front
+      override: true
+      return:
+        java: E
+      body: |
+        $boundTemplateType(java.("E"), "style=type, class")$ r = std::move(data_.front());
+        data_.pop_front();
+        return r;
+    - type: method
+      name: clear
+      override: true
+      body: |
+        data_.clear();
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.begin());
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>(data_.end());
+    - type: method
+      name: begin
+      const: true
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>(data_.begin());
+    - type: method
+      name: end
+      const: true
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>(data_.end());
+    - type: method
+      name: front
+      override: true
+      const: true
+      return:
+        java: const E
+      body: |
+        return data_.front();
+    - type: method
+      name: back
+      override: true
+      const: true
+      return:
+        java: const E
+      body: |
+        return data_.back();
+    - type: method
+      name: front
+      override: true
+      return:
+        java: E
+      body: |
+        return data_.front();
+    - type: method
+      name: back
+      override: true
+      return:
+        java: E
+      body: |
+        return data_.back();
+    - type: method
+      name: at
+      override: true
+      arguments:
+      - name: index
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: E
+      body: |
+        return data_.at(index);
+    - type: method
+      name: at
+      const: true
+      override: true
+      arguments:
+      - name: index
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: const E
+      body: |
+        return data_.at(index);
+    - type: method
+      name: __decoder_annotation__
+      visibility: private
+      arguments:
+      - name: decoder
+        type:
+          cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
+          includes:
+            declaration:
+            - java/serialization/decoder_fwd.h
+            implementation:
+            - java/serialization/decoder.h
+      body: |
+        auto annotation = ::java::serialization::annotation_reader(decoder.get_annotation());
+
+        auto len = annotation.read_int();
+        if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative collection size})$);
+
+        ::std::generate_n(
+            ::std::back_inserter(data_),
+            ::std::size_t(len),
+            [&annotation]() {
+              return annotation.read_initial_object<$boundTemplateType(java.({E}), "style=type, class")$>();
+            });
+      includes:
+        implementation:
+        - algorithm
+        - iterator
+        - string_view
+    - type: method
+      name: __encoder_annotation__
+      visibility: private
+      const: true
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+          includes:
+            declaration:
+            - java/serialization/type_def_fwd.h
+      - name: _fields_
+        type:
+          cxx: ::java::serialization::stream::new_object::class_data::field_map&
+          includes:
+            declaration:
+            - java/serialization/encdec.h
+      return:
+        cxx: ::std::vector<::std::variant<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>, ::java::serialization::stream::blockdata>>
+        includes:
+          declaration:
+          - vector
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
+      body: |
+        using namespace ::java::serialization::stream;
+
+        auto annotation = ::java::serialization::annotation_writer(handler_);
+
+        if (data_.size() > 0x7fffffffu)
+          throw ::std::logic_error($cxxString({$model.name$: size too large})$);
+
+        annotation.write_int(data_.size()); // capacity
+        for (const auto& i : data_) annotation.write_object(i);
+
+        return std::move(annotation).data();
+      includes:
+        implementation:
+        - stdexcept
+        - java/serialization/writer.h
