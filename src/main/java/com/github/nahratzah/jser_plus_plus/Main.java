@@ -1,5 +1,6 @@
 package com.github.nahratzah.jser_plus_plus;
 
+import com.github.nahratzah.jser_plus_plus.config.ClassName;
 import com.github.nahratzah.jser_plus_plus.config.Config;
 import com.github.nahratzah.jser_plus_plus.input.Processor;
 import com.github.nahratzah.jser_plus_plus.input.Scanner;
@@ -30,12 +31,17 @@ public class Main {
         try (final Scanner s = new Scanner(ADD_BOOT_CLASSPATH)) {
             final Processor p = new Processor(s.getClassLoader(), cfg);
 
+            for (ClassName name : cfg.getClasses().keySet()) {
+                final Class<?> c = s.getClassLoader().loadClass(name.getName());
+                LOG.log(Level.FINE, "Adding explicitly mentioned {0}", c);
+                p.addClass(c);
+            }
+
             final Class<?> serializable = s.getClassLoader().loadClass(java.io.Serializable.class.getName());
             try (final Stream<Class<?>> classStream = s.getClassesChecked()
-                    .filter(serializable::isAssignableFrom)
                     .filter(c -> !c.isPrimitive())
                     .filter(c -> !c.isAnonymousClass())
-                    .filter(cfg.hasConfigForClass().or(cfg.getScan().filter()))
+                    .filter(cfg.getScan().filter().and(serializable::isAssignableFrom))
                     .peek(c -> LOG.log(Level.FINE, "Adding scanned {0}", c))) {
                 p.addClasses(classStream.collect(Collectors.toList()));
             }
