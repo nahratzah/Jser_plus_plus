@@ -489,7 +489,7 @@ public interface ClassMemberModel {
 
                 return new ST(StCtx.contextGroup(ctx, variablesMap, cdef.getBoundType(), collection::add), text)
                         .add("model", cdef)
-                        .render(Locale.ROOT);
+                        .render(Locale.ROOT, 78);
             };
 
             this.declRenderer = (text) -> basicRenderer.apply(text, this.declarationTypes);
