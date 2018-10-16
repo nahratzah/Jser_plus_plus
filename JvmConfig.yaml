@@ -7466,3 +7466,833 @@ classes:
       includes:
         implementation:
         - functional
+
+
+  java.util.function.BiConsumer<X, Y>:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 2 arguments.
+    members:
+    - type: method
+      name: accept
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          java: Y
+
+
+  java.util.function.BiFunction<X, Y, R>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts 2 arguments and returns a result.
+    members:
+    - type: method
+      name: apply
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          java: Y
+      return:
+        java: R
+
+
+  java.util.function.BiPredicate<X, Y>:
+    dev_mode: false
+    doc_string: |
+      \brief Predicate that accepts 2 arguments.
+    members:
+    - type: method
+      name: test
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          java: Y
+      return:
+        cxx: ::java::boolean_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.BinaryOperator<T>:
+    dev_mode: false
+    doc_string: |
+      \brief Binary operator.
+
+
+  java.util.function.BooleanSupplier:
+    dev_mode: false
+    doc_string: |
+      \brief Supplier of boolean.
+    members:
+    - type: method
+      name: getAsBoolean
+      virtual: true
+      return:
+        cxx: ::java::boolean_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.Consumer<T>:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 1 argument.
+    members:
+    - type: method
+      name: accept
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: T
+
+
+  java.util.function.DoubleBinaryOperator:
+    dev_mode: false
+    doc_string: |
+      \brief Operator that accept two double arguments and returns a double result.
+    members:
+    - type: method
+      name: applyAsDouble
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::double_t
+          includes:
+            declaration:
+            - java/primitives.h
+      - name: y
+        type:
+          cxx: ::java::double_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::double_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.DoubleConsumer:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 1 argument.
+    members:
+    - type: method
+      name: accept
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::double_t
+          includes:
+            declaration:
+            - java/primitives.h
+
+
+  java.util.function.DoubleFunction<R>:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 1 argument and returns a result.
+    members:
+    - type: method
+      name: apply
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::double_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        java: R
+
+
+  java.util.function.DoublePredicate:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 1 argument and returns a result.
+    members:
+    - type: method
+      name: test
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::double_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::boolean_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.DoubleSupplier:
+    dev_mode: false
+    doc_string: |
+      \brief Supplier of boolean.
+    members:
+    - type: method
+      name: getAsDouble
+      virtual: true
+      return:
+        cxx: ::java::double_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.DoubleToIntFunction:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts a double argument and returns an int.
+    members:
+    - type: method
+      name: applyAsInt
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::double_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.DoubleToLongFunction:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts a double argument and returns a long int.
+    members:
+    - type: method
+      name: applyAsLong
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::double_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::long_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.DoubleUnaryOperator:
+    dev_mode: false
+    doc_string: |
+      \brief Operator that accept a double argument and returns a double.
+    members:
+    - type: method
+      name: applyAsDouble
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::double_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::double_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.Function<X, R>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts one argument and returns a result.
+    members:
+    - type: method
+      name: apply
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      return:
+        java: R
+
+
+  java.util.function.IntBinaryOperator:
+    dev_mode: false
+    doc_string: |
+      \brief Operator that accept two integer arguments and returns an int.
+    members:
+    - type: method
+      name: applyAsInt
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::int_t
+          includes:
+            declaration:
+            - java/primitives.h
+      - name: y
+        type:
+          cxx: ::java::int_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.IntConsumer:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 1 argument.
+    members:
+    - type: method
+      name: accept
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::int_t
+          includes:
+            declaration:
+            - java/primitives.h
+
+
+  java.util.function.IntFunction<R>:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 1 argument and returns a result.
+    members:
+    - type: method
+      name: apply
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::int_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        java: R
+
+
+  java.util.function.IntPredicate:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 1 argument and returns a result.
+    members:
+    - type: method
+      name: test
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::int_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::boolean_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.IntSupplier:
+    dev_mode: false
+    doc_string: |
+      \brief Supplier of boolean.
+    members:
+    - type: method
+      name: getAsInt
+      virtual: true
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.IntToDoubleFunction:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts an integer argument and returns a double.
+    members:
+    - type: method
+      name: applyAsDouble
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::int_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::double_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.IntToLongFunction:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts an integer argument and returns a long int.
+    members:
+    - type: method
+      name: applyAsLong
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::int_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::long_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.IntUnaryOperator:
+    dev_mode: false
+    doc_string: |
+      \brief Operator that accepts an integer argument and returns an integer.
+    members:
+    - type: method
+      name: applyAsInt
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::int_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.LongBinaryOperator:
+    dev_mode: false
+    doc_string: |
+      \brief Operator that accept two long integer arguments and returns a long int.
+    members:
+    - type: method
+      name: applyAsLong
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::long_t
+          includes:
+            declaration:
+            - java/primitives.h
+      - name: y
+        type:
+          cxx: ::java::long_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::long_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.LongConsumer:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 1 argument.
+    members:
+    - type: method
+      name: accept
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::long_t
+          includes:
+            declaration:
+            - java/primitives.h
+
+
+  java.util.function.LongFunction<R>:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 1 argument and returns a result.
+    members:
+    - type: method
+      name: apply
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::long_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        java: R
+
+
+  java.util.function.LongPredicate:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 1 argument and returns a result.
+    members:
+    - type: method
+      name: test
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::long_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::boolean_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.LongSupplier:
+    dev_mode: false
+    doc_string: |
+      \brief Supplier of long integers.
+    members:
+    - type: method
+      name: getAsLong
+      virtual: true
+      return:
+        cxx: ::java::long_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.LongToDoubleFunction:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts a long integer argument and returns a double.
+    members:
+    - type: method
+      name: applyAsDouble
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::long_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::double_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.LongToIntFunction:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts a long integer argument and returns a double.
+    members:
+    - type: method
+      name: applyAsInt
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::long_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.LongUnaryOperator:
+    dev_mode: false
+    doc_string: |
+      \brief Operator that accepts a long integer argument and returns a long integer.
+    members:
+    - type: method
+      name: applyAsLong
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          cxx: ::java::long_t
+          includes:
+            declaration:
+            - java/primitives.h
+      return:
+        cxx: ::java::long_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.ObjDoubleConsumer<X>:
+    dev_mode: false
+    doc_string: |
+      \brief Consumer that accepts and object and a double.
+    members:
+    - type: method
+      name: accept
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          cxx: ::java::double_t
+          includes:
+            declaration:
+            - java/primitives.h
+
+
+  java.util.function.ObjIntConsumer<X>:
+    dev_mode: false
+    doc_string: |
+      \brief Consumer that accepts and object and an integer.
+    members:
+    - type: method
+      name: accept
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          cxx: ::java::int_t
+          includes:
+            declaration:
+            - java/primitives.h
+
+
+  java.util.function.ObjLongConsumer<X>:
+    dev_mode: false
+    doc_string: |
+      \brief Consumer that accepts and object and a long integer.
+    members:
+    - type: method
+      name: accept
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          cxx: ::java::long_t
+          includes:
+            declaration:
+            - java/primitives.h
+
+
+  java.util.function.Predicate<X>:
+    dev_mode: false
+    doc_string: |
+      \brief A predicate.
+    members:
+    - type: method
+      name: test
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      return:
+        cxx: ::java::boolean_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.Supplier<T>:
+    dev_mode: false
+    doc_string: |
+      \brief Supplier of object.
+    members:
+    - type: method
+      name: get
+      virtual: true
+      return:
+        java: T
+
+
+  java.util.function.ToDoubleBiFunction<X, Y>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts two arguments and returns a double.
+    members:
+    - type: method
+      name: applyAsDouble
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          java: Y
+      return:
+        cxx: ::java::double_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.ToIntBiFunction<X, Y>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts two arguments and returns an integer.
+    members:
+    - type: method
+      name: applyAsInt
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          java: Y
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.ToLongBiFunction<X, Y>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts two arguments and returns a long integer.
+    members:
+    - type: method
+      name: applyAsLong
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          java: Y
+      return:
+        cxx: ::java::long_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.ToDoubleFunction<X>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts an argument and returns a double.
+    members:
+    - type: method
+      name: applyAsDouble
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      return:
+        cxx: ::java::double_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.ToIntFunction<X>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts an argument and returns an integer.
+    members:
+    - type: method
+      name: applyAsInt
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      return:
+        cxx: ::java::int_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.ToLongFunction<X>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts an argument and returns a long integer.
+    members:
+    - type: method
+      name: applyAsLong
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      return:
+        cxx: ::java::long_t
+        includes:
+          declaration:
+          - java/primitives.h
+
+
+  java.util.function.UnaryOperator<T>:
+    dev_mode: false
+    doc_string: |
+      \brief Unary operator.
