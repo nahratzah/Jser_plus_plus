@@ -3609,12 +3609,12 @@ classes:
         return data_.size();
     - type: method
       name: clear
-      virtual: true
+      override: true
       body: |
         data_.clear();
     - type: method
       name: push
-      virtual: true
+      override: true
       return:
         cxx: void
       arguments:
@@ -3629,7 +3629,7 @@ classes:
                          });
     - type: method
       name: pop
-      virtual: true
+      override: true
       return:
         cxx: void
       body: |
@@ -3640,7 +3640,7 @@ classes:
         data_.pop_back();
     - type: method
       name: front
-      virtual: true
+      override: true
       const: true
       return:
         java: const E
@@ -3648,7 +3648,7 @@ classes:
         return data_.front();
     - type: method
       name: back
-      virtual: true
+      override: true
       const: true
       return:
         java: const E
@@ -3656,14 +3656,14 @@ classes:
         return data_.back();
     - type: method
       name: front
-      virtual: true
+      override: true
       return:
         java: E
       body:
         return data_.front();
     - type: method
       name: back
-      virtual: true
+      override: true
       return:
         java: E
       body: |
