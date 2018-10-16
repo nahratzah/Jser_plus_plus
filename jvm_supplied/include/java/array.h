@@ -4,6 +4,8 @@
 #include <java/array_fwd.h>
 #include <cstddef>
 #include <initializer_list>
+#include <iterator>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -950,6 +952,16 @@ class array<::java::lang::Object> final
  public:
   array() = delete;
   explicit array(::java::lang::Class<::java::G::pack<>> element_type);
+
+  template<typename T>
+  explicit array(::java::lang::Class<::java::G::pack<>> element_type, ::std::initializer_list<T> init)
+  : element_type_(std::move(element_type)),
+    data_(::std::make_move_iterator(init.begin()), ::std::make_move_iterator(init.end()), vector_type::allocator_type(*this))
+  {
+    if (!element_type_)
+      throw ::std::invalid_argument("null class for array");
+  }
+
   ~array() noexcept override;
 
   JSER_INLINE auto empty() const noexcept -> bool {
@@ -1668,6 +1680,46 @@ template<typename Type, typename ArrayType>
 JSER_INLINE auto cast_check_(const ArrayType& a)
 -> std::enable_if_t<::std::is_base_of_v<array_intf, ArrayType>, bool>;
 
+template<
+    typename Type,
+    bool IsPrimitive = array_impl_is_primitive_<Type>::value,
+    std::size_t Dim = select_array_dim_<Type>::value>
+struct array_factory_ {
+  using array_impl = typename select_array_new_impl_<Type>::type;
+  using initializer_list = ::std::initializer_list<::java::type<::std::remove_pointer_t<Type>>>;
+
+  auto operator()(initializer_list list) const
+  -> ::cycle_ptr::cycle_gptr<array_impl> {
+    if constexpr(IsPrimitive) {
+      static_assert(Dim > 1u);
+      return ::cycle_ptr::make_cycle<array_impl>(Dim, list);
+    } else if constexpr(Dim == 1u) {
+      static_assert(!IsPrimitive);
+      return ::cycle_ptr::make_cycle<array_impl>(
+          ::java::get_class<typename select_array_elemtype_<Type>::type>(),
+          list);
+    } else {
+      static_assert(!IsPrimitive);
+      return ::cycle_ptr::make_cycle<array_impl>(
+          ::java::get_class<typename select_array_elemtype_<Type>::type>(),
+          Dim,
+          list);
+    }
+  }
+};
+
+template<
+    typename Type>
+struct array_factory_<Type, true, 1> {
+  using array_impl = typename select_array_new_impl_<Type>::type;
+  using initializer_list = ::std::initializer_list<::std::remove_pointer_t<Type>>;
+
+  auto operator()(initializer_list list) const
+  -> ::cycle_ptr::cycle_gptr<array_impl> {
+    return ::cycle_ptr::make_cycle<array_impl>(list);
+  }
+};
+
 } /* namespace java::_erased::java */
 
 namespace java {
@@ -1724,7 +1776,7 @@ class basic_ref<PtrImpl, Type*> final {
       typename = std::enable_if_t<
           ( ::java::_erased::java::array_impl_is_primitive_<Type>::value
           ? ::std::is_constructible_v<NewArrayType, Args...>
-          : ::std::is_constructible_v<::java::lang::Class<::java::G::pack<>>, NewArrayType, Args...>
+          : ::std::is_constructible_v<NewArrayType, ::java::lang::Class<::java::G::pack<>>, Args...>
           )>>
   explicit JSER_INLINE basic_ref([[maybe_unused]] allocate_t a, Args&&... args) {
     if constexpr(::java::_erased::java::array_impl_is_primitive_<Type>::value)
@@ -1732,6 +1784,10 @@ class basic_ref<PtrImpl, Type*> final {
     else
       p_ = ::cycle_ptr::make_cycle<NewArrayType>(::java::_erased::java::get_array_elem_class_<Type>::get_class(), ::std::forward<Args>(args)...);
   }
+
+  explicit JSER_INLINE basic_ref([[maybe_unused]] allocate_t a, typename ::java::_erased::java::array_factory_<Type*>::initializer_list init)
+  : p_(::java::_erased::java::array_factory_<Type*>()(init))
+  {}
 
   template<template<typename> class OPtrImpl, typename OType,
       typename = std::enable_if_t<
@@ -1766,6 +1822,12 @@ class basic_ref<PtrImpl, Type*> final {
   : basic_ref(c, x)
   {
     x.p_ = nullptr;
+  }
+
+  auto operator=([[maybe_unused]] std::nullptr_t np)
+  -> basic_ref& {
+    p_ = nullptr;
+    return *this;
   }
 
   JSER_INLINE explicit operator bool() const noexcept {
@@ -1917,6 +1979,12 @@ class basic_ref<PtrImpl, Type*const> final {
   : basic_ref(c, x)
   {
     x.p_ = nullptr;
+  }
+
+  auto operator=([[maybe_unused]] std::nullptr_t np)
+  -> basic_ref& {
+    p_ = nullptr;
+    return *this;
   }
 
   JSER_INLINE explicit operator bool() const noexcept {

@@ -3596,7 +3596,7 @@ classes:
         return data_.empty();
     - type: method
       name: size
-      virtual: true
+      override: true
       const: true
       noexcept: true
       covariant_return: false
@@ -8036,3 +8036,185 @@ classes:
     dev_mode: false
     doc_string: |
       \brief Unary operator.
+
+
+  java.lang.Throwable:
+    dev_mode: false
+    doc_string: |
+      \brief The root of all java exceptions.
+      \details
+      Java divides exceptions into three categories.
+
+      1. java.lang.Exception are checked exceptions.
+      2. java.lang.RuntimeExceptions are unchecked exceptions.
+      3. java.lang.Error indicate problems in the virtual machine.
+         They are always unchecked.
+
+      Throwable is the root of all three, and for something to be thrown,
+      it must derive from Throwable.
+    fields:
+      stackTrace:
+        decode_complete: true
+    members:
+    - type: method
+      name: __encoder_annotation__
+      visibility: private
+      const: true
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+          includes:
+            declaration:
+            - java/serialization/type_def_fwd.h
+      - name: fields
+        type:
+          cxx: ::java::serialization::stream::new_object::class_data::field_map&
+          includes:
+            declaration:
+            - java/serialization/encdec.h
+      return:
+        cxx: ::std::vector<::std::variant<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>, ::java::serialization::stream::blockdata>>
+        includes:
+          declaration:
+          - vector
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
+      body: |
+        using namespace ::java::serialization::stream;
+        using namespace ::std::string_view_literals;
+
+        if (stackTrace == nullptr) {
+          new_object::class_data::set_field(
+              fields,
+              $u16StringView("stackTrace")$,
+              object_desc::value_type(handler_.encode_field(_nullStackTrace_())));
+        }
+
+        return {};
+      includes:
+        implementation:
+        - string_view
+    - type: method
+      name: __decoder_annotation__
+      visibility: private
+      arguments:
+      - name: _decoder_
+        type:
+          cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
+          includes:
+            declaration:
+            - java/serialization/decoder_fwd.h
+            implementation:
+            - java/serialization/decoder.h
+      body: |
+        if (stackTrace == _nullStackTrace_())
+          stackTrace = nullptr;
+        if (suppressedExceptions != nullptr)
+          suppressedExceptions = $boundTemplateType(java.({java.util.ArrayList<java.lang.Throwable>}), "style=type, class")$(::java::allocate, suppressedExceptions->begin(), suppressedExceptions->end());
+    - type: method
+      name: _nullStackTrace_
+      static: true
+      visibility: private
+      return:
+        java: java.lang.StackTraceElement[]
+      body: |
+        return $boundTemplateType(java.({java.lang.StackTraceElement[]}), "style=type, class")$(
+            ::java::allocate,
+            { $boundTemplateType(java.({java.lang.StackTraceElement}), "style=type, class")$(
+                  ::java::allocate,
+                  "",
+                  "",
+                  nullptr,
+                  ::std::numeric_limits<$boundTemplateType(java.({int}), "style=type, class")$>::min()) });
+
+
+  java.lang.StackTraceElement:
+    dev_mode: false
+    members:
+    - type: constructor
+      arguments:
+      - name: declaringClass
+        type:
+          java: java.lang.String
+      - name: methodName
+        type:
+          java: java.lang.String
+      - name: fileName
+        type:
+          java: java.lang.String
+      - name: lineNumber
+        type:
+          java: int
+      initializers:
+        declaringClass: ::std::move(declaringClass)
+        methodName: ::std::move(methodName)
+        fileName: ::std::move(fileName)
+        lineNumber: ::std::move(lineNumber)
+      includes:
+        implementation:
+        - utility
+    - type: constructor
+      arguments:
+      - name: declaringClass
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: methodName
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: fileName
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: lineNumber
+        type:
+          java: int
+      initializers:
+        declaringClass: ::java::allocate, declaringClass
+        methodName: ::java::allocate, methodName
+        fileName: ::java::allocate, fileName
+        lineNumber: ::std::move(lineNumber)
+      includes:
+        implementation:
+        - utility
+    - type: constructor
+      arguments:
+      - name: declaringClass
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: methodName
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: fileName
+        type:
+          cxx: ::std::nullptr_t
+          includes:
+            declaration:
+            - cstddef
+      - name: lineNumber
+        type:
+          java: int
+      initializers:
+        declaringClass: ::java::allocate, declaringClass
+        methodName: ::java::allocate, methodName
+        fileName: fileName
+        lineNumber: ::std::move(lineNumber)
+      includes:
+        implementation:
+        - utility

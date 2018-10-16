@@ -375,12 +375,6 @@ struct is_satisfied_by_<java::G::super_t<X...>, java::G::pack_t<Y...>> {
   using type = std::disjunction<is_satisfied_by<java::G::super_t<X...>, Y>...>;
 };
 
-// Everything extends java.lang.Object.
-template<typename... Y>
-struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::pack_t<Y...>> {
-  using type = std::true_type;
-};
-
 // Every array extends java.io.Serializable.
 template<typename Y>
 struct is_satisfied_by_<java::G::extends_t<java::_tags::java::io::Serializable>, Y*> {
@@ -388,10 +382,32 @@ struct is_satisfied_by_<java::G::extends_t<java::_tags::java::io::Serializable>,
 };
 
 // Everything extends java.lang.Object.
-template<typename Y>
-struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, Y> {
-  static_assert(is_generic_v<Y>);
+template<typename... Y>
+struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::is_t<Y...>> {
+  using type = std::true_type;
+};
 
+// Everything extends java.lang.Object.
+template<typename... Y>
+struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::extends_t<Y...>> {
+  using type = std::true_type;
+};
+
+// Everything extends java.lang.Object.
+template<typename... Y>
+struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::super_t<Y...>> {
+  using type = std::true_type;
+};
+
+// Everything extends java.lang.Object.
+template<typename... Y>
+struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::pack_t<Y...>> {
+  using type = std::true_type;
+};
+
+// Everything extends java.lang.Object.
+template<typename Y>
+struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, Y*> {
   using type = std::true_type;
 };
 
