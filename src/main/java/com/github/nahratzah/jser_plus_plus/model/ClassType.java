@@ -2,6 +2,7 @@ package com.github.nahratzah.jser_plus_plus.model;
 
 import com.github.nahratzah.jser_plus_plus.config.CfgArgument;
 import com.github.nahratzah.jser_plus_plus.config.CfgField;
+import com.github.nahratzah.jser_plus_plus.config.CfgType;
 import com.github.nahratzah.jser_plus_plus.config.ClassConfig;
 import com.github.nahratzah.jser_plus_plus.config.ClassMember;
 import com.github.nahratzah.jser_plus_plus.config.Config;
@@ -30,7 +31,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
@@ -178,7 +178,7 @@ public class ClassType implements JavaType {
 
     private void initFields(Context ctx, ClassConfig classCfg, Map<String, String> argRename, ObjectStreamClass streamClass) {
         class IntermediateFieldDescr {
-            public IntermediateFieldDescr(String name, Class<?> classType, Type reflectType, Field reflectField, boolean shared) {
+            public IntermediateFieldDescr(String name, Class<?> classType, java.lang.reflect.Type reflectType, Field reflectField, boolean shared) {
                 this.name = requireNonNull(name);
                 this.classType = requireNonNull(classType);
                 this.reflectType = reflectType;
@@ -197,7 +197,7 @@ public class ClassType implements JavaType {
             /**
              * Type of the field, found via reflection. May be null.
              */
-            public final Type reflectType;
+            public final java.lang.reflect.Type reflectType;
             /**
              * Field found using reflection. May be null.
              */
@@ -216,7 +216,7 @@ public class ClassType implements JavaType {
 
                     // Fill in the reflect type only if the class implementation
                     // and the serialization code agree on the type.
-                    Type reflectType;
+                    java.lang.reflect.Type reflectType;
                     Field reflectField;
                     try {
                         reflectField = this.c.getDeclaredField(name);
@@ -233,7 +233,7 @@ public class ClassType implements JavaType {
                     return new IntermediateFieldDescr(name, type, reflectType, reflectField, !f.isUnshared());
                 })
                 .map(iField -> {
-                    final Type visitType = iField.reflectType != null ? iField.reflectType : iField.classType;
+                    final java.lang.reflect.Type visitType = iField.reflectType != null ? iField.reflectType : iField.classType;
                     final BoundTemplate type = ReflectUtil.visitType(visitType, new BoundsMapping(ctx, argRename));
 
                     final FieldType fieldType = new FieldType(ctx, this, iField.name, type);
@@ -329,7 +329,7 @@ public class ClassType implements JavaType {
                         .anyMatch(type -> ctx.resolveClass(java.io.Serializable.class.getName()) == type);
 
         // Build `__decoder__` argument.
-        com.github.nahratzah.jser_plus_plus.config.CfgType ctxType = new com.github.nahratzah.jser_plus_plus.config.CfgType("const ::java::serialization::class_decoder<$tagType(model)$>&", null);
+        CfgType ctxType = new CfgType("const ::java::serialization::class_decoder<$tagType(model)$>&", null);
         ctxType.setIncludes(new Includes(
                 singletonList("java/serialization/decoder_fwd.h"),
                 singletonList("java/serialization/decoder.h")));
@@ -527,42 +527,42 @@ public class ClassType implements JavaType {
 
     @Override
     public Stream<JavaType> getForwardDeclarationJavaTypes() {
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> superTypes = Stream.concat(
+        final Stream<Type> superTypes = Stream.concat(
                 Stream.of(getSuperClass()).filter(Objects::nonNull),
                 getInterfaces().stream());
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> publicFields = getFields().stream()
+        final Stream<Type> publicFields = getFields().stream()
                 .filter(field -> field.isGetterFn() || field.isSetterFn())
                 .map(field -> field.getVarType());
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> memberTypes = getClassMembers().stream()
+        final Stream<Type> memberTypes = getClassMembers().stream()
                 .filter(member -> member.getVisibility() == Visibility.PUBLIC)
                 .flatMap(member -> member.getDeclarationTypes());
 
         return Stream.of(superTypes, publicFields, memberTypes)
                 .flatMap(Function.identity())
-                .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
+                .flatMap(Type::getAllJavaTypes)
                 .filter(c -> !(c instanceof PrimitiveType));
     }
 
     @Override
     public Stream<JavaType> getDeclarationCompleteJavaTypes() {
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> superTypes = Stream.concat(
+        final Stream<Type> superTypes = Stream.concat(
                 Stream.of(getSuperClass()).filter(Objects::nonNull),
                 getInterfaces().stream());
 
         return Stream.of(superTypes)
                 .flatMap(Function.identity())
-                .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
+                .flatMap(Type::getAllJavaTypes)
                 .filter(c -> !(c instanceof PrimitiveType));
     }
 
     @Override
     public Stream<JavaType> getDeclarationForwardJavaTypes() {
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> templateTypes = getTemplateArguments().stream()
+        final Stream<Type> templateTypes = getTemplateArguments().stream()
                 .map(ClassTemplateArgument::getExtendBounds)
                 .flatMap(Collection::stream);
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> fieldTypes = getFields().stream()
+        final Stream<Type> fieldTypes = getFields().stream()
                 .map(field -> field.getVarType());
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> memberTypes = Stream.concat(
+        final Stream<Type> memberTypes = Stream.concat(
                 this.getClassMemberFunctions().stream()
                         .flatMap(member -> member.getDeclarationTypes()),
                 getClassNonMemberFunctions().stream()
@@ -570,17 +570,17 @@ public class ClassType implements JavaType {
 
         return Stream.of(templateTypes, fieldTypes, memberTypes)
                 .flatMap(Function.identity())
-                .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
+                .flatMap(Type::getAllJavaTypes)
                 .filter(c -> !(c instanceof PrimitiveType));
     }
 
     @Override
     public Stream<JavaType> getImplementationJavaTypes() {
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> superTypes = Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull),
+        final Stream<Type> superTypes = Stream.concat(Stream.of(getSuperClass()).filter(Objects::nonNull),
                 getInterfaces().stream());
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> fieldTypes = getFields().stream()
+        final Stream<Type> fieldTypes = getFields().stream()
                 .flatMap(field -> Stream.of(field.getType(), field.getVarType()));
-        final Stream<com.github.nahratzah.jser_plus_plus.model.Type> memberTypes = Stream.concat(
+        final Stream<Type> memberTypes = Stream.concat(
                 getClassMemberFunctions().stream()
                         .flatMap(member -> member.getImplementationTypes()),
                 getClassNonMemberFunctions().stream()
@@ -588,7 +588,7 @@ public class ClassType implements JavaType {
 
         return Stream.of(superTypes, fieldTypes, memberTypes)
                 .flatMap(Function.identity())
-                .flatMap(com.github.nahratzah.jser_plus_plus.model.Type::getAllJavaTypes)
+                .flatMap(Type::getAllJavaTypes)
                 .filter(c -> !(c instanceof PrimitiveType));
     }
 
@@ -737,7 +737,7 @@ public class ClassType implements JavaType {
      *
      * @return A bound type for this class.
      */
-    public com.github.nahratzah.jser_plus_plus.model.Type getPackType() {
+    public Type getPackType() {
         return new BoundTemplate.ClassBinding<>(
                 this,
                 getTemplateArgumentNames().stream().map(ignored -> new BoundTemplate.Any()).collect(Collectors.toList()));
@@ -749,16 +749,16 @@ public class ClassType implements JavaType {
      *
      * @return A const bound type for this class.
      */
-    public com.github.nahratzah.jser_plus_plus.model.Type getConstPackType() {
+    public Type getConstPackType() {
         return new ConstType(getPackType());
     }
 
     @Override
-    public com.github.nahratzah.jser_plus_plus.model.Type getVarType() {
+    public Type getVarType() {
         return varType;
     }
 
-    public List<com.github.nahratzah.jser_plus_plus.model.Type> getFriends() {
+    public List<Type> getFriends() {
         return friends;
     }
 
@@ -1112,7 +1112,7 @@ public class ClassType implements JavaType {
             final MethodModel underlyingMethod = method.getSelector().getUnderlyingMethod();
             final boolean tagged = underlyingMethod.isCovariantReturn();
             final String virtualMethodName = (tagged ? VIRTUAL_FUNCTION_PREFIX : "") + underlyingMethod.getName();
-            final com.github.nahratzah.jser_plus_plus.model.Type myTag;
+            final Type myTag;
             if (tagged) {
                 myTag = new CxxType("$tagType(model)$", new Includes())
                         .prerender(ctx, singletonMap("model", method.getTagType()), EMPTY_LIST);
@@ -1219,7 +1219,7 @@ public class ClassType implements JavaType {
                     final ImplementedClassMethod overrideFn = overrideFns.iterator().next();
                     final OverrideSelector erasedOverrideFn = overrideFn.getErasedSelector(); // We're going to override the original function.
 
-                    final com.github.nahratzah.jser_plus_plus.model.Type overrideTag = new CxxType("$tagType(model)$", new Includes())
+                    final Type overrideTag = new CxxType("$tagType(model)$", new Includes())
                             .prerender(ctx, singletonMap("model", tagType), EMPTY_LIST);
 
                     final MethodModel.SimpleMethodModel overrideImpl = new MethodModel.SimpleMethodModel(
@@ -1298,7 +1298,7 @@ public class ClassType implements JavaType {
      * by this {@link ClassType ClassType}.
      */
     private ClassConfig.CfgSuperType cfgType() {
-        return new CfgType();
+        return new CfgSuperType();
     }
 
     /**
@@ -1515,7 +1515,7 @@ public class ClassType implements JavaType {
         private final Map<? super String, ? extends String> argRename;
     }
 
-    private class CfgType implements ClassConfig.CfgSuperType {
+    private class CfgSuperType implements ClassConfig.CfgSuperType {
         @Override
         public String getName() {
             return ClassType.this.getName();
@@ -1549,7 +1549,7 @@ public class ClassType implements JavaType {
         public boolean equals(Object other) {
             if (other == null) return false;
             if (!Objects.equals(getClass(), other.getClass())) return false;
-            return classType() == ((CfgType) other).classType();
+            return classType() == ((CfgSuperType) other).classType();
         }
     }
 
@@ -1595,11 +1595,11 @@ public class ClassType implements JavaType {
      *
      * If null, then use this.
      */
-    private com.github.nahratzah.jser_plus_plus.model.Type varType;
+    private Type varType;
     /**
      * List of friend types.
      */
-    private List<com.github.nahratzah.jser_plus_plus.model.Type> friends;
+    private List<Type> friends;
     /**
      * Marker to prevent us from post processing twice.
      */
