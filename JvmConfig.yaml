@@ -910,10 +910,7 @@ classes:
         type:
           java: const T
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
     - type: method
       name: naturalOrder
       static: true
@@ -939,10 +936,7 @@ classes:
         type:
           java: const T
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
 
 
   java.util.Comparators$NaturalOrderComparator:
@@ -960,10 +954,7 @@ classes:
         type:
           java: const java.lang.Comparable<java.lang.Object>
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       body: |
         return x->compareTo(y);
 
@@ -983,10 +974,7 @@ classes:
         type:
           java: const T
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       body: |
         if (x == nullptr && y == nullptr)
           return 0;
@@ -1019,12 +1007,9 @@ classes:
       virtual: true
       const: true
       return:
-        cxx: ::java::byte_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: byte
       body: |
-        return static_cast<::java::byte_t>(longValue());
+        return static_cast<$boundTemplateType(java.({byte}), "style=type, class")$>(longValue());
       doc_string: |
         \brief Retrieve the `byte` value.
         \attention The returned value may be truncated.
@@ -1033,12 +1018,9 @@ classes:
       virtual: true
       const: true
       return:
-        cxx: ::java::short_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: short
       body: |
-        return static_cast<::java::short_t>(longValue());
+        return static_cast<$boundTemplateType(java.({short}), "style=type, class")$>(longValue());
       doc_string: |
         \brief Retrieve the `short` value.
         \attention The returned value may be truncated.
@@ -1047,12 +1029,9 @@ classes:
       virtual: true
       const: true
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       body: |
-        return static_cast<::java::int_t>(longValue());
+        return static_cast<$boundTemplateType(java.({int}), "style=type, class")$>(longValue());
       doc_string: |
         \brief Retrieve the `int` value.
         \attention The returned value may be truncated.
@@ -1061,10 +1040,7 @@ classes:
       virtual: true
       const: true
       return:
-        cxx: ::java::long_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: long
       doc_string: |
         \brief Retrieve the `long` value.
         \attention The returned value may be truncated.
@@ -1073,12 +1049,9 @@ classes:
       virtual: true
       const: true
       return:
-        cxx: ::java::float_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: float
       body: |
-        return static_cast<::java::float_t>(doubleValue());
+        return static_cast<$boundTemplateType(java.({float}), "style=type, class")$>(doubleValue());
       doc_string: |
         \brief Retrieve the `float` value.
         \attention The returned value may be truncated.
@@ -1087,10 +1060,7 @@ classes:
       virtual: true
       const: true
       return:
-        cxx: ::java::double_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: double
       doc_string: |
         \brief Retrieve the `double` value.
         \attention The returned value may be truncated.
@@ -1099,10 +1069,7 @@ classes:
   java.lang.Boolean:
     dev_mode: false
 #    var_type:
-#      cxx: ::java::boolean_t
-#      includes:
-#        declaration:
-#        - java/primitives.h
+#      java: boolean
     fields:
       value:
         const: true
@@ -1112,10 +1079,7 @@ classes:
       arguments:
       - name: v
         type:
-          cxx: ::java::boolean_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: boolean
       initializers:
         value: v
     - type: method
@@ -1127,13 +1091,10 @@ classes:
         type:
           java: const java.lang.Boolean
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       body: |
-        const bool x = value;
-        const bool y = o->value();
+        const $boundTemplateType(java.({boolean}), "style=type, class")$ x = value;
+        const $boundTemplateType(java.({boolean}), "style=type, class")$ y = o->value();
 
         if (x == y) return 0;
         return (x ? 1 : -1);
@@ -1170,10 +1131,7 @@ classes:
   java.lang.Character:
     dev_mode: false
 #    var_type:
-#      cxx: ::java::char_t
-#      includes:
-#        declaration:
-#        - java/primitives.h
+#      java: char
     fields:
       value:
         const: true
@@ -1183,10 +1141,7 @@ classes:
       arguments:
       - name: v
         type:
-          cxx: ::java::char_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: char
       initializers:
         value: v
     - type: method
@@ -1198,28 +1153,19 @@ classes:
         type:
           java: const java.lang.Character
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       body: |
-        const ::java::char_t x = value;
-        const ::java::char_t y = o->value();
+        $boundTemplateType(java.({const char}), "style=type, class")$ x = value;
+        $boundTemplateType(java.({const char}), "style=type, class")$ y = o->value();
 
         if (x == y) return 0;
         return (x < y ? -1 : 1);
-      includes:
-        implementation:
-        - java/primitives.h
 
 
   java.lang.Byte:
     dev_mode: false
 #    var_type:
-#      cxx: ::java::byte_t
-#      includes:
-#        declaration:
-#        - java/primitives.h
+#      java: byte
     fields:
       value:
         const: true
@@ -1229,10 +1175,7 @@ classes:
       arguments:
       - name: v
         type:
-          cxx: ::java::byte_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: byte
       initializers:
         value: v
     - type: method
@@ -1244,25 +1187,19 @@ classes:
         type:
           java: const java.lang.Byte
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       body: |
-        const ::java::byte_t x = value;
-        const ::java::byte_t y = o->value();
+        $boundTemplateType(java.({const byte}), "style=type, class")$ x = value;
+        $boundTemplateType(java.({const byte}), "style=type, class")$ y = o->value();
 
         if (x == y) return 0;
         return (x < y ? -1 : 1);
-      includes:
-        implementation:
-        - java/primitives.h
     - type: method
       name: byteValue
       override: true
       const: true
       return:
-        cxx: ::java::byte_t
+        java: byte
       body: |
         return value;
     - type: method
@@ -1270,7 +1207,7 @@ classes:
       override: true
       const: true
       return:
-        cxx: ::java::long_t
+        java: long
       body: |
         return value;
     - type: method
@@ -1278,7 +1215,7 @@ classes:
       override: true
       const: true
       return:
-        cxx: ::java::double_t
+        java: double
       body: |
         return value;
 
@@ -1286,10 +1223,7 @@ classes:
   java.lang.Short:
     dev_mode: false
 #    var_type:
-#      cxx: ::java::short_t
-#      includes:
-#        declaration:
-#        - java/primitives.h
+#      java: short
     fields:
       value:
         const: true
@@ -1299,10 +1233,7 @@ classes:
       arguments:
       - name: v
         type:
-          cxx: ::java::short_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: short
       initializers:
         value: v
     - type: method
@@ -1314,25 +1245,19 @@ classes:
         type:
           java: const java.lang.Short
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       body: |
-        const ::java::short_t x = value;
-        const ::java::short_t y = o->value();
+        $boundTemplateType(java.({const short}), "style=type, class")$ x = value;
+        $boundTemplateType(java.({const short}), "style=type, class")$ y = o->value();
 
         if (x == y) return 0;
         return (x < y ? -1 : 1);
-      includes:
-        implementation:
-        - java/primitives.h
     - type: method
       name: shortValue
       override: true
       const: true
       return:
-        cxx: ::java::short_t
+        java: short
       body: |
         return value;
     - type: method
@@ -1340,7 +1265,7 @@ classes:
       override: true
       const: true
       return:
-        cxx: ::java::long_t
+        java: long
       body: |
         return value;
     - type: method
@@ -1348,7 +1273,7 @@ classes:
       override: true
       const: true
       return:
-        cxx: ::java::double_t
+        java: double
       body: |
         return value;
 
@@ -1356,10 +1281,7 @@ classes:
   java.lang.Integer:
     dev_mode: false
 #    var_type:
-#      cxx: ::java::int_t
-#      includes:
-#        declaration:
-#        - java/primitives.h
+#      java: int
     fields:
       value:
         const: true
@@ -1369,10 +1291,7 @@ classes:
       arguments:
       - name: v
         type:
-          cxx: ::java::int_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: int
       initializers:
         value: v
     - type: method
@@ -1384,25 +1303,19 @@ classes:
         type:
           java: const java.lang.Integer
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       body: |
-        const ::java::int_t x = value;
-        const ::java::int_t y = o->value();
+        $boundTemplateType(java.({const int}), "style=type, class")$ x = value;
+        $boundTemplateType(java.({const int}), "style=type, class")$ y = o->value();
 
         if (x == y) return 0;
         return (x < y ? -1 : 1);
-      includes:
-        implementation:
-        - java/primitives.h
     - type: method
       name: intValue
       override: true
       const: true
       return:
-        cxx: ::java::int_t
+        java: int
       body: |
         return value;
     - type: method
@@ -1410,7 +1323,7 @@ classes:
       override: true
       const: true
       return:
-        cxx: ::java::long_t
+        java: long
       body: |
         return value;
     - type: method
@@ -1418,7 +1331,7 @@ classes:
       override: true
       const: true
       return:
-        cxx: ::java::double_t
+        java: double
       body: |
         return value;
 
@@ -1426,10 +1339,7 @@ classes:
   java.lang.Long:
     dev_mode: false
 #    var_type:
-#      cxx: ::java::long_t
-#      includes:
-#        declaration:
-#        - java/primitives.h
+#      java: long
     fields:
       value:
         const: true
@@ -1439,10 +1349,7 @@ classes:
       arguments:
       - name: v
         type:
-          cxx: ::java::long_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: long
       initializers:
         value: v
     - type: method
@@ -1454,25 +1361,19 @@ classes:
         type:
           java: const java.lang.Long
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       body: |
-        const ::java::long_t x = value;
-        const ::java::long_t y = o->value();
+        $boundTemplateType(java.({const long}), "style=type, class")$ x = value;
+        $boundTemplateType(java.({const long}), "style=type, class")$ y = o->value();
 
         if (x == y) return 0;
         return (x < y ? -1 : 1);
-      includes:
-        implementation:
-        - java/primitives.h
     - type: method
       name: longValue
       override: true
       const: true
       return:
-        cxx: ::java::long_t
+        java: long
       body: |
         return value;
     - type: method
@@ -1480,7 +1381,7 @@ classes:
       override: true
       const: true
       return:
-        cxx: ::java::double_t
+        java: double
       body: |
         return value;
 
@@ -1488,10 +1389,7 @@ classes:
   java.lang.Float:
     dev_mode: false
 #    var_type:
-#      cxx: ::java::float_t
-#      includes:
-#        declaration:
-#        - java/primitives.h
+#      java: float
     fields:
       value:
         const: true
@@ -1501,10 +1399,7 @@ classes:
       arguments:
       - name: v
         type:
-          cxx: ::java::float_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: float
       initializers:
         value: v
     - type: method
@@ -1516,25 +1411,19 @@ classes:
         type:
           java: const java.lang.Float
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       body: |
-        const ::java::float_t x = value;
-        const ::java::float_t y = o->value();
+        $boundTemplateType(java.({const float}), "style=type, class")$ x = value;
+        $boundTemplateType(java.({const float}), "style=type, class")$ y = o->value();
 
         if (x == y) return 0;
         return (x < y ? -1 : 1);
-      includes:
-        implementation:
-        - java/primitives.h
     - type: method
       name: longValue
       override: true
       const: true
       return:
-        cxx: ::java::long_t
+        java: long
       body: |
         return value;
     - type: method
@@ -1542,7 +1431,7 @@ classes:
       override: true
       const: true
       return:
-        cxx: ::java::float_t
+        java: float
       body: |
         return value;
     - type: method
@@ -1550,7 +1439,7 @@ classes:
       override: true
       const: true
       return:
-        cxx: ::java::double_t
+        java: double
       body: |
         return value;
 
@@ -1558,10 +1447,7 @@ classes:
   java.lang.Double:
     dev_mode: false
 #    var_type:
-#      cxx: ::java::double_t
-#      includes:
-#        declaration:
-#        - java/primitives.h
+#      java: double
     fields:
       value:
         const: true
@@ -1571,10 +1457,7 @@ classes:
       arguments:
       - name: v
         type:
-          cxx: ::java::double_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: double
       initializers:
         value: v
     - type: method
@@ -1586,25 +1469,19 @@ classes:
         type:
           java: const java.lang.Double
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       body: |
-        const ::java::double_t x = value;
-        const ::java::double_t y = o->value();
+        $boundTemplateType(java.({const double}), "style=type, class")$ x = value;
+        $boundTemplateType(java.({const double}), "style=type, class")$ y = o->value();
 
         if (x == y) return 0;
         return (x < y ? -1 : 1);
-      includes:
-        implementation:
-        - java/primitives.h
     - type: method
       name: longValue
       override: true
       const: true
       return:
-        cxx: ::java::long_t
+        java: long
       body: |
         return value;
     - type: method
@@ -1612,7 +1489,7 @@ classes:
       override: true
       const: true
       return:
-        cxx: ::java::double_t
+        java: double
       body: |
         return value;
 
@@ -1704,10 +1581,7 @@ classes:
       override: true
       const: true
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
       arguments:
       - name: o
         type:
@@ -2872,7 +2746,7 @@ classes:
 
         auto annotation = ::java::serialization::annotation_reader(decoder.get_annotation());
 
-        auto len = decoder.get_primitive_field<::java::int_t>($u16StringView("size")$);
+        auto len = decoder.get_primitive_field<$boundTemplateType(java.({int}), "style=type, class")$>($u16StringView("size")$);
         if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative collection size})$);
 
         annotation.read_int(); // discard unused capacity field
@@ -2927,7 +2801,7 @@ classes:
         new_object::class_data::set_field(
             fields,
             $u16StringView("size")$,
-            primitive_desc::value_type(::std::in_place_type<::java::int_t>, data_.size()));
+            primitive_desc::value_type(::std::in_place_type<$boundTemplateType(java.({int}), "style=type, class")$>, data_.size()));
         annotation.write_int(data_.size()); // capacity
         for (const auto& i : data_) annotation.write_object(i);
 
@@ -3814,7 +3688,7 @@ classes:
 
         auto annotation = ::java::serialization::annotation_reader(decoder.get_annotation());
 
-        auto len = decoder.get_primitive_field<::java::int_t>($u16StringView("size")$);
+        auto len = decoder.get_primitive_field<$boundTemplateType(java.({int}), "style=type, class")$>($u16StringView("size")$);
         if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative collection size})$);
 
         annotation.read_int(); // discard unused capacity field
@@ -3883,7 +3757,7 @@ classes:
         new_object::class_data::set_field(
             fields,
             $u16StringView("size")$,
-            primitive_desc::value_type(::std::in_place_type<::java::int_t>, data_.size()));
+            primitive_desc::value_type(::std::in_place_type<$boundTemplateType(java.({int}), "style=type, class")$>, data_.size()));
 
         // capacity
         if (data_.empty())
@@ -4315,7 +4189,7 @@ classes:
         auto len = annotation.read_int();
         if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative array size})$);
 
-        auto data = annotation.read_complete_object<::java::array_type<::java::char_t>>();
+        auto data = annotation.read_complete_object<$boundTemplateType(java.({char[]}), "style=type, class")$>();
         if (data.size() < ::std::size_t(len)) throw ::java::serialization::decoding_error($cxxString({$model.name$: insufficient characters})$);
 
         conversion_type conversion;
@@ -4360,7 +4234,7 @@ classes:
         conversion_type conversion;
         const auto converted = conversion.from_bytes(this->value);
 
-        auto data = ::java::array_type<::java::char_t>(::java::allocate, converted.begin(), converted.end());
+        auto data = $boundTemplateType(java.({char[]}), "style=type, class")$(::java::allocate, converted.begin(), converted.end());
         if (data.size() > 0x7fffffffu)
           throw ::std::logic_error($cxxString({$model.name$: size too large})$);
 
@@ -4414,10 +4288,10 @@ classes:
             std::codecvt_utf8_utf16<char16_t>,
             char16_t>;
 
-        auto len = decoder.get_primitive_field<::java::int_t>($u16StringView("count")$);
+        auto len = decoder.get_primitive_field<$boundTemplateType(java.({int}), "style=type, class")$>($u16StringView("count")$);
         if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative array size})$);
 
-        auto data = decoder.get_complete_field<::java::array_type<::java::char_t>>($u16StringView("value")$);
+        auto data = decoder.get_complete_field<$boundTemplateType(java.({char[]}), "style=type, class")$>($u16StringView("value")$);
         if (data.size() < ::std::size_t(len)) throw ::java::serialization::decoding_error($cxxString({$model.name$: insufficient characters})$);
 
         conversion_type conversion;
@@ -4462,14 +4336,14 @@ classes:
         conversion_type conversion;
         const auto converted = conversion.from_bytes(this->value);
 
-        auto data = ::java::array_type<::java::char_t>(::java::allocate, converted.begin(), converted.end());
+        auto data = $boundTemplateType(java.({char[]}), "style=type, class")$(::java::allocate, converted.begin(), converted.end());
         if (data.size() > 0x7fffffffu)
           throw ::std::logic_error($cxxString({$model.name$: size too large})$);
 
         new_object::class_data::set_field(
             fields,
             $u16StringView("count")$,
-            primitive_desc::value_type(::std::in_place_type<::java::int_t>, data.size()));
+            primitive_desc::value_type(::std::in_place_type<$boundTemplateType(java.({int}), "style=type, class")$>, data.size()));
         new_object::class_data::set_field(
             fields,
             $u16StringView("value")$,
@@ -7066,7 +6940,7 @@ classes:
       body: |
         using namespace ::std::string_view_literals;
 
-        auto len = decoder.get_primitive_field<::java::int_t>($u16StringView("elementCount")$);
+        auto len = decoder.get_primitive_field<$boundTemplateType(java.({int}), "style=type, class")$>($u16StringView("elementCount")$);
         if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative collection size})$);
 
         auto elementData = decoder.get_complete_field<$boundTemplateType(java.({java.lang.Object[]}), "style=type, class")$>($u16StringView("elementData")$);
@@ -7120,7 +6994,7 @@ classes:
         new_object::class_data::set_field(
             fields,
             $u16StringView("elementCount")$,
-            primitive_desc::value_type(::std::in_place_type<::java::int_t>, data_.size()));
+            primitive_desc::value_type(::std::in_place_type<$boundTemplateType(java.({int}), "style=type, class")$>, data_.size()));
         new_object::class_data::set_field(
             fields,
             $u16StringView("elementData")$,
@@ -7548,10 +7422,7 @@ classes:
         type:
           java: Y
       return:
-        cxx: ::java::boolean_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: boolean
 
 
   java.util.function.BinaryOperator<T>:
@@ -7569,10 +7440,7 @@ classes:
       name: getAsBoolean
       virtual: true
       return:
-        cxx: ::java::boolean_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: boolean
 
 
   java.util.function.Consumer<T>:
@@ -7600,21 +7468,12 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::double_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: double
       - name: y
         type:
-          cxx: ::java::double_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: double
       return:
-        cxx: ::java::double_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: double
 
 
   java.util.function.DoubleConsumer:
@@ -7628,10 +7487,7 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::double_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: double
 
 
   java.util.function.DoubleFunction<R>:
@@ -7645,10 +7501,7 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::double_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: double
       return:
         java: R
 
@@ -7664,15 +7517,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::double_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: double
       return:
-        cxx: ::java::boolean_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: boolean
 
 
   java.util.function.DoubleSupplier:
@@ -7684,10 +7531,7 @@ classes:
       name: getAsDouble
       virtual: true
       return:
-        cxx: ::java::double_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: double
 
 
   java.util.function.DoubleToIntFunction:
@@ -7701,15 +7545,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::double_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: double
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
 
 
   java.util.function.DoubleToLongFunction:
@@ -7723,15 +7561,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::double_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: double
       return:
-        cxx: ::java::long_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: long
 
 
   java.util.function.DoubleUnaryOperator:
@@ -7745,15 +7577,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::double_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: double
       return:
-        cxx: ::java::double_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: double
 
 
   java.util.function.Function<X, R>:
@@ -7783,21 +7609,12 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::int_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: int
       - name: y
         type:
-          cxx: ::java::int_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: int
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
 
 
   java.util.function.IntConsumer:
@@ -7811,10 +7628,7 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::int_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: int
 
 
   java.util.function.IntFunction<R>:
@@ -7828,10 +7642,7 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::int_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: int
       return:
         java: R
 
@@ -7847,15 +7658,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::int_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: int
       return:
-        cxx: ::java::boolean_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: boolean
 
 
   java.util.function.IntSupplier:
@@ -7867,10 +7672,7 @@ classes:
       name: getAsInt
       virtual: true
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
 
 
   java.util.function.IntToDoubleFunction:
@@ -7884,15 +7686,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::int_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: int
       return:
-        cxx: ::java::double_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: double
 
 
   java.util.function.IntToLongFunction:
@@ -7906,15 +7702,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::int_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: int
       return:
-        cxx: ::java::long_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: long
 
 
   java.util.function.IntUnaryOperator:
@@ -7928,15 +7718,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::int_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: int
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
 
 
   java.util.function.LongBinaryOperator:
@@ -7950,21 +7734,12 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::long_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: long
       - name: y
         type:
-          cxx: ::java::long_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: long
       return:
-        cxx: ::java::long_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: long
 
 
   java.util.function.LongConsumer:
@@ -7978,10 +7753,7 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::long_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: long
 
 
   java.util.function.LongFunction<R>:
@@ -7995,10 +7767,7 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::long_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: long
       return:
         java: R
 
@@ -8014,15 +7783,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::long_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: long
       return:
-        cxx: ::java::boolean_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: boolean
 
 
   java.util.function.LongSupplier:
@@ -8034,10 +7797,7 @@ classes:
       name: getAsLong
       virtual: true
       return:
-        cxx: ::java::long_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: long
 
 
   java.util.function.LongToDoubleFunction:
@@ -8051,15 +7811,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::long_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: long
       return:
-        cxx: ::java::double_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: double
 
 
   java.util.function.LongToIntFunction:
@@ -8073,15 +7827,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::long_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: long
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
 
 
   java.util.function.LongUnaryOperator:
@@ -8095,15 +7843,9 @@ classes:
       arguments:
       - name: x
         type:
-          cxx: ::java::long_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: long
       return:
-        cxx: ::java::long_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: long
 
 
   java.util.function.ObjDoubleConsumer<X>:
@@ -8120,10 +7862,7 @@ classes:
           java: X
       - name: y
         type:
-          cxx: ::java::double_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: double
 
 
   java.util.function.ObjIntConsumer<X>:
@@ -8140,10 +7879,7 @@ classes:
           java: X
       - name: y
         type:
-          cxx: ::java::int_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: int
 
 
   java.util.function.ObjLongConsumer<X>:
@@ -8160,10 +7896,7 @@ classes:
           java: X
       - name: y
         type:
-          cxx: ::java::long_t
-          includes:
-            declaration:
-            - java/primitives.h
+          java: long
 
 
   java.util.function.Predicate<X>:
@@ -8179,10 +7912,7 @@ classes:
         type:
           java: X
       return:
-        cxx: ::java::boolean_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: boolean
 
 
   java.util.function.Supplier<T>:
@@ -8213,10 +7943,7 @@ classes:
         type:
           java: Y
       return:
-        cxx: ::java::double_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: double
 
 
   java.util.function.ToIntBiFunction<X, Y>:
@@ -8235,10 +7962,7 @@ classes:
         type:
           java: Y
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
 
 
   java.util.function.ToLongBiFunction<X, Y>:
@@ -8257,10 +7981,7 @@ classes:
         type:
           java: Y
       return:
-        cxx: ::java::long_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: long
 
 
   java.util.function.ToDoubleFunction<X>:
@@ -8276,10 +7997,7 @@ classes:
         type:
           java: X
       return:
-        cxx: ::java::double_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: double
 
 
   java.util.function.ToIntFunction<X>:
@@ -8295,10 +8013,7 @@ classes:
         type:
           java: X
       return:
-        cxx: ::java::int_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: int
 
 
   java.util.function.ToLongFunction<X>:
@@ -8314,10 +8029,7 @@ classes:
         type:
           java: X
       return:
-        cxx: ::java::long_t
-        includes:
-          declaration:
-          - java/primitives.h
+        java: long
 
 
   java.util.function.UnaryOperator<T>:

@@ -370,7 +370,10 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
                     result = clsType;
                 else
                     result = clsType + bindings.collect(Collectors.joining(", ", "<", ">"));
-                if (b.getType() instanceof PrimitiveType) return result;
+                if (b.getType() instanceof PrimitiveType) {
+                    if (config.emitConst) result = "const " + result;
+                    return result;
+                }
                 return config.classType.apply(result, config);
             }
 
@@ -395,11 +398,18 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
                 elementType = b.getType().visit(raw);
             }
 
-            final String arrayObj = "::java::array_type<"
-                    + elementType
-                    + ", "
-                    + b.getExtents()
-                    + ">";
+            final String arrayObj;
+            if (b.getExtents() == 1) {
+                arrayObj = "::java::array_type<"
+                        + elementType
+                        + ">";
+            } else {
+                arrayObj = "::java::array_type<"
+                        + elementType
+                        + ", "
+                        + b.getExtents()
+                        + ">";
+            }
 
             if (config.classType != null)
                 return config.classType.apply(arrayObj, config);
