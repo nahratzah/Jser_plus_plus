@@ -49,10 +49,9 @@ class object_intf {
 
  private:
   ///\brief Get the class of this object.
-  virtual auto __get_class__() const
-  -> cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class> = 0;
+  auto __get_class__() const
+  -> cycle_ptr::cycle_gptr<::java::_erased::java::lang::Class>;
 
- protected:
   /**
    * \brief Retrieve the hash code for this object.
    * \param specialized If set, the object_intf base case does not use the
@@ -61,7 +60,7 @@ class object_intf {
    * will not descend into member fields. This parameter exists to guard
    * against data with infinite recursion.
    */
-  virtual auto __hash_code__(bool specialized, std::size_t max_cascade) const noexcept
+  auto __hash_code__(bool specialized, std::size_t max_cascade) const noexcept
   -> ::std::size_t;
 
   /**
@@ -72,8 +71,8 @@ class object_intf {
    * It is used to deal with recursion, at the cost of some memory and
    * performance.
    */
-  virtual auto __equal__(bool specialized, _equal_helper& eq, const object_intf& other) const
-  -> void = 0;
+  auto __equal__(bool specialized, _equal_helper& eq, const object_intf& other) const
+  -> void;
 };
 
 

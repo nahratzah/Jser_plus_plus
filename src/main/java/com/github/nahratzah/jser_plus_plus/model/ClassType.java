@@ -1042,6 +1042,9 @@ public class ClassType implements JavaType {
                                     .collect(Collectors.joining("\n"));
                         });
             }
+            if (selectorImpl.getSelector().getUnderlyingMethod().isOverride() && virtualOverridenMethods.isEmpty()) {
+                LOG.log(Level.WARNING, "{0} is declared override, but does not override anything", selector.toString());
+            }
         });
 
         return result;

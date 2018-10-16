@@ -702,6 +702,8 @@ rules:
     interface: false
     abstract: false
     class: true
+    inherits:
+    - java.lang.Object
   members:
   - type: method
     name: __get_class__
@@ -768,11 +770,28 @@ classes:
       includes:
         declaration:
         - java/object_intf.h
+    - cxx: ::java::object_intf
+      includes:
+        declaration:
+        - java/object_intf.h
     members:
+    - type: method
+      name: __get_class__
+      virtual: true
+      const: true
+      covariant_return: false
+      visibility: private
+      return:
+        cxx: ::cycle_ptr::cycle_gptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=erased")$>
+        includes:
+          declaration:
+          - cycle_ptr/cycle_ptr.h
+      body: |
+        return $erasedType(model)$::__class__();
     - type: method
       name: __hash_code__
       noexcept: true
-      override: true
+      virtual: true
       const: true
       visibility: protected
       covariant_return: false
@@ -792,13 +811,22 @@ classes:
           declaration:
           - cstddef
       body: |
-        return this->::java::object_intf::__hash_code__(specialized, max_cascade);
+        static const ::std::size_t nonce = ::java::__hash_nonce();
+
+        if (specialized) {
+          return hash_combiner(max_cascade)
+              << nonce;
+        } else {
+          return hash_combiner(max_cascade)
+              << nonce
+              << this;
+        }
       includes:
         implementation:
         - java/object_intf.h
     - type: method
       name: __equal__
-      override: true
+      virtual: true
       const: true
       visibility: protected
       covariant_return: false
@@ -828,7 +856,7 @@ classes:
           __equal_impl__(specialized, eq, *this, *casted_other);
       includes:
         implementation:
-        - java/object_intf.h
+        - java/hash.h
     - type: method
       name: __equal_impl__
       static: true
@@ -2348,7 +2376,7 @@ classes:
     - type: method
       name: __hash_code__
       noexcept: true
-      override: true
+      virtual: true
       const: true
       visibility: protected
       covariant_return: false
@@ -2379,7 +2407,7 @@ classes:
         - java/hash.h
     - type: method
       name: __equal__
-      override: true
+      virtual: true
       const: true
       visibility: protected
       covariant_return: false
@@ -4488,7 +4516,7 @@ classes:
     - type: method
       name: __hash_code__
       noexcept: true
-      override: true
+      virtual: true
       const: true
       visibility: protected
       covariant_return: false
@@ -4525,7 +4553,7 @@ classes:
         - java/hash.h
     - type: method
       name: __equal__
-      override: true
+      virtual: true
       const: true
       visibility: protected
       covariant_return: false
@@ -7309,7 +7337,7 @@ classes:
         return data_.back();
     - type: method
       name: at
-      override: true
+      virtual: true
       arguments:
       - name: index
         type:
@@ -7324,7 +7352,7 @@ classes:
     - type: method
       name: at
       const: true
-      override: true
+      virtual: true
       arguments:
       - name: index
         type:
