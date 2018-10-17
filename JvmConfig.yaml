@@ -8214,42 +8214,101 @@ classes:
           declaration:
           - string
       body: |
-        if (stackTrace == nullptr) return {};
-
         ::std::ostringstream oss;
-        for (const auto frame : stackTrace) {
-          if (frame == nullptr) {
-            oss << "(skipped frame)";
-          } else {
-            const auto declaringClass = frame->declaringClass();
-            const auto methodName = frame->methodName();
-            const auto fileName = frame->fileName();
-
-            if (declaringClass != nullptr && !declaringClass->empty())
-              oss << declaringClass->value() << ".";
-            if (methodName != nullptr && !methodName->empty())
-              oss << methodName->value();
-            else
-              oss << "(unknown method)";
-            if (frame->nativeMethod())
-              oss << " (native method)";
-
-            oss << " "; // Separator.
-
-            if (fileName == nullptr || fileName->empty())
-              oss << "(Unknown Source)";
-            else
-              oss << "(" << fileName->value() << ":" << frame->lineNumber() << ")";
-          }
-
-          oss << "\n";
-        }
-
+        writeStackTrace(oss);
         return ::std::move(oss).str();
       includes:
         implementation:
         - sstream
         - utility
+    - type: method
+      name: writeStackTrace
+      arguments:
+      - name: out
+        type:
+          cxx: ::std::ostream&
+          includes:
+            declaration:
+            - iosfwd
+            implementation:
+            - ostream
+      return:
+        cxx: ::std::ostream&
+        includes:
+          declaration:
+          - iosfwd
+          implementation:
+          - ostream
+      body: |
+        using namespace ::std::string_view_literals;
+
+        return writeStackTrace(out, $u8StringView("")$);
+      includes:
+        implementation:
+        - string_view
+    - type: method
+      name: writeStackTrace
+      arguments:
+      - name: out
+        type:
+          cxx: ::std::ostream&
+          includes:
+            declaration:
+            - iosfwd
+            implementation:
+            - ostream
+      - name: indent
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      return:
+        cxx: ::std::ostream&
+        includes:
+          declaration:
+          - iosfwd
+          implementation:
+          - ostream
+      body: |
+        using namespace ::std::string_view_literals;
+
+        if (stackTrace != nullptr) {
+          for (const auto frame : stackTrace) {
+            out << indent;
+
+            if (frame == nullptr) {
+              out << $u8StringView("(skipped frame)")$;
+            } else {
+              const auto declaringClass = frame->declaringClass();
+              const auto methodName = frame->methodName();
+              const auto fileName = frame->fileName();
+
+              if (declaringClass != nullptr && !declaringClass->empty())
+                out << declaringClass->value() << $u8StringView(".")$;
+              if (methodName != nullptr && !methodName->empty())
+                out << methodName->value();
+              else
+                out << $u8StringView("(unknown method)")$;
+              if (frame->nativeMethod())
+                out << $u8StringView(" (native method)")$;
+
+              out << $u8StringView(" ")$; // Separator.
+
+              if (fileName == nullptr || fileName->empty())
+                out << $u8StringView("(Unknown Source)")$;
+              else
+                out << $u8StringView("(")$ << fileName->value() << $u8StringView(":")$ << frame->lineNumber() << $u8StringView(")")$;
+            }
+
+            out << $u8StringView("\n")$;
+          }
+        }
+
+        return out;
+      includes:
+        implementation:
+        - string_view
     src_raw: |
       // For boost::stacktrace.
       #ifndef _GNU_SOURCE
