@@ -1,0 +1,299 @@
+---
+rules:
+# Implement hash code.
+- id: java.lang.Object/equals_and_hashcode
+  predicate:
+    interface: false
+    abstract: true
+    class: true
+  members:
+  - type: method
+    name: __hash_code__
+    noexcept: true
+    override: true
+    const: true
+    visibility: protected
+    covariant_return: false
+    arguments:
+    - name: specialized
+      type:
+        cxx: bool
+    - name: max_cascade
+      type:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+    return:
+      cxx: ::std::size_t
+      includes:
+        declaration:
+        - cstddef
+    body: |
+      static const ::std::size_t nonce = ::java::__hash_nonce();
+
+      $if (model.fields)$specialized = true;$endif$
+      $if (model.superClass)$
+      return ::java::hash_combiner($boundTemplateType(model.superClass, "style=erased")$::__hash_code__(specialized, max_cascade), max_cascade)
+      $else$
+      return ::java::hash_combiner(max_cascade)
+      $endif$
+          $[{nonce}, model.fields: { f | $f.name$}]: { value | << $value$}; anchor, separator = "\n"$;
+    includes:
+      implementation:
+      - java/hash.h
+  - type: method
+    name: __equal__
+    override: true
+    const: true
+    visibility: protected
+    covariant_return: false
+    arguments:
+    - name: specialized
+      type:
+        cxx: bool
+    - name: eq
+      type:
+        cxx: ::java::_equal_helper&
+        includes:
+          declaration:
+          - java/object_intf.h
+          implementation:
+          - java/reflect.h
+    - name: other
+      type:
+        cxx: const ::java::object_intf&
+        includes:
+          declaration:
+          - java/object_intf.h
+    body: |
+      eq(::java::_reflect_ops::get_class(*this), ::java::_reflect_ops::get_class(other));
+      if (!eq.ok()) return;
+
+      const $erasedType(model)$& casted_other = dynamic_cast<const $erasedType(model)$&>(other);
+      $erasedType(model)$::__equal_impl__(specialized, eq, *this, casted_other);
+    includes:
+      implementation:
+      - java/reflect.h
+  - type: method
+    name: __equal_impl__
+    static: true
+    visibility: protected
+    arguments:
+    - name: specialized
+      type:
+        cxx: bool
+    - name: eq
+      type:
+        cxx: ::java::_equal_helper&
+        includes:
+          declaration:
+          - java/object_intf.h
+          implementation:
+          - java/reflect.h
+    - name: x
+      type:
+        cxx: const $erasedType(model)$&
+    - name: y
+      type:
+        cxx: const $erasedType(model)$&
+    body: |
+      $if (model.fields)$specialized = true;$endif$
+      $if (model.superClass)$
+      $boundTemplateType(model.superClass, "style=erased")$::__equal_impl__(
+          specialized, eq, x, y);
+      $else$
+      if (!specialized && (&x != &y)) eq.fail();
+      $endif$
+      $model.fields: { f | $f.name$}: { fieldname | eq(x.$fieldname$, y.$fieldname$);}; anchor, separator = "\n"$
+    includes:
+      implementation:
+      - java/reflect.h
+
+# Add implemented __get_class__ method to all concrete classes.
+- predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.lang.Object
+  members:
+  - type: method
+    name: __get_class__
+    override: true
+    const: true
+    covariant_return: false
+    visibility: private
+    return:
+      cxx: ::cycle_ptr::cycle_gptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=erased")$>
+      includes:
+        declaration:
+        - cycle_ptr/cycle_ptr.h
+    body: |
+      return $erasedType(model)$::__class__();
+
+# Add __class__ method to all types.
+- predicate:
+    interface: true
+    abstract: true
+    class: true
+  friends:
+  - cxx: ::java::_reflect_ops
+    includes:
+      declaration:
+      - java/object_intf.h
+  - cxx: ::java::serialization::module
+    includes:
+      declaration:
+      - java/serialization/module_fwd.h
+  members:
+  - type: method
+    name: __class__
+    static: true
+    visibility: private
+    return:
+      cxx: ::cycle_ptr::cycle_gptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=erased")$>
+      includes:
+        declaration:
+        - cycle_ptr/cycle_ptr.h
+    body: |
+      using namespace ::std::string_literals;
+
+      return ::java::raw_ptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=tag")$>($boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$(
+          ::java::allocate,
+          $u8String(model.name)$,
+          $if (model.superClass)$::java::get_class<$boundTemplateType(model.superClass, "style=type")$>()$else$nullptr$endif$,
+          ::std::initializer_list<$boundTemplateType(java.("java.lang.Class<?>"), "style=type, class")$>{
+            $model.interfaces: { intf | ::java::get_class<$boundTemplateType(intf, "style=type")$>()}; anchor, separator = ",\n"$
+          },
+          $if (!model.interface && model.testInherits.({java.io.Serializable}))$&$erasedType(model)$::__serializable_class__$else$nullptr$endif$));
+    includes:
+      implementation:
+      - java/reflect.h
+      - initializer_list
+
+
+classes:
+  java.lang.Object:
+    dev_mode: false
+    suppress_local:
+    - java.lang.Object/equals_and_hashcode
+    friends:
+    - cxx: ::java::_equal_helper
+      includes:
+        declaration:
+        - java/object_intf.h
+    - cxx: ::java::object_intf
+      includes:
+        declaration:
+        - java/object_intf.h
+    members:
+    - type: method
+      name: __get_class__
+      virtual: true
+      const: true
+      covariant_return: false
+      visibility: private
+      return:
+        cxx: ::cycle_ptr::cycle_gptr<$boundTemplateType(java.({java.lang.Class<?>}), "style=erased")$>
+        includes:
+          declaration:
+          - cycle_ptr/cycle_ptr.h
+      body: |
+        return $erasedType(model)$::__class__();
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      virtual: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        static const ::std::size_t nonce = ::java::__hash_nonce();
+
+        if (specialized) {
+          return hash_combiner(max_cascade)
+              << nonce;
+        } else {
+          return hash_combiner(max_cascade)
+              << nonce
+              << this;
+        }
+      includes:
+        implementation:
+        - java/object_intf.h
+    - type: method
+      name: __equal__
+      virtual: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        const $erasedType(model)$* casted_other = dynamic_cast<const $erasedType(model)$*>(&other);
+        if (casted_other == nullptr)
+          eq.fail();
+        else
+          __equal_impl__(specialized, eq, *this, *casted_other);
+      includes:
+        implementation:
+        - java/hash.h
+    - type: method
+      name: __equal_impl__
+      static: true
+      visibility: protected
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: x
+        type:
+          cxx: const $erasedType(model)$&
+      - name: y
+        type:
+          cxx: const $erasedType(model)$&
+      body: |
+        if (!specialized && (&x != &y)) eq.fail();
+      includes:
+        implementation:
+        - java/reflect.h

@@ -1,0 +1,49 @@
+---
+rules:
+# Implement cloneable support
+- id: java.lang.Cloneable/clone
+  predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.lang.Cloneable
+  members:
+  - type: method
+    name: clone
+    override: true
+    return:
+      java: this
+    body: |
+      $if (model.devMode)$
+      return nullptr; // Be nice to dev-mode implementations.
+      $else$
+      return $boundTemplateType(java.({this}), "style=type, class")$(::java::allocate,
+          $boundTemplateType(java.({this}), "style=type, class")$(
+              ::java::_direct(),
+              this->shared_from_this(this)));
+      $endif$
+- id: java.lang.Cloneable/clone
+  predicate:
+    interface: true
+    abstract: true
+    class: false
+    inherits:
+    - java.lang.Cloneable
+  members:
+  - type: method
+    name: clone
+    override: true
+    return:
+      java: this
+
+
+classes:
+  java.lang.Cloneable:
+    dev_mode: false
+    members:
+    - type: method
+      name: clone
+      virtual: true
+      return:
+        java: this

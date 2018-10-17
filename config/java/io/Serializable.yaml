@@ -1,0 +1,380 @@
+---
+rules:
+# Create serializable class description.
+- predicate:
+    interface: false
+    abstract: true
+    class: true
+    inherits:
+    - java.io.Serializable
+  members:
+  - type: method
+    name: __serializable_class__
+    visibility: protected
+    static: true
+    arguments:
+    - name: handler_
+      type:
+        cxx: ::java::serialization::cycle_handler&
+        includes:
+          declaration:
+          - java/serialization/type_def_fwd.h
+    return:
+      cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>
+      includes:
+        declaration:
+        - java/serialization/encdec.h
+        - cycle_ptr/cycle_ptr.h
+    body: |
+      using namespace ::std::literals;
+      using namespace ::java::serialization::stream;
+
+      return handler_.encode_class_desc(
+          $u8String(model.name)$,
+          []([[maybe_unused]] ::java::serialization::cycle_handler& handler) {
+            return cycle_ptr::make_cycle<new_class_desc__class_desc>(
+                field_descriptor($u16StringView(model.name)$),
+                $model.serialVersionUID_string$, // serialVersionUID
+                $if (model.superClass.type.testInherits.({java.io.Serializable}))$$boundTemplateType(model.superClass, "style=erased")$::__serializable_class__(handler),$else$nullptr, // No serializable super class.$endif$
+                SC_SERIALIZABLE$if (model.writeMethod)$ | SC_WRITE_METHOD$endif$,
+                ::std::initializer_list<field_desc>{
+                  $ model.serializationFields
+                  : { f | $\\$
+                      $if (f.serializationType.primitive)$$\\$
+                      $if (f.serializationArray)$object_desc$else$primitive_desc$endif$$\\$
+                      (primitive_type::$f.serializationType.name$_type, $u16StringView(f.serializationName)$$if (f.serializationArray)$, $f.serializationExtents$$endif$)$\\$
+                      $else$$\\$
+                      object_desc($u16StringView(f.serializationType.name)$, $u16StringView(f.serializationName)$, $f.serializationExtents$)$\\$
+                      $endif$$\\$
+                    }
+                  ; anchor, separator = ",\n"$
+                });
+          });
+    includes:
+      implementation:
+      - initializer_list
+      - string
+      - string_view
+      - java/serialization/type_def.h
+      - java/serialization/encdec.h
+
+# Implement default __encoder_fields__ implementation.
+- id: java.io.Serializable/__encoder__
+  predicate:
+    interface: false
+    abstract: true
+    class: true
+    inherits:
+    - java.io.Serializable
+  members:
+  - type: method
+    name: __encoder_fields__
+    visibility: protected
+    const: true
+    allow_hide: true
+    arguments:
+    - name: handler_
+      type:
+        cxx: ::java::serialization::cycle_handler&
+        includes:
+          declaration:
+          - java/serialization/type_def_fwd.h
+    - name: obj
+      # replace with object type!
+      type:
+        cxx: ::java::serialization::stream::new_object&
+        includes:
+          declaration:
+          - java/serialization/type_def_fwd.h
+    body: |
+      using namespace ::std::literals;
+      using namespace ::java::serialization::stream;
+
+      $if (model.writeMethod)$const auto emplace_result = $endif$$\\$
+      obj.data.emplace(
+          ::std::piecewise_construct,
+          ::std::forward_as_tuple($erasedType(model)$::__serializable_class__(handler_)),
+          std::forward_as_tuple(
+              new_object::field_initializer_list{
+                $ model.encoderSerializationFields
+                : { f | $\\$
+                    { stream_string($u16StringView(f.serializationName)$),$"\n  "$$\\$
+                      $if (f.serializationType.primitive && !f.serializationArray)$$\\$
+                      primitive_desc::value_type(::std::in_place_type<::$[f.serializationType.namespace, f.serializationType.className]; separator = "::"$>, $if (f.encoderExpr)$${$f.encoderExpr; anchor$}$$else$this->$f.name$$endif$)$\\$
+                      $else$$\\$
+                      object_desc::value_type(handler_.$if (f.shared)$encode_field$else$encode_field_unshared$endif$($if (f.encoderExpr)$${$f.encoderExpr; anchor$}$$else$this->$f.name$$endif$))$\\$
+                      $endif$$\\$
+                      $" "$\}$\\$
+                  }
+                ; anchor, separator = ",\n"$
+              }));
+
+      $if (model.writeMethod)$$\\$
+      $if (model.devMode)$// $endif$$\\$
+      emplace_result.first->second.assign_annotation(this->$erasedType(model)$::__encoder_annotation__(handler_, emplace_result.first->second.fields));
+      $endif$
+
+      $if (model.superClass.type.testInherits.({java.io.Serializable}))$
+      this->$erasedType(model.superClass.type)$::__encoder_fields__(handler_, obj);
+      $endif$
+    includes:
+      declaration:
+      - java/serialization/type_def_fwd.h
+      - java/serialization/encdec.h
+      - cycle_ptr/cycle_ptr.h
+      implementation:
+      - tuple
+      - variant
+      - utility
+      - string_view
+      - cycle_ptr/cycle_ptr.h
+      - java/serialization/type_def.h
+      - java/serialization/encdec.h
+# Implement default __encoder__ implementation.
+# Note: we omit this method on abstract classes, since the derived class will
+# override it anyway, and there is no call to super in `__encoder__()`.
+- id: java.io.Serializable/__encoder__
+  predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.io.Serializable
+  members:
+  - type: method
+    name: __encoder__
+    visibility: private
+    override: true
+    const: true
+    covariant_return: false
+    return:
+      cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
+    arguments:
+    - name: handler_
+      type:
+        cxx: ::java::serialization::cycle_handler&
+    # XXX implement
+    body: |
+      using namespace ::java::serialization::stream;
+
+      return handler_.template encode_obj<new_object>(
+          this->shared_from_this(this),
+          [this](::java::serialization::cycle_handler& handler, new_object& obj) {
+            obj.cls = $erasedType(model)$::__serializable_class__(handler);
+            this->$erasedType(model)$::__encoder_fields__(handler, obj);
+          });
+    includes:
+      declaration:
+      - java/serialization/type_def_fwd.h
+      - java/serialization/encdec.h
+      - cycle_ptr/cycle_ptr.h
+      implementation:
+      - java/serialization/encdec.h
+      - cycle_ptr/cycle_ptr.h
+      - java/serialization/type_def.h
+
+# Implement decoder.
+- id: java.io.Serializable/__decoder__
+  predicate:
+    interface: false
+    abstract: true
+    class: true
+    inherits:
+    - java.io.Serializable
+  friends:
+  - cxx: ::java::serialization::module
+    includes:
+      declaration:
+      - java/serialization/module_fwd.h
+  members:
+  - type: method
+    name: __decoder_comparable__
+    visibility: protected
+    allow_hide: true
+    arguments:
+    - name: __decoder__
+      type:
+        cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
+        includes:
+          declaration:
+          - java/serialization/decoder_fwd.h
+          implementation:
+          - java/serialization/decoder.h
+    body: |
+      $if (model.serializationFields)$$\\$
+      using namespace ::std::string_view_literals;
+
+      $ model.serializationFields
+      : { f | $\\$
+          $if (f.decodeStage.atComparableStage && !f.omit)$$\\$
+          this->$f.name$ = __decoder__.$if (f.completeInit)$get_complete_field$else$get_initial_field$endif$<$boundTemplateType(f.type, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
+          $endif$$\\$
+        }
+      ; anchor, separator = "\n"$
+
+      $endif$
+      $if (model.writeMethod)$$\\$
+      $if (model.devMode)$// $endif$$\\$
+      this->$erasedType(model)$::__decoder_annotation__(__decoder__);
+
+      $endif$
+      $if (model.superClass.type.testInherits.({java.io.Serializable}))$$\\$
+      this->$erasedType(model.superClass.type)$::__decoder_comparable__(__decoder__);
+      $endif$
+    includes:
+      implementation:
+      - string_view
+      - java/serialization/decoder.h
+  - type: method
+    name: __decoder_complete__
+    visibility: protected
+    allow_hide: true
+    arguments:
+    - name: __decoder__
+      type:
+        cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
+        includes:
+          declaration:
+          - java/serialization/decoder_fwd.h
+          implementation:
+          - java/serialization/decoder.h
+    body: |
+      $if (model.serializationFields)$$\\$
+      using namespace ::std::string_view_literals;
+
+      $ model.serializationFields
+      : { f | $\\$
+          $if (f.decodeStage.atCompleteStage && !f.omit)$$\\$
+          this->$f.name$ = __decoder__.get_initial_field<$boundTemplateType(f.type, "style=type, class")$>($u16StringView(f.serializationName)$);$\\$
+          $endif$$\\$
+        }
+      ; anchor, separator = "\n"$
+
+      $endif$
+      $if (model.superClass.type.testInherits.({java.io.Serializable}))$$\\$
+      this->$erasedType(model.superClass.type)$::__decoder_complete__(__decoder__);
+      $endif$
+    includes:
+      implementation:
+      - string_view
+      - java/serialization/decoder.h
+- id: java.io.Serializable/__decoder__
+  predicate:
+    interface: false
+    abstract: false
+    class: true
+    inherits:
+    - java.io.Serializable
+  friends:
+  - cxx: ::java::serialization::module
+    includes:
+      declaration:
+      - java/serialization/module_fwd.h
+  members:
+  - type: method
+    name: __decoder__
+    static: true
+    visibility: private
+    arguments:
+    - name: ctx
+      type:
+        cxx: ::java::serialization::decoder_ctx&
+        includes:
+          declaration:
+          - java/serialization/decoder_fwd.h
+    - name: raw_stream_elem
+      type:
+        cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
+        includes:
+          declaration:
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
+    return:
+      cxx: ::cycle_ptr::cycle_gptr<::java::serialization::decoder>
+      includes:
+        declaration:
+        - cycle_ptr/cycle_ptr.h
+        - java/serialization/decoder_fwd.h
+        implementation:
+        - java/serialization/decoder.h
+    body: |
+      class decoder_impl final
+      : public ::java::serialization::class_decoder_intf
+      {
+       public:
+        using ::java::serialization::class_decoder_intf::class_decoder_intf;
+        ~decoder_impl() noexcept override = default;
+
+       private:
+        auto init() -> ::java::lang::Object override {
+          $if (model.devMode)$
+          // Be nice with the `dev_mode` classes: don't instantiate them if they are not working.
+          if constexpr(::std::is_abstract_v<$erasedType(model)$>) return nullptr;
+          else $\\$
+          $endif$
+          dst = ::cycle_ptr::make_cycle<$erasedType(model)$>(*this);
+
+          return $boundTemplateType(model.packType, "style=type, class")$(
+              ::java::_direct(),
+              ::cycle_ptr::cycle_gptr<$erasedType(model)$>(dst));
+        }
+
+        auto init_comparable() -> dependent_set override {
+          assert(dst != nullptr);
+          this->dst->$erasedType(model)$::__decoder_comparable__(*this);
+          return this->::java::serialization::class_decoder_intf::init_comparable();
+        }
+
+        auto complete() -> dependent_set override {
+          assert(dst != nullptr);
+          this->dst->$erasedType(model)$::__decoder_complete__(*this);
+          return this->::java::serialization::class_decoder_intf::init_comparable();
+        }
+
+        ::cycle_ptr::cycle_member_ptr<$erasedType(model)$> dst;
+      };
+
+      return ::cycle_ptr::make_cycle<decoder_impl>(ctx, raw_stream_elem);
+    includes:
+      implementation:
+      - java/serialization/encdec.h
+      - java/serialization/decoder.h
+      - java/serialization/exception.h
+      - cycle_ptr/allocator.h
+      - vector
+      - memory
+      - iterator
+      - type_traits
+      - cassert
+
+
+classes:
+  java.io.Serializable:
+    dev_mode: false
+    friends:
+    - cxx: ::java::serialization::cycle_handler
+      includes:
+        declaration:
+        - java/serialization/type_def_fwd.h
+    members:
+    - type: method
+      name: __encoder__
+      visibility: private
+      virtual: true
+      const: true
+      covariant_return: false
+      return:
+        cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+      includes:
+        declaration:
+        - java/serialization/encdec.h
+        - cycle_ptr/cycle_ptr.h
+        - java/serialization/type_def_fwd.h
+        implementation:
+        - java/serialization/type_def.h

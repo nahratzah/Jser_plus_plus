@@ -21,12 +21,12 @@ import java.util.stream.Stream;
 public class Main {
     private static final Logger LOG = Logger.getLogger(Main.class.getName());
     private static final boolean ENABLE_DEBUG_LOGS = false;
-    private static final File CONFIG_FILE = new File("/home/ariane/programming/JSer++-2/JvmConfig.yaml");
+    private static final File CONFIG_DIR = new File("/home/ariane/programming/JSer++-2/config");
 
     public static void main(String[] args) throws Exception {
         if (ENABLE_DEBUG_LOGS) enableDebugLog(Level.FINE);
 
-        final Config cfg = Config.fromFile(CONFIG_FILE);
+        final Config cfg = Config.fromDir(CONFIG_DIR);
 
         try (final Scanner s = new Scanner(ADD_BOOT_CLASSPATH)) {
             final Processor p = new Processor(s.getClassLoader(), cfg);
