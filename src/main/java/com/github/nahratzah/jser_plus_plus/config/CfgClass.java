@@ -141,6 +141,19 @@ public class CfgClass {
         this.inheritSuppressedRules = inheritSuppressedRules;
     }
 
+    /**
+     * Get raw source file input that is emitted before any includes.
+     *
+     * @return String with raw source file content.
+     */
+    public String getSrcRaw() {
+        return srcRaw;
+    }
+
+    public void setSrcRaw(String srcRaw) {
+        this.srcRaw = srcRaw;
+    }
+
     @JsonProperty("final")
     private Boolean finalVar;
     @JsonProperty("fields")
@@ -159,4 +172,6 @@ public class CfgClass {
     private Set<String> localSuppressedRules = new HashSet<>();
     @JsonProperty("suppress")
     private Set<String> inheritSuppressedRules = new HashSet<>();
+    @JsonProperty("src_raw")
+    private String srcRaw;
 }

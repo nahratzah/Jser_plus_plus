@@ -57,6 +57,10 @@ public class ClassConfig {
         return cfgClass.getDevMode() == null ? cfg.isDevMode() : cfgClass.getDevMode();
     }
 
+    public String getSrcRaw() {
+        return cfgClass.getSrcRaw();
+    }
+
     public void updateWithSuperTypes(boolean isAbstract, boolean isInterface, boolean isEnum, CfgSuperType thisType) {
         final Set<CfgSuperType> allParentTypes = thisType.getAllParentTypes();
 

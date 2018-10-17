@@ -8120,6 +8120,9 @@ classes:
       visibility: private
       return:
         java: java.lang.StackTraceElement[]
+      doc_string: |
+        \brief Sentinel indicating null trace.
+        \details Java uses a sentinel for absent traces during encoding and decoding. We don't.
       body: |
         return $boundTemplateType(java.({java.lang.StackTraceElement[]}), "style=type, class")$(
             ::java::allocate,
@@ -8129,6 +8132,70 @@ classes:
                   "",
                   nullptr,
                   ::std::numeric_limits<$boundTemplateType(java.({int}), "style=type, class")$>::min()) });
+    - type: method
+      name: fillStackTrace
+      arguments:
+      - name: skip
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: maxDepth
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      body: |
+        // We add 1 to the skip depth, to exclude the fillStackTrace function.
+        const auto trace = ::boost::stacktrace::stacktrace(skip + 1u, maxDepth);
+
+        auto traceElements = $boundTemplateType(java.({java.lang.StackTraceElement[]}), "style=type, class")$(::java::allocate);
+        for (const ::boost::stacktrace::frame& f : trace) {
+          const auto name = f.name();
+          if (name.empty()) {
+            traceElements.push_back($boundTemplateType(java.({java.lang.StackTraceElement}), "style=type, class")$(
+                ::java::allocate,
+                "",
+                ::boost::stacktrace::to_string(f),
+                nullptr,
+                0));
+          } else {
+            traceElements.push_back($boundTemplateType(java.({java.lang.StackTraceElement}), "style=type, class")$(
+                ::java::allocate,
+                "",
+                name,
+                f.source_file(),
+                f.source_line()));
+          }
+        }
+      includes:
+        implementation:
+        - boost/stacktrace/stacktrace.hpp
+        - boost/stacktrace/frame.hpp
+    - type: method
+      name: fillStackTrace
+      arguments:
+      - name: skip
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      body: |
+        // We add 1 to the skip depth, to skip this function.
+        fillStackTrace(skip + 1u, 128);
+    - type: method
+      name: fillStackTrace
+      body: |
+        // We add 1 to the skip depth, to skip this function.
+        fillStackTrace(1);
+    src_raw: |
+      // For boost::stacktrace.
+      #ifndef _GNU_SOURCE
+      #define _GNU_SOURCE
+      #endif
 
 
   java.lang.StackTraceElement:

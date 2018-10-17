@@ -87,6 +87,7 @@ $codeGen.types:{model|$accessorImpl(model)$}; separator = "\n\n"$
 
 
 srcFile(codeGen, includes) ::= <<
+$codeGen.types: {t|$t.srcRaw$}; separator="\n"$
 $[codeGen.headerName, includes]:{f|$include(f)$}; separator = "\n"$
 
 namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {

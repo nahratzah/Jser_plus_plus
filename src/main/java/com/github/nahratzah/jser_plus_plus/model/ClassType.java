@@ -165,6 +165,7 @@ public class ClassType implements JavaType {
 
         this.docString = classCfg.getDocString();
         this.devMode = classCfg.isDevMode();
+        this.srcRaw = classCfg.getSrcRaw();
     }
 
     private void initSuperTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
@@ -1292,6 +1293,15 @@ public class ClassType implements JavaType {
     }
 
     /**
+     * Get raw source content, that is to be emitted before the includes.
+     *
+     * @return Raw source content.
+     */
+    public String getSrcRaw() {
+        return srcRaw;
+    }
+
+    /**
      * Retrieve the {@link ClassConfig.CfgSuperType CfgSuperType} for this type.
      *
      * @return Instance of {@link ClassConfig.CfgSuperType CfgSuperType} backed
@@ -1639,4 +1649,8 @@ public class ClassType implements JavaType {
      * logic.
      */
     private final Collection<MethodModel> accessorMethods = new TreeSet<>(new MethodModelComparator());
+    /**
+     * Raw content for source file, to be emitted prior to any includes.
+     */
+    private String srcRaw;
 }
