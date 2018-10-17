@@ -1,0 +1,12 @@
+---
+classes:
+  java.util.function.Supplier<T>:
+    dev_mode: false
+    doc_string: |
+      \brief Supplier of object.
+    members:
+    - type: method
+      name: get
+      virtual: true
+      return:
+        java: T

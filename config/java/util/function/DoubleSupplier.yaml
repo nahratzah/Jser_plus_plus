@@ -1,0 +1,12 @@
+---
+classes:
+  java.util.function.DoubleSupplier:
+    dev_mode: false
+    doc_string: |
+      \brief Supplier of boolean.
+    members:
+    - type: method
+      name: getAsDouble
+      virtual: true
+      return:
+        java: double

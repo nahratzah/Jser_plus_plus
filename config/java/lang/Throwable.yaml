@@ -1,0 +1,277 @@
+---
+classes:
+  java.lang.Throwable:
+    dev_mode: false
+    doc_string: |
+      \brief The root of all java exceptions.
+      \details
+      Java divides exceptions into three categories.
+
+      1. java.lang.Exception are checked exceptions.
+      2. java.lang.RuntimeExceptions are unchecked exceptions.
+      3. java.lang.Error indicate problems in the virtual machine.
+         They are always unchecked.
+
+      Throwable is the root of all three, and for something to be thrown,
+      it must derive from Throwable.
+    fields:
+      stackTrace:
+        decode_complete: true
+    members:
+    - type: method
+      name: __encoder_annotation__
+      visibility: private
+      const: true
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+          includes:
+            declaration:
+            - java/serialization/type_def_fwd.h
+      - name: fields
+        type:
+          cxx: ::java::serialization::stream::new_object::class_data::field_map&
+          includes:
+            declaration:
+            - java/serialization/encdec.h
+      return:
+        cxx: ::std::vector<::std::variant<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>, ::java::serialization::stream::blockdata>>
+        includes:
+          declaration:
+          - vector
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
+      body: |
+        using namespace ::java::serialization::stream;
+        using namespace ::std::string_view_literals;
+
+        if (stackTrace == nullptr) {
+          new_object::class_data::set_field(
+              fields,
+              $u16StringView("stackTrace")$,
+              object_desc::value_type(handler_.encode_field(_nullStackTrace_())));
+        }
+
+        return {};
+      includes:
+        implementation:
+        - string_view
+    - type: method
+      name: __decoder_annotation__
+      visibility: private
+      arguments:
+      - name: _decoder_
+        type:
+          cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
+          includes:
+            declaration:
+            - java/serialization/decoder_fwd.h
+            implementation:
+            - java/serialization/decoder.h
+      body: |
+        if (stackTrace == _nullStackTrace_())
+          stackTrace = nullptr;
+        if (suppressedExceptions != nullptr)
+          suppressedExceptions = $boundTemplateType(java.({java.util.ArrayList<java.lang.Throwable>}), "style=type, class")$(::java::allocate, suppressedExceptions->begin(), suppressedExceptions->end());
+    - type: method
+      name: _nullStackTrace_
+      static: true
+      visibility: private
+      return:
+        java: java.lang.StackTraceElement[]
+      doc_string: |
+        \brief Sentinel indicating null trace.
+        \details Java uses a sentinel for absent traces during encoding and decoding. We don't.
+      body: |
+        return $boundTemplateType(java.({java.lang.StackTraceElement[]}), "style=type, class")$(
+            ::java::allocate,
+            { $boundTemplateType(java.({java.lang.StackTraceElement}), "style=type, class")$(
+                  ::java::allocate,
+                  "",
+                  "",
+                  nullptr,
+                  ::std::numeric_limits<$boundTemplateType(java.({int}), "style=type, class")$>::min()) });
+    - type: method
+      name: fillStackTrace
+      arguments:
+      - name: skip
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: maxDepth
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      body: |
+        // We add 1 to the skip depth, to exclude the fillStackTrace function.
+        const auto trace = ::boost::stacktrace::stacktrace(skip + 1u, maxDepth);
+
+        auto traceElements = $boundTemplateType(java.({java.lang.StackTraceElement[]}), "style=type, class")$(::java::allocate);
+        for (const ::boost::stacktrace::frame& f : trace) {
+          const auto name = f.name();
+          if (name.empty()) {
+            traceElements.push_back($boundTemplateType(java.({java.lang.StackTraceElement}), "style=type, class")$(
+                ::java::allocate,
+                "",
+                ::boost::stacktrace::to_string(f),
+                nullptr,
+                -1));
+          } else {
+            const auto frame_source = f.source_file();
+            const auto frame_line = f.source_line();
+
+            $boundTemplateType(java.({java.lang.String}), "style=type, class")$ method = $boundTemplateType(java.({java.lang.String}), "style=type, class")$(::java::allocate, name);
+            $boundTemplateType(java.({java.lang.String}), "style=type, class")$ declaringClass = $boundTemplateType(java.({java.lang.String}), "style=type, class")$(::java::allocate);
+            $boundTemplateType(java.({java.lang.String}), "style=type, class")$ source = nullptr;
+            $boundTemplateType(java.({int}), "style=type, class")$ line = -1;
+
+            if (!frame_source.empty() && frame_line > 0 && frame_line <= 0x7fffffffu) {
+              source = $boundTemplateType(java.({java.lang.String}), "style=type, class")$(::java::allocate, frame_source);
+              line = static_cast<$boundTemplateType(java.({int}), "style=type, class")$>(frame_line);
+            }
+
+            traceElements.push_back($boundTemplateType(java.({java.lang.StackTraceElement}), "style=type, class")$(
+                ::java::allocate,
+                ::std::move(declaringClass),
+                ::std::move(method),
+                ::std::move(source),
+                line));
+          }
+        }
+      includes:
+        implementation:
+        - boost/stacktrace/stacktrace.hpp
+        - boost/stacktrace/frame.hpp
+        - utility
+    - type: method
+      name: fillStackTrace
+      arguments:
+      - name: skip
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      body: |
+        // We add 1 to the skip depth, to skip this function.
+        fillStackTrace(skip + 1u, 128);
+    - type: method
+      name: fillStackTrace
+      body: |
+        // We add 1 to the skip depth, to skip this function.
+        fillStackTrace(1);
+    - type: method
+      name: stackTraceString
+      return:
+        cxx: ::std::string
+        includes:
+          declaration:
+          - string
+      body: |
+        ::std::ostringstream oss;
+        writeStackTrace(oss);
+        return ::std::move(oss).str();
+      includes:
+        implementation:
+        - sstream
+        - utility
+    - type: method
+      name: writeStackTrace
+      arguments:
+      - name: out
+        type:
+          cxx: ::std::ostream&
+          includes:
+            declaration:
+            - iosfwd
+            implementation:
+            - ostream
+      return:
+        cxx: ::std::ostream&
+        includes:
+          declaration:
+          - iosfwd
+          implementation:
+          - ostream
+      body: |
+        using namespace ::std::string_view_literals;
+
+        return writeStackTrace(out, $u8StringView("")$);
+      includes:
+        implementation:
+        - string_view
+    - type: method
+      name: writeStackTrace
+      arguments:
+      - name: out
+        type:
+          cxx: ::std::ostream&
+          includes:
+            declaration:
+            - iosfwd
+            implementation:
+            - ostream
+      - name: indent
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      return:
+        cxx: ::std::ostream&
+        includes:
+          declaration:
+          - iosfwd
+          implementation:
+          - ostream
+      body: |
+        using namespace ::std::string_view_literals;
+
+        if (stackTrace != nullptr) {
+          for (const auto frame : stackTrace) {
+            out << indent;
+
+            if (frame == nullptr) {
+              out << $u8StringView("(skipped frame)")$;
+            } else {
+              const auto declaringClass = frame->declaringClass();
+              const auto methodName = frame->methodName();
+              const auto fileName = frame->fileName();
+
+              if (declaringClass != nullptr && !declaringClass->empty())
+                out << declaringClass->value() << $u8StringView(".")$;
+              if (methodName != nullptr && !methodName->empty())
+                out << methodName->value();
+              else
+                out << $u8StringView("(unknown method)")$;
+              if (frame->nativeMethod())
+                out << $u8StringView(" (native method)")$;
+
+              out << $u8StringView(" ")$; // Separator.
+
+              if (fileName == nullptr || fileName->empty())
+                out << $u8StringView("(Unknown Source)")$;
+              else
+                out << $u8StringView("(")$ << fileName->value() << $u8StringView(":")$ << frame->lineNumber() << $u8StringView(")")$;
+            }
+
+            out << $u8StringView("\n")$;
+          }
+        }
+
+        return out;
+      includes:
+        implementation:
+        - string_view
+    src_raw: |
+      // For boost::stacktrace.
+      #ifndef _GNU_SOURCE
+      #define _GNU_SOURCE
+      #endif

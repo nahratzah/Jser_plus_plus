@@ -1,0 +1,18 @@
+---
+classes:
+  java.lang.Comparable<T>:
+    dev_mode: false
+    doc_string: |
+      \brief Interface that declares two types are comparable.
+      \tparam T The type with which the type implementing this interface can be compared.
+    members:
+    - type: method
+      name: compareTo
+      const: true
+      virtual: true
+      arguments:
+      - name: o
+        type:
+          java: const T
+      return:
+        java: int

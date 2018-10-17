@@ -1,0 +1,39 @@
+---
+classes:
+  java.lang.Iterable<T>:
+    dev_mode: false
+    members:
+    - type: method
+      name: begin
+      virtual: true
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.("T"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      virtual: true
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.("T"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: begin
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.("T"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.("T"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h

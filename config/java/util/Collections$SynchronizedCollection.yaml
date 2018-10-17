@@ -1,0 +1,73 @@
+---
+classes:
+  java.util.Collections$SynchronizedCollection<E>:
+    dev_mode: true
+    fields:
+      c:
+        final: true
+        visibility: private
+    members:
+    - type: constructor
+      arguments:
+      - name: c
+        type:
+          java: java.util.Collection<E>
+      initializers:
+        c: std::move(c)
+      body: |
+        if (!this->c)
+          throw std::invalid_argument("nullptr argument to java.util.Collections\$SynchronizedCollection");
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: _specialized_
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return ::java::_reflect_ops::hash_code(c, max_cascade);
+      includes:
+        implementation:
+        - type_traits
+        - functional
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: _specialized_
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        eq(c, other);

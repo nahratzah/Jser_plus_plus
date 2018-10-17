@@ -1,0 +1,19 @@
+---
+classes:
+  java.util.function.LongBinaryOperator:
+    dev_mode: false
+    doc_string: |
+      \brief Operator that accept two long integer arguments and returns a long int.
+    members:
+    - type: method
+      name: applyAsLong
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: long
+      - name: y
+        type:
+          java: long
+      return:
+        java: long

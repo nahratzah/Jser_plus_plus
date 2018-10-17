@@ -1,0 +1,37 @@
+---
+classes:
+  java.lang.Appendable:
+    dev_mode: false
+    members:
+    - type: method
+      name: append
+      arguments:
+      - name: c
+        type:
+          cxx: char
+      doc_string: |
+        Append a character to this.
+      body: |
+        append(::std::string_view(&c, 1));
+    - type: method
+      name: append
+      virtual: true
+      arguments:
+      - name: s
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      doc_string: |
+        Append string to this.
+    - type: method
+      name: append
+      arguments:
+      - name: s
+        type:
+          java: const java.lang.CharSequence
+      doc_string: |
+        Append string to this.
+      body: |
+        append(s->str());

@@ -1,0 +1,348 @@
+---
+classes:
+  java.lang.Class<Type>:
+    dev_mode: false
+    suppress:
+    - java.lang.Object/equals_and_hashcode
+    - java.io.Serializable/__encoder__
+    - java.io.Serializable/__decoder__
+    fields:
+      name:
+        type:
+          cxx: ::std::string
+        const: true
+      super:
+        type:
+          java: java.lang.Class<?>
+        final: true
+      interfaces:
+        visibility: private
+        type:
+          java: java.lang.Iterable<java.lang.Class<?>>
+        final: true
+      allTypes:
+        visibility: private
+        type:
+          java: java.util.HashSet<java.lang.Class<?>>
+        final: true
+        getter: true
+      serialization_fn:
+        visibility: private
+        type:
+          cxx: std::function<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>(::java::serialization::cycle_handler&)>
+          includes:
+            declaration:
+            - functional
+            - cycle_ptr/cycle_ptr.h
+            - java/serialization/encdec.h
+            - java/serialization/type_def_fwd.h
+        const: true
+    members:
+    - type: constructor
+      arguments:
+      - name: name
+        type:
+          cxx: ::std::string
+      - name: super
+        type:
+          java: java.lang.Class<?>
+      - name: interfaces
+        type:
+          cxx: std::initializer_list<$boundTemplateType(java.("java.lang.Class<?>"), "style=type, class")$>
+          includes:
+            declaration:
+            - initializer_list
+      - name: serialization_fn
+        type:
+          cxx: std::function<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class_desc__class_desc>(::java::serialization::cycle_handler&)>
+          includes:
+            declaration:
+            - functional
+            - cycle_ptr/cycle_ptr.h
+            - java/serialization/encdec.h
+            - java/serialization/type_def_fwd.h
+      initializers:
+        name: std::move(name)
+        super: std::move(super)
+        interfaces: $boundTemplateType(java.("java.util.ArrayList<java.lang.Class<?>>"), "style=type, class")$(::java::allocate, interfaces.begin(), interfaces.end())
+        allTypes: ::java::allocate
+        serialization_fn: std::move(serialization_fn)
+      body: |
+        // While we're part of our own type set, we can't add ourselves.
+        // Because we're still under construction, thus the `shared_from_this` mechanic is unavailable.
+
+        // Add super type and its allTypes set.
+        if (this->super) {
+          allTypes->insert(this->super);
+          allTypes->insert(this->super->allTypes()->begin(), this->super->allTypes()->end());
+        }
+
+        // Add each interface's allTypes set.
+        std::for_each(
+            this->interfaces->begin(), this->interfaces->end(),
+            [this](const auto& i) {
+              allTypes->insert(i);
+              allTypes->insert(i->allTypes()->begin(), i->allTypes()->end());
+            });
+      includes:
+        implementation:
+        - algorithm
+    - type: method
+      name: isAssignableFrom
+      const: true
+      arguments:
+      - name: cls
+        type:
+          java: const java.lang.Class<?>
+      return:
+        cxx: bool
+      doc_string: |
+        \brief Test if the argument class is derived from this class.
+        \param cls A class.
+        \return True if the argument class is derived from this class, false otherwise.
+        \throws ::java::null_error if \p cls is a null-reference.
+      body: |
+        const auto this_ptr = ::java::const_ref<$boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$>(::java::_direct(), this->shared_from_this(this));
+        return this_ptr == cls // We must test same-class outside of the allTypes() set, since we could not add this during our constructor.
+            || cls->allTypes()->contains(this_ptr);
+    - type: method
+      name: isInstance
+      const: true
+      arguments:
+      - name: obj
+        type:
+          java: const java.lang.Object
+      return:
+        cxx: bool
+      doc_string: |
+        \brief Test if the \p obj is an instance of this class.
+        \param obj The object to test.
+        \return True if \p obj is an instance of this class.
+        \note The function returns false for null-references.
+      body: |
+        return obj != nullptr && isAssignableFrom(::java::get_class(obj));
+      includes:
+        implementation:
+        - java/reflect.h
+    - type: method
+      name: cast
+      const: true
+      arguments:
+      - name: obj
+        type:
+          java: java.lang.Object
+      return:
+        java: Type
+      doc_string: |
+        \brief Cast the \p obj to this class.
+        \details
+        Verifies that \p obj is an instance of this class, then returns it.
+        \attention
+        Generics parameters are not validated.
+        This may lead to errors during use, if they are wrongly constrained.
+        (And it may happen in other types, if you modify the returned value.)
+        \return \p obj casted to the class type. Or `nullptr` if \p obj is a null-reference.
+        \throws std::bad_cast If the object is not an instance of this class.
+      body: |
+        // Actual casting is handled by generic accessor.
+        // But we must validate, in case the accessor is using erased types.
+        if (obj != nullptr && !isInstance(obj)) throw std::bad_cast();
+
+        return ::java::_maybe_cast(::std::move(obj));
+      includes:
+        implementation:
+        - java/_maybe_cast.h
+    - type: method
+      name: cast
+      const: true
+      arguments:
+      - name: obj
+        type:
+          java: const java.lang.Object
+      return:
+        java: const Type
+      doc_string: |
+        \brief Cast the \p obj to this class.
+        \details
+        Verifies that \p obj is an instance of this class, then returns it.
+        \attention
+        Generics parameters are not validated.
+        This may lead to errors during use, if they are wrongly constrained.
+        (And it may happen in other types, if you modify the returned value.)
+        \return \p obj casted to the class type. Or `nullptr` if \p obj is a null-reference.
+        \throws std::bad_cast If the object is not an instance of this class.
+      body: |
+        // Actual casting is handled by generic accessor.
+        // But we must validate, in case the accessor is using erased types.
+        if (obj != nullptr && !isInstance(obj)) throw std::bad_cast();
+
+        return ::java::_maybe_cast(::std::move(obj));
+      includes:
+        implementation:
+        - java/_maybe_cast.h
+    - type: method
+      name: getSuperClass
+      const: true
+      return:
+        java: java.lang.Class<?>
+      doc_string: |
+        \brief Get the super class of this class.
+        \return The class object describing the super class of this class.
+        A null-reference is returned if this type has no super class
+        (such as in the case of interfaces and \ref ::java::lang::Object "java.lang.Object").
+      body: |
+        return ::java::constcast<$boundTemplateType(java.({java.lang.Class<?>}), "style=type, class")$>(super);
+    - type: method
+      name: getInterfaces
+      const: true
+      return:
+        java: java.lang.Iterable<java.lang.Class<?>>
+      doc_string:
+        \brief Get the interfaces implemented by this class.
+        \returns An \ref ::java::lang::Iterable "iterable" over the interfaces implemented by this class.
+      body: |
+        return ::java::constcast<$boundTemplateType(java.({java.lang.Iterable<java.lang.Class<?>>}), "style=type, class")$>(interfaces);
+    - type: method
+      name: __encoder__
+      visibility: private
+      override: true
+      const: true
+      final: true
+      covariant_return: false
+      return:
+        cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
+        includes:
+          declaration:
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+          includes:
+            declaration:
+            - java/serialization/type_def_fwd.h
+      body: |
+        using namespace ::java::serialization::stream;
+        using conversion_type = ::std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>,
+            char16_t>;
+
+        return handler_.template encode_obj<new_class>(
+            this->shared_from_this(this),
+            [this](::java::serialization::cycle_handler& handler, new_class& obj) {
+              if (serialization_fn) {
+                obj = serialization_fn(handler);
+              } else {
+                conversion_type conversion;
+
+                obj = cycle_ptr::make_cycle<new_class_desc__class_desc>(
+                    field_descriptor(conversion.from_bytes(name)),
+                    0); // serialVersionUID for non-serializable class.
+              }
+            });
+      includes:
+        implementation:
+        - java/serialization/encdec.h
+    - type: method
+      name: __decoder__
+      static: true
+      visibility: private
+      arguments:
+      - name: ctx
+        type:
+          cxx: ::java::serialization::decoder_ctx&
+          includes:
+            declaration:
+            - java/serialization/decoder_fwd.h
+      - name: raw_stream_elem
+        type:
+          cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
+          includes:
+            declaration:
+            - cycle_ptr/cycle_ptr.h
+            - java/serialization/type_def_fwd.h
+            implementation:
+            - java/serialization/encdec.h
+      return:
+        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::decoder>
+        includes:
+          declaration:
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/decoder_fwd.h
+          implementation:
+          - java/serialization/decoder.h
+      body: |
+        class decoder_impl final
+        : public ::java::serialization::decoder
+        {
+         public:
+          decoder_impl(::java::serialization::decoder_ctx& ctx, ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::new_class> data)
+          : decoder(ctx),
+            data_(std::move(data))
+          {
+            if (this->data_ == nullptr) throw ::java::serialization::decoding_error("incorrect stream element");
+          }
+
+          ~decoder_impl() noexcept override = default;
+
+          auto init() -> ::java::lang::Object override {
+            auto cd = dynamic_cast<const ::java::serialization::stream::new_class_desc__class_desc*>(data_.get());
+            if (cd == nullptr) throw ::java::serialization::decoding_error("encoded class not recognized");
+            const ::java::serialization::stream::field_descriptor& class_name = cd->class_name;
+
+            return ::std::visit(
+                [this, &class_name](const auto& type) -> $boundTemplateType(model.packType, "style=type, class")$ {
+                  using primitive_type = ::java::serialization::stream::primitive_type;
+
+                  if constexpr(::std::is_same_v<primitive_type, std::decay_t<decltype(type)>>) {
+                    switch (type) {
+                    $ ["boolean", "byte", "short", "int", "long", "float", "double", "char"]
+                    : { name |$\\$
+                    case primitive_type::$name$_type:$"\n"$$\\$
+                    $"  "$if (!class_name.is_array())$"\n"$$\\$
+                    $"    "$return ::java::get_class<::java::$name$_t>();$"\n"$$\\$
+                    $"  "$else$"\n"$$\\$
+                    $"    "$return $boundTemplateType(model.packType, "style=type, class")$($"\n"$$\\$
+                    $"        "$::java::_direct(),$"\n"$$\\$
+                    $"        "$::java::_erased::java::array<::java::$name$_t>::__class__(class_name.extents()));$\\$
+                    }
+                    ; anchor, separator = "\n"$
+                    }
+                  } else {
+                    $boundTemplateType(model.packType, "style=type, class")$ cls = this->ctx.get_module().get_class(::std::get<::std::u16string_view>(class_name.type()));
+                    if (class_name.is_array()) {
+                      cls = $boundTemplateType(model.packType, "style=type, class")$(
+                          ::java::_direct(),
+                          ::java::_erased::java::array<::java::lang::Object>::__class__(std::move(cls), class_name.extents()));
+                    }
+                    return cls;
+                  }
+                },
+                class_name.type());
+          }
+
+          auto init_comparable() -> dependent_set override {
+            return dependent_set();
+          }
+
+          auto complete() -> dependent_set override {
+            return dependent_set();
+          }
+
+         private:
+          const ::cycle_ptr::cycle_member_ptr<const ::java::serialization::stream::new_class> data_;
+        };
+
+        return ::cycle_ptr::make_cycle<decoder_impl>(
+            ctx,
+            ::std::dynamic_pointer_cast<const ::java::serialization::stream::new_class>(raw_stream_elem));
+      includes:
+        implementation:
+        - java/serialization/encdec.h
+        - java/serialization/decoder.h
+        - java/serialization/module.h
+        - java/serialization/exception.h
+        - variant
+        - string_view
+        - java/reflect.h

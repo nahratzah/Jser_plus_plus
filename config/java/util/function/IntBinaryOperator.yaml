@@ -1,0 +1,19 @@
+---
+classes:
+  java.util.function.IntBinaryOperator:
+    dev_mode: false
+    doc_string: |
+      \brief Operator that accept two integer arguments and returns an int.
+    members:
+    - type: method
+      name: applyAsInt
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: int
+      - name: y
+        type:
+          java: int
+      return:
+        java: int

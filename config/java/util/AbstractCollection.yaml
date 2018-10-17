@@ -1,0 +1,16 @@
+---
+classes:
+  java.util.AbstractCollection<E>:
+    dev_mode: false
+    members:
+    - type: method
+      name: empty
+      const: true
+      override: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+      body: |
+        return size() == 0u;
+    # XXX implement to_string logic for objects

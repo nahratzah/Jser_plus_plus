@@ -1,0 +1,9 @@
+---
+classes:
+  java.util.RandomAccess:
+    dev_mode: false
+    doc_string: |
+      \brief Marker interface.
+      \details
+      This interface makes more sense in java than in C++.
+      In java, it indicates the list has fast random access.

@@ -1,0 +1,30 @@
+---
+dev_mode: true
+scan:
+  include:
+  - java
+  - java.lang
+  - javax
+  exclude:
+  - java.applet
+  - java.awt
+  - java.beans
+  - javax.activation
+  - javax.activity
+  - javax.crypto
+  - javax.imageio
+  - javax.jws
+  - javax.management.remote.rmi
+  - javax.naming
+  - javax.print
+  - javax.script
+  - javax.security
+  - javax.smartcardio
+  - javax.sound
+  - javax.sql
+  - javax.swing
+  - javax.rmi.CORBA
+  - javax.rmi.CORBA_2_3
+  - javax.tools
+  - javax.transaction
+  - javax.xml

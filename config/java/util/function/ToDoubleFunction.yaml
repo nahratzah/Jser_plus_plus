@@ -1,0 +1,16 @@
+---
+classes:
+  java.util.function.ToDoubleFunction<X>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts an argument and returns a double.
+    members:
+    - type: method
+      name: applyAsDouble
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      return:
+        java: double

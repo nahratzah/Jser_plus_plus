@@ -1,0 +1,17 @@
+---
+classes:
+  java.util.function.ObjLongConsumer<X>:
+    dev_mode: false
+    doc_string: |
+      \brief Consumer that accepts and object and a long integer.
+    members:
+    - type: method
+      name: accept
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          java: long

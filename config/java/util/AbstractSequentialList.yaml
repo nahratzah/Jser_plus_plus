@@ -1,0 +1,46 @@
+---
+classes:
+  java.util.AbstractSequentialList<E>:
+    dev_mode: false
+    members:
+    - type: method
+      name: at
+      override: true
+      arguments:
+      - name: index
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: E
+      body: |
+        if (index >= size()) throw ::std::out_of_range("index too large");
+        return *::std::next(begin(), index);
+      includes:
+        implementation:
+        - cassert
+        - iterator
+        - stdexcept
+    - type: method
+      name: at
+      const: true
+      override: true
+      arguments:
+      - name: index
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: const E
+      body: |
+        if (index >= size()) throw ::std::out_of_range("index too large");
+        return *::std::next(begin(), index);
+      includes:
+        implementation:
+        - cassert
+        - iterator
+        - stdexcept

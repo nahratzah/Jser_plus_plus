@@ -1,0 +1,19 @@
+---
+classes:
+  java.util.function.ToDoubleBiFunction<X, Y>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts two arguments and returns a double.
+    members:
+    - type: method
+      name: applyAsDouble
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          java: Y
+      return:
+        java: double

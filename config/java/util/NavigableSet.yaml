@@ -1,0 +1,68 @@
+---
+classes:
+  java.util.NavigableSet<E>:
+    doc_string: |
+      \brief A sorted set of elements.
+      \details Essentially the java equivalent of std::set.
+      \note Unlike the java counterpart, we're not concerned with creating descending set operations.
+    dev_mode: false
+    members:
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: begin
+      override: true
+      const: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      override: true
+      const: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: find
+      override: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: find
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h

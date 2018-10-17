@@ -1,0 +1,12 @@
+---
+classes:
+  java.util.function.IntSupplier:
+    dev_mode: false
+    doc_string: |
+      \brief Supplier of boolean.
+    members:
+    - type: method
+      name: getAsInt
+      virtual: true
+      return:
+        java: int

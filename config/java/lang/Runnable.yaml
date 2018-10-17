@@ -1,0 +1,28 @@
+---
+classes:
+  java.lang.Runnable:
+    dev_mode: false
+    doc_string: |
+      \brief Java's idea of a functor, that takes no arguments and return no values.
+    members:
+    - type: method
+      name: run
+      virtual: true
+      doc_string: |
+        \brief Run this runnable.
+        \details Invokes the no-argument functor.
+
+        Only implement this if you have something that won't affect data,
+        outside what can be decoded.
+
+        If it is something that modifies the on-disk data, talks on the network,
+        or reaches into general state of the program... it's best not to
+        implement the actual behaviour, but to throw an exception instead.
+
+        \note
+        The default implementation simply throws `std::bad_function_call`.
+      body: |
+        throw ::std::bad_function_call();
+      includes:
+        implementation:
+        - functional

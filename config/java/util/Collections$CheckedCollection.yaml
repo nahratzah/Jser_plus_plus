@@ -1,0 +1,176 @@
+---
+classes:
+  java.util.Collections$CheckedCollection<E>:
+    dev_mode: false
+    fields:
+      c:
+        final: true
+        visibility: private
+      type:
+        const: true
+        final: true
+        decode_complete: true
+        visibility: private
+    members:
+    - type: constructor
+      arguments:
+      - name: c
+        type:
+          java: java.util.Collection<E>
+      - name: type
+        type:
+          java: java.lang.Class<E>
+      initializers:
+        c: std::move(c)
+        type: std::move(type)
+      body: |
+        if (!this->c || !this->type)
+          throw std::invalid_argument("nullptr argument to java.util.Collections\$CheckedCollection");
+    - type: method
+      name: check_
+      const: true
+      visibility: protected
+      arguments:
+      - name: e
+        type:
+          java: E
+      return:
+        java: E
+      doc_string: |
+        \brief Validate the type of E.
+        \throws std::bad_cast if \p e is not an instance of the type of this collection.
+      body: |
+        return type->cast(e);
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: _specialized_
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return ::java::_reflect_ops::hash_code(c, max_cascade);
+      includes:
+        implementation:
+        - type_traits
+        - functional
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: _specialized_
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        eq(c, other);
+    - type: method
+      name: empty
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+      body: |
+        return c == nullptr || c->empty();
+    - type: method
+      name: size
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return (c == nullptr ? 0u : c->size());
+    - type: method
+      name: clear
+      override: true
+      body: |
+        c->clear();
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return c->begin();
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return c->end();
+    - type: method
+      name: begin
+      const: true
+      override: true
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return c->begin();
+    - type: method
+      name: end
+      const: true
+      override: true
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return c->end();
+    - type: method
+      name: insert
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        return c->insert(check_(std::move(e)));

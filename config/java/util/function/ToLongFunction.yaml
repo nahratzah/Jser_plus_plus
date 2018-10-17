@@ -1,0 +1,16 @@
+---
+classes:
+  java.util.function.ToLongFunction<X>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts an argument and returns a long integer.
+    members:
+    - type: method
+      name: applyAsLong
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      return:
+        java: long

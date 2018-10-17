@@ -1,0 +1,67 @@
+---
+classes:
+  java.lang.Number:
+    dev_mode: false
+    members:
+    - type: method
+      name: byteValue
+      virtual: true
+      const: true
+      return:
+        java: byte
+      body: |
+        return static_cast<$boundTemplateType(java.({byte}), "style=type, class")$>(longValue());
+      doc_string: |
+        \brief Retrieve the `byte` value.
+        \attention The returned value may be truncated.
+    - type: method
+      name: shortValue
+      virtual: true
+      const: true
+      return:
+        java: short
+      body: |
+        return static_cast<$boundTemplateType(java.({short}), "style=type, class")$>(longValue());
+      doc_string: |
+        \brief Retrieve the `short` value.
+        \attention The returned value may be truncated.
+    - type: method
+      name: intValue
+      virtual: true
+      const: true
+      return:
+        java: int
+      body: |
+        return static_cast<$boundTemplateType(java.({int}), "style=type, class")$>(longValue());
+      doc_string: |
+        \brief Retrieve the `int` value.
+        \attention The returned value may be truncated.
+    - type: method
+      name: longValue
+      virtual: true
+      const: true
+      return:
+        java: long
+      doc_string: |
+        \brief Retrieve the `long` value.
+        \attention The returned value may be truncated.
+    - type: method
+      name: floatValue
+      virtual: true
+      const: true
+      return:
+        java: float
+      body: |
+        return static_cast<$boundTemplateType(java.({float}), "style=type, class")$>(doubleValue());
+      doc_string: |
+        \brief Retrieve the `float` value.
+        \attention The returned value may be truncated.
+    - type: method
+      name: doubleValue
+      virtual: true
+      const: true
+      return:
+        java: double
+      doc_string: |
+        \brief Retrieve the `double` value.
+        \attention The returned value may be truncated.

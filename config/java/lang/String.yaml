@@ -1,0 +1,272 @@
+---
+classes:
+  java.lang.String:
+    dev_mode: false
+    suppress:
+    - java.io.Serializable/__encoder__
+    - java.io.Serializable/__decoder__
+#    var_type:
+#      cxx: ::std::string
+#      includes:
+#        declaration:
+#        - string
+    fields:
+      value:
+        doc_string: |
+          \brief Contents of `java.lang.String`.
+          \note
+          This field is const, so that shared instances of string don't affect eachother.
+          This corresponds to the immutable property of java strings.
+        const: true
+        type:
+          cxx: ::std::string
+          includes:
+            declaration:
+            - string
+    members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: s
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+            implementation:
+            - string_view
+      initializers:
+        value: s.data(), s.size()
+    - type: constructor
+      arguments:
+      - name: s
+        type:
+          cxx: ::std::u16string_view
+          includes:
+            declaration:
+            - string_view
+            implementation:
+            - string_view
+      initializers:
+        value: ::std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>().to_bytes(s.data(), s.data() + s.size())
+      includes:
+        implementation:
+        - locale
+        - codecvt
+    - type: method
+      name: compareTo
+      visibility: public
+      override: true
+      const: true
+      return:
+        java: int
+      arguments:
+      - name: o
+        type:
+          java: const java.lang.String
+      body: |
+        const std::string& x = value;
+        const std::string& y = o->value();
+        return (x < y ? -1 : (x > y ? 1 : 0));
+    - type: method
+      name: empty
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+      body: |
+        return value.empty();
+    - type: method
+      name: size
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return value.size();
+    - type: method
+      name: front
+      override: true
+      const: true
+      return:
+        cxx: char
+      body: |
+        return value.front();
+    - type: method
+      name: back
+      override: true
+      const: true
+      return:
+        cxx: char
+      body: |
+        return value.back();
+    - type: method
+      name: at
+      override: true
+      const: true
+      arguments:
+      - name: index
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: char
+      body: |
+        return value.at(index);
+    - type: method
+      name: substr
+      override: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: count
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: java.lang.String
+      body: |
+        return $boundTemplateType(java.("java.lang.String"), "style=type, class")$(
+            ::java::allocate, value.substr(pos, count));
+    - type: method
+      name: subSequence
+      virtual: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: count
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: java.lang.String
+      body: |
+        return substr(pos, count);
+    - type: method
+      name: str
+      override: true
+      const: true
+      return:
+        cxx: ::std::string
+        includes:
+          declaration:
+          - string
+      body: |
+        return value;
+    - type: method
+      name: __encoder__
+      visibility: private
+      override: true
+      final: true
+      const: true
+      covariant_return: false
+      return:
+        cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+      body: |
+        return handler_.encode_str(value);
+      includes:
+        declaration:
+        - java/serialization/type_def_fwd.h
+        - java/serialization/encdec.h
+        - cycle_ptr/cycle_ptr.h
+        implementation:
+        - java/serialization/encdec.h
+        - cycle_ptr/cycle_ptr.h
+        - locale
+        - codecvt
+        - java/serialization/type_def.h
+    - type: method
+      name: __decoder__
+      static: true
+      visibility: private
+      arguments:
+      - name: ctx
+        type:
+          cxx: ::java::serialization::decoder_ctx&
+          includes:
+            declaration:
+            - java/serialization/decoder_fwd.h
+      - name: raw_stream_elem
+        type:
+          cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
+          includes:
+            declaration:
+            - cycle_ptr/cycle_ptr.h
+            - java/serialization/type_def_fwd.h
+            implementation:
+            - java/serialization/encdec.h
+      return:
+        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::decoder>
+        includes:
+          declaration:
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/decoder_fwd.h
+          implementation:
+          - java/serialization/decoder.h
+      body: |
+        class decoder_impl final
+        : public ::java::serialization::decoder
+        {
+         public:
+          decoder_impl(::java::serialization::decoder_ctx& ctx, ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_string> data)
+          : decoder(ctx),
+            data_(std::move(data))
+          {
+            if (this->data_ == nullptr) throw ::java::serialization::decoding_error("incorrect stream element");
+          }
+
+          ~decoder_impl() noexcept override = default;
+
+          auto init() -> ::java::lang::Object override {
+            return $boundTemplateType(model.packType, "style=type, class")$(
+                ::java::allocate,
+                *data_);
+          }
+
+          auto init_comparable() -> dependent_set override {
+            return dependent_set();
+          }
+
+          auto complete() -> dependent_set override {
+            return dependent_set();
+          }
+
+         private:
+          const ::cycle_ptr::cycle_member_ptr<const ::java::serialization::stream::stream_string> data_;
+        };
+
+        return ::cycle_ptr::make_cycle<decoder_impl>(
+            ctx,
+            ::std::dynamic_pointer_cast<const ::java::serialization::stream::stream_string>(raw_stream_elem));
+      includes:
+        implementation:
+        - java/serialization/encdec.h
+        - java/serialization/decoder.h
+        - java/serialization/exception.h

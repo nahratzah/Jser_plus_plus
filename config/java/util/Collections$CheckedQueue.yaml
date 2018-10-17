@@ -1,0 +1,75 @@
+---
+classes:
+  java.util.Collections$CheckedQueue<E>:
+    dev_mode: false
+    fields:
+      queue:
+        final: true
+        visibility: private
+    members:
+    - type: constructor
+      arguments:
+      - name: queue
+        type:
+          java: java.util.Queue<E>
+      - name: type
+        type:
+          java: java.lang.Class<E>
+      super: queue, std::move(type)
+      initializers:
+        queue: std::move(queue)
+    - type: method
+      name: insert
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        return queue->insert(check_(std::move(e)));
+    - type: method
+      name: front
+      override: true
+      const: true
+      return:
+        java: const E
+      body: |
+        return queue->front();
+    - type: method
+      name: back
+      override: true
+      const: true
+      return:
+        java: const E
+      body: |
+        return queue->back();
+    - type: method
+      name: front
+      override: true
+      return:
+        java: E
+      body: |
+        return queue->front();
+    - type: method
+      name: back
+      override: true
+      return:
+        java: E
+      body: |
+        return queue->back();
+    - type: method
+      name: pop
+      override: true
+      return:
+        cxx: void
+      body: |
+        queue->pop();
+    - type: method
+      name: push
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        return queue->push(check_(std::move(e)));

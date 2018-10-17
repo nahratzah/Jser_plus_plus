@@ -1,0 +1,80 @@
+---
+classes:
+  java.util.Collections$UnmodifiableList<E>:
+    dev_mode: true
+    fields:
+      list:
+        final: true
+        visibility: private
+    members:
+    - type: constructor
+      arguments:
+      - name: list
+        type:
+          java: java.util.List<E>
+      super: list
+      initializers:
+        list: std::move(list)
+    - type: method
+      name: insert
+      override: true
+      arguments:
+      - name: _e_
+        type:
+          java: E
+      body: |
+        throw std::runtime_error("unmodifiable collection");
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return this->$boundTemplateType(java.({java.util.Collections\$UnmodifiableCollection}), "style=erased")$::__hash_code__(specialized, max_cascade);
+      includes:
+        implementation:
+        - type_traits
+        - functional
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        this->$boundTemplateType(java.({java.util.Collections\$UnmodifiableCollection}), "style=erased")$::__equal__(specialized, eq, other);

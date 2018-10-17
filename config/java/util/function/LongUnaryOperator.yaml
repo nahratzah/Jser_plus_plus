@@ -1,0 +1,16 @@
+---
+classes:
+  java.util.function.LongUnaryOperator:
+    dev_mode: false
+    doc_string: |
+      \brief Operator that accepts a long integer argument and returns a long integer.
+    members:
+    - type: method
+      name: applyAsLong
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: long
+      return:
+        java: long

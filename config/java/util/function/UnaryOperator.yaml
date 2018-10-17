@@ -1,0 +1,6 @@
+---
+classes:
+  java.util.function.UnaryOperator<T>:
+    dev_mode: false
+    doc_string: |
+      \brief Unary operator.

@@ -1,0 +1,16 @@
+---
+classes:
+  java.util.function.DoubleUnaryOperator:
+    dev_mode: false
+    doc_string: |
+      \brief Operator that accept a double argument and returns a double.
+    members:
+    - type: method
+      name: applyAsDouble
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: double
+      return:
+        java: double

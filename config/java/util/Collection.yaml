@@ -1,0 +1,63 @@
+---
+classes:
+  java.util.Collection<E>:
+    suppress:
+    - java.lang.Object/equals_and_hashcode
+    dev_mode: false
+    members:
+    - type: method
+      name: empty
+      virtual: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+    - type: method
+      name: size
+      virtual: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+    - type: method
+      name: clear
+      virtual: true
+    - type: method
+      name: insert
+      virtual: true
+      arguments:
+      - name: e
+        type:
+          java: E
+      doc_string: |
+        \brief Add an element to the collection.
+        \note Exact position depends on implementation.
+    - type: method
+      name: insert
+      virtual: true
+      arguments:
+      - name: b
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      body: |
+        std::for_each(std::move(b), std::move(e),
+            [this](const auto& i) {
+              insert(i);
+            });
+      doc_string: |
+        \brief Add elements to the collection.
+        \note Exact position depends on implementation.

@@ -1,0 +1,175 @@
+---
+classes:
+  java.util.Set<E>:
+    dev_mode: false
+    doc_string: |
+      \brief Java Set interface.
+      \details Models a set.
+    members:
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      virtual: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: _specialized_
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        static const ::std::size_t nonce = ::java::__hash_nonce();
+
+        // We use XOR combining.
+        // It's a really bad algorithm, due to collisions.
+        // But it's the only way to keep the computation agnostic of the ordering.
+        ::std::size_t h = 0;
+        for (const auto& i : *this) h ^= ::std::size_t(hash_combiner(max_cascade) << i);
+
+        return hash_combiner(h, max_cascade)
+            << nonce;
+      includes:
+        implementation:
+        - functional
+        - cstddef
+        - java/hash.h
+    - type: method
+      name: __equal__
+      virtual: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        const $erasedType(model)$* casted_other = dynamic_cast<const $erasedType(model)$*>(&other);
+
+        if (casted_other == nullptr) {
+          eq.fail();
+        } else {
+          $erasedType(model)$::__equal_impl__(specialized, eq, *this, *casted_other);
+        }
+    - type: method
+      name: __equal_impl__
+      static: true
+      visibility: protected
+      arguments:
+      - name: _specialized_
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: x
+        type:
+          cxx: const $boundTemplateType(java.({java.util.Set<E>}), "style=erased")$&
+      - name: y
+        type:
+          cxx: const $boundTemplateType(java.({java.util.Set<E>}), "style=erased")$&
+      body: |
+        if (!std::is_permutation(
+            x.begin(), x.end(),
+            y.begin(), y.end(),
+            [&eq](const auto& x, const auto& y) {
+              return eq.test(x, y);
+            }))
+          eq.fail();
+      includes:
+        implementation:
+        - java/reflect.h
+        - algorithm
+    - type: method
+      name: contains
+      virtual: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: bool
+      doc_string: |
+        \brief Test if element is present in this set.
+        \param e An element to find.
+        \returns True if the element is present in the set. False otherwise.
+    - type: method
+      name: find
+      virtual: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      doc_string: |
+        \brief Find element in the set.
+        \param e An element to find.
+        \returns Iterator to the element, or if the element is absent, an iterator to end.
+    - type: method
+      name: find
+      virtual: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      doc_string: |
+        \brief Find element in the set.
+        \param e An element to find.
+        \returns Iterator to the element, or if the element is absent, an iterator to end.
+    - type: method
+      name: erase
+      virtual: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      doc_string: |
+        \brief Remove element from the set.
+        \param e The element to remove.
+        \returns Number of items removed from the set.

@@ -1,0 +1,132 @@
+---
+classes:
+  java.lang.StringBuffer:
+    dev_mode: false
+    fields:
+      value:
+        omit: true
+      count:
+        omit: true
+      shared:
+        omit: true
+        encoder_expr: "false"
+    members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: s
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      super: s
+    - type: method
+      name: __decoder_annotation__
+      visibility: private
+      arguments:
+      - name: decoder
+        type:
+          cxx: const ::java::serialization::class_decoder<$tagType(model)$>&
+          includes:
+            declaration:
+            - java/serialization/decoder_fwd.h
+            implementation:
+            - java/serialization/decoder.h
+      body: |
+        using namespace ::std::string_view_literals;
+        using conversion_type = ::std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>,
+            char16_t>;
+
+        auto len = decoder.get_primitive_field<$boundTemplateType(java.({int}), "style=type, class")$>($u16StringView("count")$);
+        if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative array size})$);
+
+        auto data = decoder.get_complete_field<$boundTemplateType(java.({char[]}), "style=type, class")$>($u16StringView("value")$);
+        if (data.size() < ::std::size_t(len)) throw ::java::serialization::decoding_error($cxxString({$model.name$: insufficient characters})$);
+
+        conversion_type conversion;
+        this->$boundTemplateType(java.({java.lang.AbstractStringBuilder}), "style=erased")$::value = conversion.to_bytes(&data.begin()[0], &data.begin()[len]);
+      includes:
+        implementation:
+        - locale
+        - codecvt
+    - type: method
+      name: __encoder_annotation__
+      visibility: private
+      const: true
+      arguments:
+      - name: handler_
+        type:
+          cxx: ::java::serialization::cycle_handler&
+          includes:
+            declaration:
+            - java/serialization/type_def_fwd.h
+      - name: fields
+        type:
+          cxx: ::java::serialization::stream::new_object::class_data::field_map&
+          includes:
+            declaration:
+            - java/serialization/encdec.h
+      return:
+        cxx: ::std::vector<::std::variant<::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>, ::java::serialization::stream::blockdata>>
+        includes:
+          declaration:
+          - vector
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/type_def_fwd.h
+          implementation:
+          - java/serialization/encdec.h
+      body: |
+        using namespace ::std::string_view_literals;
+        using namespace ::java::serialization::stream;
+        using conversion_type = ::std::wstring_convert<
+            std::codecvt_utf8_utf16<char16_t>,
+            char16_t>;
+
+        conversion_type conversion;
+        const auto converted = conversion.from_bytes(this->value);
+
+        auto data = $boundTemplateType(java.({char[]}), "style=type, class")$(::java::allocate, converted.begin(), converted.end());
+        if (data.size() > 0x7fffffffu)
+          throw ::std::logic_error($cxxString({$model.name$: size too large})$);
+
+        new_object::class_data::set_field(
+            fields,
+            $u16StringView("count")$,
+            primitive_desc::value_type(::std::in_place_type<$boundTemplateType(java.({int}), "style=type, class")$>, data.size()));
+        new_object::class_data::set_field(
+            fields,
+            $u16StringView("value")$,
+            object_desc::value_type(handler_.encode_field(data)));
+
+        return {};
+      includes:
+        implementation:
+        - locale
+        - codecvt
+        - string_view
+        - java/serialization/encdec.h
+    - type: method
+      name: subSequence
+      override: true
+      const: true
+      arguments:
+      - name: pos
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      - name: count
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        java: java.lang.StringBuffer
+      body: |
+        return $boundTemplateType(java.({java.lang.StringBuffer}), "style=type, class")$(
+            ::java::allocate,
+            std::string_view(this->value).substr(pos, count));

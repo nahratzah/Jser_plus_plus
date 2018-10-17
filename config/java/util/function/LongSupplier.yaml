@@ -1,0 +1,12 @@
+---
+classes:
+  java.util.function.LongSupplier:
+    dev_mode: false
+    doc_string: |
+      \brief Supplier of long integers.
+    members:
+    - type: method
+      name: getAsLong
+      virtual: true
+      return:
+        java: long

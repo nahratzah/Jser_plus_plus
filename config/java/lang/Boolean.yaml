@@ -1,0 +1,56 @@
+---
+classes:
+  java.lang.Boolean:
+    dev_mode: false
+#    var_type:
+#      java: boolean
+    fields:
+      value:
+        const: true
+        default: "false"
+    members:
+    - type: constructor
+      arguments:
+      - name: v
+        type:
+          java: boolean
+      initializers:
+        value: v
+    - type: method
+      name: compareTo
+      const: true
+      override: true
+      arguments:
+      - name: o
+        type:
+          java: const java.lang.Boolean
+      return:
+        java: int
+      body: |
+        const $boundTemplateType(java.({boolean}), "style=type, class")$ x = value;
+        const $boundTemplateType(java.({boolean}), "style=type, class")$ y = o->value();
+
+        if (x == y) return 0;
+        return (x ? 1 : -1);
+    - type: method
+      name: "True"
+      static: true
+      return:
+        java: java.lang.Boolean
+      doc_string: |
+        \brief Models the `java.lang.Boolean.TRUE` constant.
+        \details This simply invokes the constructor for Boolean.
+        \bug This method should be static.
+      body: |
+        return $boundTemplateType(java.("java.lang.Boolean"), "style=type, class")$(::java::allocate, true);
+    - type: method
+      name: "False"
+      static: true
+      return:
+        java: java.lang.Boolean
+      doc_string: |
+        \brief Models the `java.lang.Boolean.FALSE` constant.
+        \details This simply invokes the constructor for Boolean.
+        \bug This method should be static.
+      body: |
+        return $boundTemplateType(java.("java.lang.Boolean"), "style=type, class")$(::java::allocate, false);

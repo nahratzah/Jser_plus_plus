@@ -1,0 +1,127 @@
+---
+classes:
+  java.util.Collections$CheckedSet<E>:
+    dev_mode: false
+    fields:
+      set:
+        type:
+          java: java.util.Set<E>
+        final: true
+        visibility: private
+    members:
+    - type: constructor
+      arguments:
+      - name: set
+        type:
+          java: java.util.Set<E>
+      - name: type
+        type:
+          java: java.lang.Class<E>
+      super: set, std::move(type)
+      initializers:
+        set: std::move(set)
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return this->$boundTemplateType(java.({java.util.Collections\$CheckedCollection<E>}), "style=erased")$::__hash_code__(specialized, max_cascade);
+    - type: method
+      name: __equal__
+      override: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        return this->$boundTemplateType(java.({java.util.Collections\$CheckedCollection<E>}), "style=erased")$::__equal__(specialized, eq, other);
+    - type: method
+      name: contains
+      virtual: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: bool
+      body: |
+        return set->contains(e);
+    - type: method
+      name: find
+      override: true
+      const: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::forward_iterator<const $boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return set->find(e);
+    - type: method
+      name: find
+      override: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return set->find(e);
+    - type: method
+      name: erase
+      virtual: true
+      arguments:
+      - name: e
+        type:
+          java: const E
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return set->erase(e);

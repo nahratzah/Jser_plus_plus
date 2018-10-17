@@ -1,0 +1,16 @@
+---
+classes:
+  java.util.function.LongToDoubleFunction:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts a long integer argument and returns a double.
+    members:
+    - type: method
+      name: applyAsDouble
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: long
+      return:
+        java: double

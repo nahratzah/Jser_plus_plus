@@ -1,0 +1,20 @@
+---
+classes:
+  java.util.Comparators$NaturalOrderComparator:
+    dev_mode: false
+    members:
+    - type: method
+      name: compare
+      const: true
+      override: true
+      arguments:
+      - name: x
+        type:
+          java: const java.lang.Comparable<java.lang.Object>
+      - name: y
+        type:
+          java: const java.lang.Comparable<java.lang.Object>
+      return:
+        java: int
+      body: |
+        return x->compareTo(y);

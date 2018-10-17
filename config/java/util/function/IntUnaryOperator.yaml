@@ -1,0 +1,16 @@
+---
+classes:
+  java.util.function.IntUnaryOperator:
+    dev_mode: false
+    doc_string: |
+      \brief Operator that accepts an integer argument and returns an integer.
+    members:
+    - type: method
+      name: applyAsInt
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: int
+      return:
+        java: int

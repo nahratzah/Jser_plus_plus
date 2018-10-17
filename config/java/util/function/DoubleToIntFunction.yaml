@@ -1,0 +1,16 @@
+---
+classes:
+  java.util.function.DoubleToIntFunction:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts a double argument and returns an int.
+    members:
+    - type: method
+      name: applyAsInt
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: double
+      return:
+        java: int

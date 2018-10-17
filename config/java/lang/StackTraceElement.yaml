@@ -1,0 +1,99 @@
+---
+classes:
+  java.lang.StackTraceElement:
+    dev_mode: false
+    members:
+    - type: constructor
+      arguments:
+      - name: declaringClass
+        type:
+          java: java.lang.String
+      - name: methodName
+        type:
+          java: java.lang.String
+      - name: fileName
+        type:
+          java: java.lang.String
+      - name: lineNumber
+        type:
+          java: int
+      initializers:
+        declaringClass: ::std::move(declaringClass)
+        methodName: ::std::move(methodName)
+        fileName: ::std::move(fileName)
+        lineNumber: ::std::move(lineNumber)
+      body: |
+        if (this->declaringClass == nullptr || this->methodName == nullptr)
+          throw ::std::invalid_argument($cxxString({$model.name$: declaringClass and methodName may not be null})$);
+      includes:
+        implementation:
+        - utility
+        - stdexcept
+    - type: constructor
+      arguments:
+      - name: declaringClass
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: methodName
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: fileName
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: lineNumber
+        type:
+          java: int
+      initializers:
+        declaringClass: ::java::allocate, declaringClass
+        methodName: ::java::allocate, methodName
+        fileName: ::java::allocate, fileName
+        lineNumber: ::std::move(lineNumber)
+      includes:
+        implementation:
+        - utility
+    - type: constructor
+      arguments:
+      - name: declaringClass
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: methodName
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: fileName
+        type:
+          cxx: ::std::nullptr_t
+          includes:
+            declaration:
+            - cstddef
+      - name: lineNumber
+        type:
+          java: int
+      initializers:
+        declaringClass: ::java::allocate, declaringClass
+        methodName: ::java::allocate, methodName
+        fileName: fileName
+        lineNumber: ::std::move(lineNumber)
+      includes:
+        implementation:
+        - utility
+    - type: method
+      name: nativeMethod
+      return:
+        java: boolean
+      body: |
+        return lineNumber == -2;

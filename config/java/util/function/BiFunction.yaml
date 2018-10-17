@@ -1,0 +1,19 @@
+---
+classes:
+  java.util.function.BiFunction<X, Y, R>:
+    dev_mode: false
+    doc_string: |
+      \brief Function that accepts 2 arguments and returns a result.
+    members:
+    - type: method
+      name: apply
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          java: Y
+      return:
+        java: R

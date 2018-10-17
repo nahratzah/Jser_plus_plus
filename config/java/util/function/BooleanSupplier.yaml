@@ -1,0 +1,12 @@
+---
+classes:
+  java.util.function.BooleanSupplier:
+    dev_mode: false
+    doc_string: |
+      \brief Supplier of boolean.
+    members:
+    - type: method
+      name: getAsBoolean
+      virtual: true
+      return:
+        java: boolean

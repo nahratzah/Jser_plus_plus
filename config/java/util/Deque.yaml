@@ -1,0 +1,119 @@
+---
+classes:
+  java.util.Deque<E>:
+    dev_mode: false
+    members:
+    - type: method
+      name: push_front
+      virtual: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
+    - type: method
+      name: push_back
+      virtual: true
+      return:
+        cxx: bool
+      arguments:
+      - name: e
+        type:
+          java: E
+    - type: method
+      name: pop_front
+      virtual: true
+      return:
+        java: E
+    - type: method
+      name: pop_back
+      virtual: true
+      return:
+        java: E
+    - type: method
+      name: front
+      virtual: true
+      const: true
+      return:
+        java: const E
+      doc_string: |
+        \brief Retrieve the first element from the queue.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      const: true
+      return:
+        java: const E
+      doc_string: |
+        \brief Retrieve the last element from the queue.
+        \returns The last element.
+    - type: method
+      name: front
+      virtual: true
+      return:
+        java: E
+      doc_string: |
+        \brief Retrieve the first element from the queue.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      return:
+        java: E
+      doc_string: |
+        \brief Retrieve the last element from the queue.
+        \returns The last element.
+    - type: method
+      name: push
+      virtual: true
+      return:
+        cxx: void
+      arguments:
+      - name: e
+        type:
+          java: E
+      body: |
+        push_back(std::move(e));
+    - type: method
+      name: pop
+      virtual: true
+      return:
+        cxx: void
+      body: |
+        pop_front();
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::bidirectional_iterator<$boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: begin
+      override: true
+      const: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      override: true
+      const: true
+      return:
+        cxx: ::java::bidirectional_iterator<const $boundTemplateType(java.("E"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h

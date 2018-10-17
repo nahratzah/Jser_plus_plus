@@ -1,0 +1,26 @@
+---
+classes:
+  java.util.Comparator<T>:
+    dev_mode: false
+    members:
+    - type: method
+      name: compare
+      const: true
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: const T
+      - name: y
+        type:
+          java: const T
+      return:
+        java: int
+    - type: method
+      name: naturalOrder
+      static: true
+      return:
+        java: java.util.Comparator<T>
+      body: |
+        return ::java::cast<$boundTemplateType(java.("java.util.Comparator<java.lang.Object>"), "style=type, class")$>(
+            $boundTemplateType(java.({java.util.Comparators\$NaturalOrderComparator}), "style=type, class")$::Instance());

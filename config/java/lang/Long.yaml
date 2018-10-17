@@ -1,0 +1,50 @@
+---
+classes:
+  java.lang.Long:
+    dev_mode: false
+#    var_type:
+#      java: long
+    fields:
+      value:
+        const: true
+        default: 0
+    members:
+    - type: constructor
+      arguments:
+      - name: v
+        type:
+          java: long
+      initializers:
+        value: v
+    - type: method
+      name: compareTo
+      const: true
+      override: true
+      arguments:
+      - name: o
+        type:
+          java: const java.lang.Long
+      return:
+        java: int
+      body: |
+        $boundTemplateType(java.({const long}), "style=type, class")$ x = value;
+        $boundTemplateType(java.({const long}), "style=type, class")$ y = o->value();
+
+        if (x == y) return 0;
+        return (x < y ? -1 : 1);
+    - type: method
+      name: longValue
+      override: true
+      const: true
+      return:
+        java: long
+      body: |
+        return value;
+    - type: method
+      name: doubleValue
+      override: true
+      const: true
+      return:
+        java: double
+      body: |
+        return value;

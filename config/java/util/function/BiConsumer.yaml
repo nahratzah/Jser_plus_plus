@@ -1,0 +1,17 @@
+---
+classes:
+  java.util.function.BiConsumer<X, Y>:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 2 arguments.
+    members:
+    - type: method
+      name: accept
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: X
+      - name: y
+        type:
+          java: Y

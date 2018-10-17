@@ -1,0 +1,14 @@
+---
+classes:
+  java.util.function.IntConsumer:
+    dev_mode: false
+    doc_string: |
+      \brief Functor that accepts 1 argument.
+    members:
+    - type: method
+      name: accept
+      virtual: true
+      arguments:
+      - name: x
+        type:
+          java: int
