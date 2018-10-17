@@ -1548,6 +1548,7 @@ classes:
             - string
     members:
     - type: constructor
+    - type: constructor
       arguments:
       - name: s
         type:
@@ -8160,20 +8161,34 @@ classes:
                 "",
                 ::boost::stacktrace::to_string(f),
                 nullptr,
-                0));
+                -1));
           } else {
+            const auto frame_source = f.source_file();
+            const auto frame_line = f.source_line();
+
+            $boundTemplateType(java.({java.lang.String}), "style=type, class")$ method = $boundTemplateType(java.({java.lang.String}), "style=type, class")$(::java::allocate, name);
+            $boundTemplateType(java.({java.lang.String}), "style=type, class")$ declaringClass = $boundTemplateType(java.({java.lang.String}), "style=type, class")$(::java::allocate);
+            $boundTemplateType(java.({java.lang.String}), "style=type, class")$ source = nullptr;
+            $boundTemplateType(java.({int}), "style=type, class")$ line = -1;
+
+            if (!frame_source.empty() && frame_line > 0 && frame_line <= 0x7fffffffu) {
+              source = $boundTemplateType(java.({java.lang.String}), "style=type, class")$(::java::allocate, frame_source);
+              line = static_cast<$boundTemplateType(java.({int}), "style=type, class")$>(frame_line);
+            }
+
             traceElements.push_back($boundTemplateType(java.({java.lang.StackTraceElement}), "style=type, class")$(
                 ::java::allocate,
-                "",
-                name,
-                f.source_file(),
-                f.source_line()));
+                ::std::move(declaringClass),
+                ::std::move(method),
+                ::std::move(source),
+                line));
           }
         }
       includes:
         implementation:
         - boost/stacktrace/stacktrace.hpp
         - boost/stacktrace/frame.hpp
+        - utility
     - type: method
       name: fillStackTrace
       arguments:
@@ -8191,6 +8206,50 @@ classes:
       body: |
         // We add 1 to the skip depth, to skip this function.
         fillStackTrace(1);
+    - type: method
+      name: stackTraceString
+      return:
+        cxx: ::std::string
+        includes:
+          declaration:
+          - string
+      body: |
+        if (stackTrace == nullptr) return {};
+
+        ::std::ostringstream oss;
+        for (const auto frame : stackTrace) {
+          if (frame == nullptr) {
+            oss << "(skipped frame)";
+          } else {
+            const auto declaringClass = frame->declaringClass();
+            const auto methodName = frame->methodName();
+            const auto fileName = frame->fileName();
+
+            if (declaringClass != nullptr && !declaringClass->empty())
+              oss << declaringClass->value() << ".";
+            if (methodName != nullptr && !methodName->empty())
+              oss << methodName->value();
+            else
+              oss << "(unknown method)";
+            if (frame->nativeMethod())
+              oss << " (native method)";
+
+            oss << " "; // Separator.
+
+            if (fileName == nullptr || fileName->empty())
+              oss << "(Unknown Source)";
+            else
+              oss << "(" << fileName->value() << ":" << frame->lineNumber() << ")";
+          }
+
+          oss << "\n";
+        }
+
+        return ::std::move(oss).str();
+      includes:
+        implementation:
+        - sstream
+        - utility
     src_raw: |
       // For boost::stacktrace.
       #ifndef _GNU_SOURCE
@@ -8220,9 +8279,13 @@ classes:
         methodName: ::std::move(methodName)
         fileName: ::std::move(fileName)
         lineNumber: ::std::move(lineNumber)
+      body: |
+        if (this->declaringClass == nullptr || this->methodName == nullptr)
+          throw ::std::invalid_argument($cxxString({$model.name$: declaringClass and methodName may not be null})$);
       includes:
         implementation:
         - utility
+        - stdexcept
     - type: constructor
       arguments:
       - name: declaringClass
@@ -8285,3 +8348,9 @@ classes:
       includes:
         implementation:
         - utility
+    - type: method
+      name: nativeMethod
+      return:
+        java: boolean
+      body: |
+        return lineNumber == -2;
