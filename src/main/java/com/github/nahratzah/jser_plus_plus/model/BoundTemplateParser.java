@@ -129,6 +129,7 @@ class BoundTemplateParser {
 
         final Matcher bracketMatcher = ROUND_BRACKET_OPEN.matcher(s);
         if (bracketMatcher.find()) {
+            s = s.subSequence(bracketMatcher.end(), s.length());
             type = parse_();
 
             eatWs_();
@@ -185,6 +186,7 @@ class BoundTemplateParser {
                 s = s.subSequence(varName.end(), s.length());
             } else if (clsName.find()) {
                 final JavaType cls = ctx.resolveClass(clsName.group().replaceAll("\\s", ""));
+                s = s.subSequence(clsName.end(), s.length());
                 types.add(new BoundTemplate.ClassBinding<>(cls, maybeParseTemplate_()));
             } else {
                 throw new IllegalArgumentException("Expected variable or type.");

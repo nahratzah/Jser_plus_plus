@@ -26,8 +26,9 @@ public class BoundTemplateTest {
     @Mock
     private ClassType mapType, thisClass;
 
+    private ClassType clsType, strType;
     private Map<String, BoundTemplate> variables;
-    private BoundTemplate.ClassBinding thisType;
+    private BoundTemplate.ClassBinding<ClassType> thisType;
     private BoundTemplate.VarBinding kVar, vVar;
 
     @Before
@@ -42,6 +43,9 @@ public class BoundTemplateTest {
         thisType = new BoundTemplate.ClassBinding<>(thisClass, EMPTY_LIST);
 
         Mockito.when(mapType.getNumTemplateArguments()).thenReturn(2);
+
+        clsType = new ClassType(Class.class);
+        strType = new ClassType(String.class);
     }
 
     @Test
@@ -53,6 +57,34 @@ public class BoundTemplateTest {
         assertEquals(
                 new BoundTemplate.ClassBinding<>(mapType, Arrays.asList(kVar, vVar)),
                 type);
+
+        Mockito.verifyNoMoreInteractions(ctx);
+    }
+
+    @Test
+    public void parseNestedAny() {
+        Mockito.when(ctx.resolveClass(Mockito.anyString())).thenAnswer((args) -> {
+            if ("java.lang.Class".equals(args.getArgumentAt(0, String.class)))
+                return clsType;
+            if ("java.lang.String".equals(args.getArgumentAt(0, String.class)))
+                return strType;
+            throw new AssertionError("Expected Map or String lookup, got " + args.getArgumentAt(0, Object.class));
+        });
+
+        final Type type = BoundTemplate.fromString("java.lang.Class<? extends java.lang.String>", ctx, variables, thisType);
+        Mockito.verify(ctx, Mockito.times(1)).resolveClass(Mockito.eq("java.lang.Class"));
+        Mockito.verify(ctx, Mockito.times(1)).resolveClass(Mockito.eq("java.lang.String"));
+
+        assertThat(type, Matchers.instanceOf(BoundTemplate.ClassBinding.class));
+        final BoundTemplate.ClassBinding<JavaType> classType = (BoundTemplate.ClassBinding<JavaType>) type;
+        assertSame(clsType, classType.getType());
+        assertThat(classType.getBindings().get(0), Matchers.instanceOf(BoundTemplate.Any.class));
+        final BoundTemplate.Any lastBinding = (BoundTemplate.Any) classType.getBindings().get(0);
+        assertThat(lastBinding.getSuperTypes(), Matchers.empty());
+        final BoundTemplate extendBinding = lastBinding.getExtendTypes().iterator().next();
+        assertThat(extendBinding, Matchers.instanceOf(BoundTemplate.ClassBinding.class));
+        assertThat(((BoundTemplate.ClassBinding<JavaType>) extendBinding).getType(), Matchers.sameInstance(strType));
+        assertThat(((BoundTemplate.ClassBinding<JavaType>) extendBinding).getBindings(), Matchers.empty());
 
         Mockito.verifyNoMoreInteractions(ctx);
     }
