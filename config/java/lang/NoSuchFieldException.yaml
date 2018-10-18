@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.NoSuchFieldException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating a field does not exist.
+    inherit_constructors: true

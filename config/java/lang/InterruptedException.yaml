@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.InterruptedException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception thrown when a waiting thread is interrupted.
+    inherit_constructors: true

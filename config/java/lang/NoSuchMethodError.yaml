@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.NoSuchMethodError:
+    dev_mode: false
+    doc_string: |
+      \brief Error indicating a method does not exist.
+    inherit_constructors: true

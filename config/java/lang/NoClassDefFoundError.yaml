@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.NoClassDefFoundError:
+    dev_mode: false
+    doc_string: |
+      \brief Error thrown when a referenced class does not exist.
+    inherit_constructors: true

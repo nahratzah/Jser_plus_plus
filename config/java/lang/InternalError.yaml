@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.InternalError:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating some unexpected error occured within the JVM.
+    inherit_constructors: true

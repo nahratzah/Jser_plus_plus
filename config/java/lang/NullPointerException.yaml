@@ -1,0 +1,8 @@
+---
+classes:
+  java.lang.NullPointerException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception thrown when an attempt to dereference a null-reference is made.
+      \details In C++, we use \ref ::java::null_error "java::null_error" to indicate the same.
+    inherit_constructors: true
