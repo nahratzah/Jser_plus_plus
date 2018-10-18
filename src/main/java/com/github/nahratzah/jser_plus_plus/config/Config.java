@@ -78,6 +78,10 @@ public class Config {
      * @param y The other config to merge into this one.
      */
     public void merge(Config y) {
+        if (module != null && y.module != null && !Objects.equals(module, y.module))
+            throw new IllegalArgumentException("conflicting module name");
+        if (module == null) module = y.module;
+
         if (scan != null && y.scan != null)
             throw new IllegalArgumentException("duplicate declaration of scanner");
         if (scan == null) scan = y.scan;
@@ -96,6 +100,24 @@ public class Config {
 
         rules.addAll(y.rules);
         devMode |= y.devMode;
+    }
+
+    /**
+     * Get the name of the module that is being configured.
+     *
+     * @return Module name.
+     */
+    public String getModule() {
+        return module;
+    }
+
+    /**
+     * Set the name of the module that is being configured.
+     *
+     * @param module Module name.
+     */
+    public void setModule(String module) {
+        this.module = module;
     }
 
     /**
@@ -180,7 +202,10 @@ public class Config {
         this.devMode = devMode;
     }
 
-    @JsonProperty(value = "scan", required = true)
+    @JsonProperty(value = "module")
+    private String module;
+
+    @JsonProperty(value = "scan")
     private Scan scan;
 
     @JsonProperty(value = "classes")

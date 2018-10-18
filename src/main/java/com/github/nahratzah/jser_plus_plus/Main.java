@@ -22,6 +22,7 @@ public class Main {
     private static final Logger LOG = Logger.getLogger(Main.class.getName());
     private static final boolean ENABLE_DEBUG_LOGS = false;
     private static final File CONFIG_DIR = new File("/home/ariane/programming/JSer++-2/config");
+    private static final File OUTPUT_DIR = new File("/tmp/jvm");
 
     public static void main(String[] args) throws Exception {
         if (ENABLE_DEBUG_LOGS) enableDebugLog(Level.FINE);
@@ -48,7 +49,7 @@ public class Main {
 
             p.postProcess();
 
-            try (final CmakeModule cmake = new CmakeModule("jvm", new File("/tmp/jvm"), EMPTY_SET, EMPTY_SET, EMPTY_SET)) {
+            try (final CmakeModule cmake = new CmakeModule(cfg.getModule(), OUTPUT_DIR, EMPTY_SET, EMPTY_SET, EMPTY_SET)) {
                 cmake.addSupplied(
                         new File("/usr/home/ariane/programming/JSer++-2/jvm_supplied/include"),
                         new File("/usr/home/ariane/programming/JSer++-2/jvm_supplied/src"));

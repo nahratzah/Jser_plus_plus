@@ -1,5 +1,6 @@
 ---
 dev_mode: true
+module: jvm
 scan:
   include:
   - java
