@@ -17,7 +17,239 @@ classes:
     fields:
       stackTrace:
         decode_complete: true
+      detailMessage:
+        rename: message
+      cause:
+        rename: cause_
+        visibility: private
+        getter: false
+        setter: false
     members:
+    - type: constructor
+      initializers:
+        cause_: ::java::_direct(), this->shared_from_this(this)
+    - type: constructor
+      arguments:
+      - name: cause
+        type:
+          java: java.lang.Throwable
+      initializers:
+        cause_: ::std::move(cause)
+      body: |
+        using namespace ::std::literals;
+
+        if (cause_ != nullptr) {
+          message = $boundTemplateType(java.({java.lang.String}), "style=type, class")$(
+              ::java::allocate,
+              ::java::get_class(cause_)->name() + (cause_->message() != nullptr ? ": " + cause_->message()->value() : $u8String("")$));
+        }
+    - type: constructor
+      arguments:
+      - name: message
+        type:
+          java: java.lang.String
+      initializers:
+        message: ::std::move(message)
+        cause_: ::java::_direct(), this->shared_from_this(this)
+    - type: constructor
+      arguments:
+      - name: message
+        type:
+          java: java.lang.String
+      - name: cause
+        type:
+          java: java.lang.Throwable
+      initializers:
+        message: ::std::move(message)
+        cause_: ::std::move(cause)
+    - type: method
+      name: cause
+      return:
+        java: java.lang.Throwable
+      doc_string: |
+        \brief Get the exception that caused this exception.
+        \return Exception that caused this exception, or a `nullptr` if there is none.
+      body: |
+        if (cause_ == nullptr || cause_ == $boundTemplateType(model.constPackType, "style=type, class")$(::java::_direct(), this->shared_from_this(this)))
+          return nullptr;
+        return cause_;
+    - type: method
+      name: cause
+      const: true
+      return:
+        java: const java.lang.Throwable
+      doc_string: |
+        \brief Get the exception that caused this exception.
+        \return Exception that caused this exception, or a `nullptr` if there is none.
+      body: |
+        if (cause_ == nullptr || cause_ == $boundTemplateType(model.constPackType, "style=type, class")$(::java::_direct(), this->shared_from_this(this)))
+          return nullptr;
+        return cause_;
+    - type: method
+      name: cause
+      arguments:
+      - name: newCause
+        type:
+          java: java.lang.Throwable
+      doc_string: |
+        \brief Set the exception that caused this exception.
+        \param newCause The new cause to assign as this exception's cause. May be nullptr.
+      body: |
+        cause_ = ::std::move(newCause);
+      includes:
+        implementation:
+        - utility
+    - type: method
+      name: write
+      const: true
+      arguments:
+      - name: out
+        type:
+          cxx: ::std::ostream&
+          includes:
+            declaration:
+            - iosfwd
+            implementation:
+            - ostream
+      return:
+        cxx: ::std::ostream&
+        includes:
+          declaration:
+          - iosfwd
+          implementation:
+          - ostream
+      doc_string: |
+        \brief Write this $model.className$ to \p out.
+        \param[out] out The stream to write this throwable to.
+        \returns \p out
+      body: |
+        using namespace ::std::string_view_literals;
+
+        return write(out, u8""sv);
+    - type: method
+      name: write
+      const: true
+      arguments:
+      - name: out
+        type:
+          cxx: ::std::ostream&
+          includes:
+            declaration:
+            - iosfwd
+            implementation:
+            - ostream
+      - name: indent
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      return:
+        cxx: ::std::ostream&
+        includes:
+          declaration:
+          - iosfwd
+          implementation:
+          - ostream
+      doc_string: |
+        \brief Write this $model.className$ to \p out.
+        \param[out] out The stream to write this throwable to.
+        \param[in] indent Indentation to apply.
+        \returns \p out
+      body: |
+        using namespace ::std::string_view_literals;
+
+        ::std::unordered_set<$boundTemplateType(java.({const java.lang.Throwable}), "style=type, class")$> recurs;
+        return write(out, indent, u8""sv, recurs);
+      includes:
+        implementation:
+        - unordered_set
+    - type: method
+      name: write
+      const: true
+      visibility: private
+      arguments:
+      - name: out
+        type:
+          cxx: ::std::ostream&
+          includes:
+            declaration:
+            - iosfwd
+            implementation:
+            - ostream
+      - name: indent
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: caption
+        type:
+          cxx: ::std::string_view
+          includes:
+            declaration:
+            - string_view
+      - name: recurs
+        type:
+          cxx: ::std::unordered_set<$boundTemplateType(java.({const java.lang.Throwable}), "style=type, class")$>&
+          includes:
+            declaration:
+            - unordered_set
+      return:
+        cxx: ::std::ostream&
+        includes:
+          declaration:
+          - iosfwd
+          implementation:
+          - ostream
+      doc_string: |
+        \brief Write this $model.className$ to \p out.
+        \param[out] out The stream to write this throwable to.
+        \param[in] indent Indentation to apply.
+        \param[in] caption Caption to emit.
+        \param[in,out] recurs Previously visited Throwables. We'll add ourselves.
+        \returns \p out
+      body: |
+        using namespace ::std::string_view_literals;
+
+        const auto self = $boundTemplateType(model.constPackType, "style=type, class")$(::java::_direct(), this->shared_from_this(this));
+        const bool recursion = !recurs.insert(self).second;
+
+        out << indent;
+        out << caption;
+        if (recursion) out << "[CIRCULAR REFERENCE: ";
+        out << ::java::get_class(self)->name();
+        if (message != nullptr) out << ": " << message->value();
+        if (recursion) out << "]";
+        out << u8"\n"sv;
+        if (recursion) return out;
+
+        if (stackTrace != nullptr) {
+          ::std::string childIndent;
+          childIndent.reserve(indent.size() + 4u);
+          childIndent.append(indent.begin(), indent.end());
+          childIndent.append(u8"\tat ");
+
+          writeStackTrace(out, childIndent);
+        }
+
+        if (suppressedExceptions != nullptr) {
+          ::std::string childIndent;
+          childIndent.reserve(indent.size() + 1u);
+          childIndent.append(indent.begin(), indent.end());
+          childIndent.append(u8"\t");
+
+          for (auto i = suppressedExceptions->begin(), e = suppressedExceptions->end();
+              i != e;
+              ++i)
+            i->write(out, childIndent, $u8StringView({Suppressed: })$, recurs);
+        }
+
+        const auto thisCause = cause();
+        if (thisCause != nullptr)
+          thisCause->write(out, indent, $u8StringView({Caused by: })$, recurs);
+
+        return out;
     - type: method
       name: __encoder_annotation__
       visibility: private
@@ -109,6 +341,11 @@ classes:
           includes:
             declaration:
             - cstddef
+      doc_string: |
+        \brief Fill the stack trace.
+        \param skip The number of levels to skip.
+        This is counted relative to the call-site of this function.
+        \param maxDepth The maximum depth of the stack trace.
       body: |
         // We add 1 to the skip depth, to exclude the fillStackTrace function.
         const auto trace = ::boost::stacktrace::stacktrace(skip + 1u, maxDepth);
@@ -159,21 +396,31 @@ classes:
           includes:
             declaration:
             - cstddef
+      doc_string: |
+        \brief Fill the stack trace.
+        \param skip The number of levels to skip.
+        This is counted relative to the call-site of this function.
       body: |
         // We add 1 to the skip depth, to skip this function.
         fillStackTrace(skip + 1u, 128);
     - type: method
       name: fillStackTrace
+      doc_string: |
+        \brief Fill the stack trace.
       body: |
         // We add 1 to the skip depth, to skip this function.
         fillStackTrace(1);
     - type: method
       name: stackTraceString
+      const: true
       return:
         cxx: ::std::string
         includes:
           declaration:
           - string
+      doc_string: |
+        \brief Retrieve a string containing the stack trace.
+        \returns A string containing the stack trace.
       body: |
         ::std::ostringstream oss;
         writeStackTrace(oss);
@@ -184,6 +431,7 @@ classes:
         - utility
     - type: method
       name: writeStackTrace
+      const: true
       arguments:
       - name: out
         type:
@@ -200,6 +448,11 @@ classes:
           - iosfwd
           implementation:
           - ostream
+      doc_string: |
+        \brief Write the stack trace of this throwable.
+        \note Writes *only* the stack trace, nothing else.
+        \param[out] out Stream to write the stack trace to.
+        \returns \p out
       body: |
         using namespace ::std::string_view_literals;
 
@@ -209,6 +462,7 @@ classes:
         - string_view
     - type: method
       name: writeStackTrace
+      const: true
       arguments:
       - name: out
         type:
@@ -231,6 +485,12 @@ classes:
           - iosfwd
           implementation:
           - ostream
+      doc_string: |
+        \brief Write the stack trace of this throwable.
+        \note Writes *only* the stack trace, nothing else.
+        \param[out] out Stream to write the stack trace to.
+        \param[in] indent Indentation string to apply before each line of the stack trace.
+        \returns \p out
       body: |
         using namespace ::std::string_view_literals;
 

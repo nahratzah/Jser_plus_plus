@@ -218,7 +218,7 @@ $ model.accessorMethods
               name=m.name,
               doImplement=doImplement,
               return=m.returnType,
-              body={return $if (m.returnType.unresolvedTemplateNames)$::java::cast<$boundTemplateType(m.returnType, "style=type, class=return")$>($endif$this->template ref_<$erasedType(model)$>().$m.name$($m.argumentNames:{name | ::std::move($name$)}; anchor, wrap, separator = ", "$)$if (m.returnType.unresolvedTemplateNames)$)$endif$;},
+              body={return $if (m.returnType.unresolvedTemplateNames)$::java::cast<$boundTemplateType(m.returnType, "style=type, class=return")$>($endif$this->template ref_<$erasedType(model)$>().$m.name$($m.argumentNames:{name | ::std::forward<decltype($name$)>($name$)}; anchor, wrap, separator = ", "$)$if (m.returnType.unresolvedTemplateNames)$)$endif$;},
               docString=m.docString,
               argumentNames=m.argumentNames,
               argumentTypes=m.argumentTypes,
