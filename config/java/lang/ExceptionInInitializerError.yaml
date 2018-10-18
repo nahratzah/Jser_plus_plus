@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.ExceptionInInitializerError:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating the static initializer of a type failed.
+    inherit_constructors: true

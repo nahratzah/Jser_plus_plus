@@ -61,6 +61,10 @@ public class ClassConfig {
         return cfgClass.getSrcRaw();
     }
 
+    public boolean isInheritConstructors() {
+        return cfgClass.isInheritConstructors();
+    }
+
     public void updateWithSuperTypes(boolean isAbstract, boolean isInterface, boolean isEnum, CfgSuperType thisType) {
         final Set<CfgSuperType> allParentTypes = thisType.getAllParentTypes();
 

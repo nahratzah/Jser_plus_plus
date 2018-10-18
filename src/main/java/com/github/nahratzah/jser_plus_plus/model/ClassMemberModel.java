@@ -313,8 +313,14 @@ public interface ClassMemberModel {
 
     public static class ClassConstructor extends AbstractClassMemberModel {
         public ClassConstructor(Context ctx, ClassType cdef, Constructor constructor) {
+            this(ctx, cdef, constructor, true);
+        }
+
+        public ClassConstructor(Context ctx, ClassType cdef, Constructor constructor, boolean inheritable) {
             super(ctx, cdef, null, constructor.getArguments(), constructor.getBody());
 
+            this.name = cdef.getClassName();
+            this.inheritable = inheritable;
             this.constructor = requireNonNull(constructor);
 
             {
@@ -339,8 +345,25 @@ public interface ClassMemberModel {
             }
         }
 
+        public ClassConstructor(Context ctx, ClassType cdef, ClassConstructor delegate) {
+            super(ctx, delegate.cdef, null, delegate.constructor.getArguments(), null);
+
+            this.name = cdef.getClassName();
+            this.inheritable = delegate.inheritable;
+            this.constructor = requireNonNull(delegate.constructor);
+
+            final String superName = StCtx.BUILTINS.getInstanceOf("boundTemplateType")
+                    .add("t", cdef.getSuperClass())
+                    .add("format", "style=erased")
+                    .render(Locale.ROOT);
+            final String superInitializer = this.getArgumentNames().stream()
+                    .map(argName -> String.format("::std::forward<decltype(%1$s)>(%1$s)", argName))
+                    .collect(Collectors.joining(", "));
+            this.initializers = new LinkedHashMap<>(singletonMap(superName, superInitializer));
+        }
+
         public String getName() {
-            return cdef.getClassName();
+            return name;
         }
 
         public Includes getIncludes() {
@@ -397,6 +420,10 @@ public interface ClassMemberModel {
             return true;
         }
 
+        public boolean isInheritable() {
+            return inheritable;
+        }
+
         @Override
         public <T> T visit(Visitor<T> visitor) {
             return visitor.apply(this);
@@ -412,6 +439,8 @@ public interface ClassMemberModel {
 
         private final Constructor constructor;
         private final LinkedHashMap<String, String> initializers;
+        private final boolean inheritable;
+        private final String name;
     }
 
     public static class ClassDestructor extends AbstractClassMemberModel {

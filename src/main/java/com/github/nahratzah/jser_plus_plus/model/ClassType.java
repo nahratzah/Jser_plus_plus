@@ -319,6 +319,22 @@ public class ClassType implements JavaType {
                     });
                 })
                 .collect(Collectors.toList());
+
+        if (classCfg.isInheritConstructors()) {
+            if (getSuperClass() == null) {
+                LOG.log(Level.WARNING, "inheriting constructor, but no super class present");
+            } else {
+                final BoundTemplate.ClassBinding<? extends ClassType> superClass = getSuperClass();
+                superClass.getType().classMembers.stream()
+                        .filter(ClassMemberModel.ClassConstructor.class::isInstance)
+                        .map(ClassMemberModel.ClassConstructor.class::cast)
+                        .filter(ClassMemberModel.ClassConstructor::isInheritable)
+                        .filter(constructor -> constructor.getVisibility() != Visibility.PRIVATE)
+                        .map(constructor -> new ClassMemberModel.ClassConstructor(ctx, this, constructor))
+                        .peek(constructor -> LOG.log(Level.WARNING, "Adding " + constructor + " with name " + getName()))
+                        .forEach(classMembers::add);
+            }
+        }
     }
 
     private void initSerializationConstructor(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
@@ -385,7 +401,7 @@ public class ClassType implements JavaType {
         constructorCfg.setInitializers(Stream.of(primitiveFieldInitializers, finalFieldInitializers)
                 .flatMap(Function.identity())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-        classMembers.add(new ClassMemberModel.ClassConstructor(ctx, this, constructorCfg));
+        classMembers.add(new ClassMemberModel.ClassConstructor(ctx, this, constructorCfg, false));
     }
 
     private void initFriendTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {

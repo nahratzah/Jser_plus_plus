@@ -154,6 +154,19 @@ public class CfgClass {
         this.srcRaw = srcRaw;
     }
 
+    /**
+     * Test if constructors are inherited.
+     *
+     * @return True if constructors are inherited.
+     */
+    public boolean isInheritConstructors() {
+        return inheritConstructors;
+    }
+
+    public void setInheritConstructors(boolean inheritConstructors) {
+        this.inheritConstructors = inheritConstructors;
+    }
+
     @JsonProperty("final")
     private Boolean finalVar;
     @JsonProperty("fields")
@@ -174,4 +187,6 @@ public class CfgClass {
     private Set<String> inheritSuppressedRules = new HashSet<>();
     @JsonProperty("src_raw")
     private String srcRaw;
+    @JsonProperty("inherit_constructors")
+    private boolean inheritConstructors = false;
 }

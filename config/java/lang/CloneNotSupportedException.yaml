@@ -8,26 +8,4 @@ classes:
       In java, the clone method is provided by the JVM and creates a shallow copy.
       It exists in every class, but will refuse to operate unless the object implements the Cloneable interface.
       Refusal is signified by this exception.
-    members:
-    - type: constructor
-    - type: constructor
-      arguments:
-      - name: cause
-        type:
-          java: java.lang.Throwable
-      super: ::std::move(cause)
-    - type: constructor
-      arguments:
-      - name: message
-        type:
-          java: java.lang.String
-      super: ::std::move(message)
-    - type: constructor
-      arguments:
-      - name: message
-        type:
-          java: java.lang.String
-      - name: cause
-        type:
-          java: java.lang.Throwable
-      super: ::std::move(message), ::std::move(cause)
+    inherit_constructors: true
