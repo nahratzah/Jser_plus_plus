@@ -217,10 +217,10 @@ classes:
 
         out << indent;
         out << caption;
-        if (recursion) out << "[CIRCULAR REFERENCE: ";
+        if (recursion) out << u8"[CIRCULAR REFERENCE: "sv;
         out << ::java::get_class(self)->name();
-        if (message != nullptr) out << ": " << message->value();
-        if (recursion) out << "]";
+        if (message != nullptr) out << u8": "sv << message->value();
+        if (recursion) out << u8"]"sv;
         out << u8"\n"sv;
         if (recursion) return out;
 
