@@ -129,6 +129,15 @@ public class Processor implements Context {
                 CodeGenerator.moduleSource(module.getTargetName(), unmodifiableCollection(classes.values())));
     }
 
+    /**
+     * Retrieve the number of classes in the Processor.
+     *
+     * @return The number of classes in the processor.
+     */
+    public synchronized int getNumClasses() {
+        return classes.size();
+    }
+
     private final ClassLoader classLoader;
     private final Map<Class, JavaType> classes = new HashMap<>();
     private final Config cfg;
