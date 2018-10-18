@@ -1,0 +1,29 @@
+---
+classes:
+  java.lang.Exception:
+    dev_mode: false
+    doc_string: |
+      \brief Checked exception.
+    members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: cause
+        type:
+          java: java.lang.Throwable
+      super: ::std::move(cause)
+    - type: constructor
+      arguments:
+      - name: message
+        type:
+          java: java.lang.String
+      super: ::std::move(message)
+    - type: constructor
+      arguments:
+      - name: message
+        type:
+          java: java.lang.String
+      - name: cause
+        type:
+          java: java.lang.Throwable
+      super: ::std::move(message), ::std::move(cause)
