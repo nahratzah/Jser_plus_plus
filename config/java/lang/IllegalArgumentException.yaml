@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.IllegalArgumentException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating an invalid argument.
+    inherit_constructors: true

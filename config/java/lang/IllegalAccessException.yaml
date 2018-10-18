@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.IllegalAccessException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating a java application tried to use reflection to call a constructor or method, or set a field, to which it does not have access.
+    inherit_constructors: true

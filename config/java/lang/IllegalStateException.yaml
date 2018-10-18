@@ -1,0 +1,8 @@
+---
+classes:
+  java.lang.IllegalStateException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating a method was called when it shouldn't be.
+      \details This means the application was in the wrong state for the given method call.
+    inherit_constructors: true

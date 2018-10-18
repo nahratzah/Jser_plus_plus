@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.IllegalAccessError:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating a java application attempted to modify a field or call a method to which it did not have access.
+    inherit_constructors: true

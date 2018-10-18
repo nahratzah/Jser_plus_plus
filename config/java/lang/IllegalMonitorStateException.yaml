@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.IllegalMonitorStateException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating a thread attempted to call wait or notify on a monitor without having ownership of it.
+    inherit_constructors: true

@@ -1,0 +1,8 @@
+---
+classes:
+  java.lang.IllegalThreadStateException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating an thread was in the wrong state for a given method call.
+      \details This can occur when calling `suspend()` or `resume()` on a thread.
+    inherit_constructors: true

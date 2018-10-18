@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.InstantiationError:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating the new operator was called on an abstract class or interface.
+    inherit_constructors: true
