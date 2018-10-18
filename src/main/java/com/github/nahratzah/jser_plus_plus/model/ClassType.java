@@ -331,7 +331,7 @@ public class ClassType implements JavaType {
                         .filter(ClassMemberModel.ClassConstructor::isInheritable)
                         .filter(constructor -> constructor.getVisibility() != Visibility.PRIVATE)
                         .map(constructor -> new ClassMemberModel.ClassConstructor(ctx, this, constructor))
-                        .peek(constructor -> LOG.log(Level.WARNING, "Adding " + constructor + " with name " + getName()))
+                        .peek(constructor -> LOG.log(Level.FINE, "Adding {0} with name {1}", new Object[]{constructor, getName()}))
                         .forEach(classMembers::add);
             }
         }
