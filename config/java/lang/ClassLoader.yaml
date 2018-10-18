@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.ClassLoader:
+    dev_mode: false
+    doc_string: |
+      \brief Class loader.
+      \detail This is an empty abstract class. We don't use it.
