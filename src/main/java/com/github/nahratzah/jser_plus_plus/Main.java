@@ -31,7 +31,10 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         configureLogging();
-        if (ENABLE_DEBUG_LOGS) enableDebugLog(Level.FINE);
+        if (ENABLE_DEBUG_LOGS)
+            enableLogLevel(Level.FINE);
+        else
+            enableLogLevel(Level.CONFIG);
 
         LOG.log(Level.INFO, "Loading configuration...");
         final Config cfg = Config.fromDir(CONFIG_DIR);
@@ -57,7 +60,7 @@ public class Main {
                 p.addClasses(classStream.collect(Collectors.toList()));
             }
 
-            LOG.log(Level.INFO, "{0} classes selected.", p.getNumClasses());
+            LOG.log(Level.CONFIG, "{0} classes selected.", p.getNumClasses());
 
             LOG.log(Level.INFO, "Postprocessing...");
             p.postProcess();
@@ -72,7 +75,7 @@ public class Main {
         }
     }
 
-    private static void enableDebugLog(Level level) {
+    private static void enableLogLevel(Level level) {
         final Logger rootLogger = Logger.getLogger("");
         rootLogger.setLevel(level);
         for (Handler handler : rootLogger.getHandlers()) {
