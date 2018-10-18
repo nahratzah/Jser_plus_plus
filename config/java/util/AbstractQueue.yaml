@@ -1,0 +1,4 @@
+---
+classes:
+  java.util.AbstractQueue<E>:
+    dev_mode: false
