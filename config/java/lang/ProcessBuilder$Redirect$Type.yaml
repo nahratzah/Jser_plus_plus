@@ -1,0 +1,4 @@
+---
+classes:
+  java.lang.ProcessBuilder$Redirect$Type:
+    dev_mode: false

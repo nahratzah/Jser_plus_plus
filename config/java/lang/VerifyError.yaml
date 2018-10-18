@@ -1,0 +1,8 @@
+---
+classes:
+  java.lang.VerifyError:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating a class failed verification.
+      \details This means the class file contains an inconsistency or a security issue.
+    inherit_constructors: true

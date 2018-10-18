@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.StringIndexOutOfBoundsException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating a string index was out of bounds.
+    inherit_constructors: true

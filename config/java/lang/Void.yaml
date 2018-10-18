@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.Void:
+    dev_mode: false
+    doc_string: |
+      \brief This class represents the `void` type.
+      \bug This class should not be instantiable.

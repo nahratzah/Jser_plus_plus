@@ -1,0 +1,9 @@
+---
+classes:
+  java.lang.UnsupportedOperationException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating a requested operation is not supported.
+      \details One place where this is thrown, is for methods that must be implemented due to interface requirements, but can not be implemented.
+      For example, an unmodifiable list must implement methods to add elements, but logically can not implement those, because that would make the list modifiable.
+    inherit_constructors: true

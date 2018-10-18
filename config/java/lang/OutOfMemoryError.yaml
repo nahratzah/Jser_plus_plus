@@ -1,0 +1,10 @@
+---
+classes:
+  java.lang.OutOfMemoryError:
+    dev_mode: false
+    doc_string: |
+      \brief Error indicaing the java garbage collector is unable to create more memory.
+      \details It depends on the garbage collector implementation used,
+      but typically, a java garbage collector gives up if it the JVM spends more than a
+      certain percentage of time on full garbage collections.
+    inherit_constructors: true

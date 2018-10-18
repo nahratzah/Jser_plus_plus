@@ -1,0 +1,4 @@
+---
+classes:
+  java.lang.Thread$State:
+    dev_mode: false

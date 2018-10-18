@@ -1,0 +1,4 @@
+---
+classes:
+  java.lang.UNIXProcess$LaunchMechanism:
+    dev_mode: false

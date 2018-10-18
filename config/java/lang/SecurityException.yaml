@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.SecurityException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception indicating a privileged operation was attempted without the proper security permission.
+    inherit_constructors: true

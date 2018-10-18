@@ -1,0 +1,8 @@
+---
+classes:
+  java.lang.StackOverflowError:
+    dev_mode: false
+    doc_string: |
+      \brief Error thrown when the stack is exhausted.
+      \details Typically caused by recursion being too deep (such as infinite recursion).
+    inherit_constructors: true

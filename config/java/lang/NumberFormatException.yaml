@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.NumberFormatException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception thrown when a conversion from string to number fails.
+    inherit_constructors: true

@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.VirtualMachineError:
+    dev_mode: false
+    doc_string: |
+      \brief Error indicating the JVM has broken or ran out of resources.
+    inherit_constructors: true

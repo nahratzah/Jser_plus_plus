@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.RuntimePermission:
+    dev_mode: false
+    inherit_constructors: true
+    doc_string: |
+      \brief JVM permission to do certain low level interactions.

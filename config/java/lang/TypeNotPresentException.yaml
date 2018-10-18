@@ -1,0 +1,8 @@
+---
+classes:
+  java.lang.TypeNotPresentException:
+    dev_mode: false
+    doc_string: |
+      \brief Exception thrown when a class is referred to by name, but does not exist.
+      \details This is the unchecked counterpart of \ref ::java::lang::ClassNotFoundException "ClassNotFoundException".
+    inherit_constructors: true

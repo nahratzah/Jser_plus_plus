@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.UnknownError:
+    dev_mode: false
+    doc_string: |
+      \brief Exception thrown when an unknown, serious exception happened inside the JVM.
+    inherit_constructors: true

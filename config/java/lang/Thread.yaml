@@ -1,0 +1,9 @@
+---
+classes:
+  java.lang.Thread:
+    dev_mode: false
+    doc_string: |
+      \brief Not actually a thread.
+      \details This is an empty class, because some serializable classes have a reference to this type.
+      It is not implemented and does not carry any information.
+      \bug This class should be removed, by setting any usages to `omit`.

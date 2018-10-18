@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.UnsatisfiedLinkError:
+    dev_mode: false
+    doc_string: |
+      \brief Error indicating a native method implementation was not found.
+    inherit_constructors: true

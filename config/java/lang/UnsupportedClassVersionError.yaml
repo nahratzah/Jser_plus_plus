@@ -1,0 +1,7 @@
+---
+classes:
+  java.lang.UnsupportedClassVersionError:
+    dev_mode: false
+    doc_string: |
+      \brief Error indicating a class file has an unsupported version.
+    inherit_constructors: true
