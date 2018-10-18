@@ -1,0 +1,10 @@
+---
+classes:
+  java.util.concurrent.ThreadPoolExecutor$Worker:
+    dev_mode: true
+    doc_string: |
+      \brief Thread pool executor.
+      \bug This class should not be referenced.
+    fields:
+      thread:
+        omit: true

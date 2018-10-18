@@ -1,0 +1,7 @@
+---
+classes:
+  java.util.concurrent.ThreadPoolExecutor:
+    dev_mode: true
+    doc_string: |
+      \brief Thread pool executor.
+      \bug This class should not be referenced.
