@@ -1,0 +1,185 @@
+---
+classes:
+  java.util.Map<K, V>:
+    dev_mode: true
+    suppress:
+    - java.lang.Object/equals_and_hashcode
+    doc_string: |
+      \brief The map interface.
+      \details A map maintains mappings between keys and values.
+      \tparam K The key type of the map.
+      \tparam V The mapped type of the map.
+    members:
+    - type: method
+      name: begin
+      virtual: true
+      return:
+        cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      virtual: true
+      return:
+        cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: begin
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::forward_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::forward_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: empty
+      virtual: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+    - type: method
+      name: size
+      virtual: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+    - type: method
+      name: clear
+      virtual: true
+    - type: method
+      name: emplace
+      virtual: true
+      arguments:
+      - name: k
+        type:
+          java: K
+      - name: v
+        type:
+          java: V
+      doc_string: |
+        \brief Add a mapping to the map.
+    - type: method
+      name: __hash_code__
+      noexcept: true
+      virtual: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: _specialized_
+        type:
+          cxx: bool
+      - name: max_cascade
+        type:
+          cxx: ::std::size_t
+          includes:
+            declaration:
+            - cstddef
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        static const ::std::size_t nonce = ::java::__hash_nonce();
+
+        // We use XOR combining.
+        // It's a really bad algorithm, due to collisions.
+        // But it's the only way to keep the computation agnostic of the ordering.
+        ::std::size_t h = 0;
+        for (const auto& i : *this) h ^= ::std::size_t(hash_combiner(max_cascade) << i.first << i.second);
+
+        return hash_combiner(h, max_cascade)
+            << nonce;
+      includes:
+        implementation:
+        - functional
+        - cstddef
+        - java/hash.h
+    - type: method
+      name: __equal__
+      virtual: true
+      const: true
+      visibility: protected
+      covariant_return: false
+      arguments:
+      - name: specialized
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: other
+        type:
+          cxx: const ::java::object_intf&
+          includes:
+            declaration:
+            - java/object_intf.h
+      body: |
+        const $erasedType(model)$* casted_other = dynamic_cast<const $erasedType(model)$*>(&other);
+
+        if (casted_other == nullptr) {
+          eq.fail();
+        } else {
+          $erasedType(model)$::__equal_impl__(specialized, eq, *this, *casted_other);
+        }
+    - type: method
+      name: __equal_impl__
+      static: true
+      visibility: protected
+      arguments:
+      - name: _specialized_
+        type:
+          cxx: bool
+      - name: eq
+        type:
+          cxx: ::java::_equal_helper&
+          includes:
+            declaration:
+            - java/object_intf.h
+            implementation:
+            - java/reflect.h
+      - name: x
+        type:
+          cxx: const $boundTemplateType(java.({java.util.Map<K, V>}), "style=erased")$&
+      - name: y
+        type:
+          cxx: const $boundTemplateType(java.({java.util.Map<K, V>}), "style=erased")$&
+      body: |
+        if (!std::is_permutation(
+            x.begin(), x.end(),
+            y.begin(), y.end(),
+            [&eq](const auto& x, const auto& y) {
+              return eq.test(x.first, y.first)
+                  && eq.test(x.second, y.second);
+            }))
+          eq.fail();
+      includes:
+        implementation:
+        - java/reflect.h
+        - algorithm
