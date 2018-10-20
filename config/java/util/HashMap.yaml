@@ -1,0 +1,170 @@
+---
+classes:
+  java.util.HashMap<K, V>:
+    dev_mode: true
+    doc_string: |
+      \brief A hash map.
+      \details This is implemented in terms of `std::unordered_map`.
+    fields:
+      loadFactor:
+        omit: true
+        encoder_expr: 1.0f
+      threshold:
+        omit: true
+      data_:
+        type:
+          cxx: ::std::unordered_map<$boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$, ::std::hash<$boundTemplateType(java.("const K"), "style=type, class")$>, ::std::equal_to<$boundTemplateType(java.("const K"), "style=type, class")$>, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>>
+          includes:
+            declaration:
+            - unordered_map
+            - functional
+            - cycle_ptr/allocator.h
+        visibility: private
+        default: 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+    members:
+    - type: constructor
+    - type: constructor
+      arguments:
+      - name: m
+        type:
+          java: java.util.Map<? extends K, ? extends V>
+      initializers:
+        data_: m->begin(), m->end(), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+    - type: constructor
+      arguments:
+      - name: b
+        type:
+          cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      initializers:
+        data_: ::std::move(b), ::std::move(e), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          cxx: ::std::initializer_list<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>
+          includes:
+            declaration:
+            - initializer_list
+            - utility
+      initializers:
+        data_: ::std::move(init), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return data_.begin();
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return data_.end();
+    - type: method
+      name: begin
+      override: true
+      const: true
+      return:
+        cxx: ::java::forward_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return data_.begin();
+    - type: method
+      name: end
+      override: true
+      const: true
+      return:
+        cxx: ::java::forward_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return data_.end();
+    - type: method
+      name: empty
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+      body: |
+        return data_.empty();
+    - type: method
+      name: size
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return data_.size();
+    - type: method
+      name: clear
+      override: true
+      body: |
+        data_.clear();
+    - type: method
+      name: emplace
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: K
+      - name: v
+        type:
+          java: V
+      body: |
+        data_.emplace(::std::move(k), ::std::move(v));
+    - type: method
+      name: find
+      override: true
+      const: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::forward_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+    - type: method
+      name: find
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::forward_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
