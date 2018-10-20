@@ -127,6 +127,8 @@ public class CodeGenerator {
                 .flatMap(type -> {
                     return Stream.of(
                             type.getImplementationIncludes(false),
+                            type.getDeclarationCompleteJavaTypes().map(CodeGenerator::headerName),
+                            type.getDeclarationForwardJavaTypes().map(CodeGenerator::headerName),
                             type.getImplementationJavaTypes().map(CodeGenerator::headerName))
                             .flatMap(Function.identity());
                 })
