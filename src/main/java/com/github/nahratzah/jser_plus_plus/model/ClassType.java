@@ -829,6 +829,10 @@ public class ClassType implements JavaType {
                                                     return same;
                                                 })
                                                 .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableCollection));
+                                    },
+                                    (x, y) -> {
+                                        LOG.log(Level.SEVERE, "{0}: method is declared twice\n  {1}\n  {2}", new Object[]{getName(), x, y});
+                                        throw new IllegalStateException("duplicate key");
                                     }),
                             Collections::unmodifiableMap));
 
