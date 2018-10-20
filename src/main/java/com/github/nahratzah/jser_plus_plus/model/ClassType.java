@@ -79,7 +79,7 @@ public class ClassType implements JavaType {
     public static final String VIRTUAL_FUNCTION_PREFIX = "_virtual_";
     private static final String REDECLARE_BODY_TEMPLATE = "return "
             + "$if (needCast)$::java::cast<$boundTemplateType(declare.returnType, \"style=type, class\")$>($endif$"
-            + "this->$underlying.declaringClass.className$::$underlying.name$"
+            + "this->$erasedType(underlying.underlyingMethod.declaringClass)$::$underlying.name$"
             + "($declare.underlyingMethod.argumentNames: { name | ::std::forward<decltype($name$)>($name$)}; anchor, wrap, separator = \", \"$)"
             + "$if (needCast)$)$endif$;";
     private static final String FORWARDING_BODY_TEMPLATE = "return "
