@@ -142,8 +142,10 @@ auto cast(X&& x)
 -> std::enable_if_t<
     ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
     && ::java::type_traits::is_pair_iterator_v<R>
-    && (std::is_const_v<type_of_t<typename R::value_type>>
-        || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+    && ((std::is_const_v<type_of_t<typename R::value_type::first_type>>
+            && std::is_const_v<type_of_t<typename R::value_type::second_type>>)
+        || (!std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::first_type>>
+            && !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::second_type>>))
     && std::is_convertible_v<
         typename retype_iterator_<::std::pair<type_of_t<typename R::value_type::first_type>, type_of_t<typename R::value_type::second_type>>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
         R>,
@@ -1447,8 +1449,10 @@ class forward_pair_iterator<type_of_t<const_ref<java::lang::Object>>, type_of_t<
   -> std::enable_if_t<
       ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
       && ::java::type_traits::is_pair_iterator_v<R>
-      && (std::is_const_v<type_of_t<typename R::value_type>>
-          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && ((std::is_const_v<type_of_t<typename R::value_type::first_type>>
+              && std::is_const_v<type_of_t<typename R::value_type::second_type>>)
+          || (!std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::first_type>>
+              && !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::second_type>>))
       && std::is_convertible_v<
           typename retype_iterator_<::std::pair<type_of_t<typename R::value_type::first_type>, type_of_t<typename R::value_type::second_type>>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
           R>,
@@ -1629,8 +1633,10 @@ class forward_pair_iterator<type_of_t<java::lang::Object>, type_of_t<java::lang:
   -> std::enable_if_t<
       ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
       && ::java::type_traits::is_pair_iterator_v<R>
-      && (std::is_const_v<type_of_t<typename R::value_type>>
-          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && ((std::is_const_v<type_of_t<typename R::value_type::first_type>>
+              && std::is_const_v<type_of_t<typename R::value_type::second_type>>)
+          || (!std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::first_type>>
+              && !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::second_type>>))
       && std::is_convertible_v<
           typename retype_iterator_<::std::pair<type_of_t<typename R::value_type::first_type>, type_of_t<typename R::value_type::second_type>>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
           R>,
@@ -1803,8 +1809,10 @@ class bidirectional_pair_iterator<type_of_t<const_ref<java::lang::Object>>, type
   -> std::enable_if_t<
       ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
       && ::java::type_traits::is_pair_iterator_v<R>
-      && (std::is_const_v<type_of_t<typename R::value_type>>
-          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && ((std::is_const_v<type_of_t<typename R::value_type::first_type>>
+              && std::is_const_v<type_of_t<typename R::value_type::second_type>>)
+          || (!std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::first_type>>
+              && !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::second_type>>))
       && std::is_convertible_v<
           typename retype_iterator_<::std::pair<type_of_t<typename R::value_type::first_type>, type_of_t<typename R::value_type::second_type>>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
           R>,
@@ -1973,8 +1981,10 @@ class bidirectional_pair_iterator<type_of_t<java::lang::Object>, type_of_t<java:
   -> std::enable_if_t<
       ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
       && ::java::type_traits::is_pair_iterator_v<R>
-      && (std::is_const_v<type_of_t<typename R::value_type>>
-          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && ((std::is_const_v<type_of_t<typename R::value_type::first_type>>
+              && std::is_const_v<type_of_t<typename R::value_type::second_type>>)
+          || (!std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::first_type>>
+              && !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::second_type>>))
       && std::is_convertible_v<
           typename retype_iterator_<::std::pair<type_of_t<typename R::value_type::first_type>, type_of_t<typename R::value_type::second_type>>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
           R>,
@@ -2140,8 +2150,10 @@ class forward_pair_iterator {
   -> std::enable_if_t<
       ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
       && ::java::type_traits::is_pair_iterator_v<R>
-      && (std::is_const_v<type_of_t<typename R::value_type>>
-          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && ((std::is_const_v<type_of_t<typename R::value_type::first_type>>
+              && std::is_const_v<type_of_t<typename R::value_type::second_type>>)
+          || (!std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::first_type>>
+              && !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::second_type>>))
       && std::is_convertible_v<
           typename retype_iterator_<::std::pair<type_of_t<typename R::value_type::first_type>, type_of_t<typename R::value_type::second_type>>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
           R>,
@@ -2280,8 +2292,10 @@ class bidirectional_pair_iterator {
   -> std::enable_if_t<
       ::java::type_traits::is_iterator_v<std::remove_cv_t<std::remove_reference_t<X>>>
       && ::java::type_traits::is_pair_iterator_v<R>
-      && (std::is_const_v<type_of_t<typename R::value_type>>
-          || !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type>>)
+      && ((std::is_const_v<type_of_t<typename R::value_type::first_type>>
+              && std::is_const_v<type_of_t<typename R::value_type::second_type>>)
+          || (!std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::first_type>>
+              && !std::is_const_v<type_of_t<typename std::remove_cv_t<std::remove_reference_t<X>>::value_type::second_type>>))
       && std::is_convertible_v<
           typename retype_iterator_<::std::pair<type_of_t<typename R::value_type::first_type>, type_of_t<typename R::value_type::second_type>>, std::remove_cv_t<std::remove_reference_t<X>>>::type,
           R>,
