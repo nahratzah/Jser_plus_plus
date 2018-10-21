@@ -263,7 +263,7 @@ public class ClassType implements JavaType {
                 .collect(Collectors.toList());
 
         // Apply configuration patches to all the fields.
-        this.fields = Stream.concat(reflectedFields.stream(), syntheticFields.stream())
+        Map<String, FieldType> fieldMapping = Stream.concat(reflectedFields.stream(), syntheticFields.stream())
                 .peek(iField -> {
                     final CfgField fieldCfg = classCfg.getFields().get(iField.getName());
                     if (fieldCfg == null) return;
@@ -294,6 +294,18 @@ public class ClassType implements JavaType {
                 .peek(iField -> {
                     iField.prerender(singletonMap("model", this), getTemplateArgumentNames());
                 })
+                .collect(Collectors.toMap(
+                        FieldType::getSerializationName,
+                        Function.identity()));
+        this.fields = Stream
+                .concat(
+                        classCfg.getFields().keySet().stream()
+                                .map(fieldMapping::get),
+                        fieldMapping.entrySet().stream()
+                                .filter(entry -> !classCfg.getFields().containsKey(entry.getKey()))
+                                .sorted(Comparator.comparing(Map.Entry::getKey))
+                                .map(Map.Entry::getValue))
+                .peek(Objects::requireNonNull)
                 .collect(Collectors.toList());
     }
 

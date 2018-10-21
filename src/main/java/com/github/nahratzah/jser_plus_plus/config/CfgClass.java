@@ -2,8 +2,8 @@ package com.github.nahratzah.jser_plus_plus.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -170,7 +170,7 @@ public class CfgClass {
     @JsonProperty("final")
     private Boolean finalVar;
     @JsonProperty("fields")
-    private Map<String, CfgField> fields = new HashMap<>();
+    private Map<String, CfgField> fields = new LinkedHashMap<>();
     @JsonProperty("members")
     private List<ClassMember> members = new ArrayList<>();
     @JsonProperty("var_type")
