@@ -1,0 +1,113 @@
+---
+classes:
+  java.util.Dictionary<K, V>:
+    dev_mode: true
+    suppress:
+    - java.lang.Object/equals_and_hashcode
+    doc_string: |
+      \brief The map interface.
+      \details A map maintains mappings between keys and values.
+      \tparam K The key type of the map.
+      \tparam V The mapped type of the map.
+    members:
+    - type: method
+      name: begin
+      virtual: true
+      return:
+        cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      virtual: true
+      return:
+        cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: begin
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::forward_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: end
+      virtual: true
+      const: true
+      return:
+        cxx: ::java::forward_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+    - type: method
+      name: empty
+      virtual: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+    - type: method
+      name: size
+      virtual: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+    - type: method
+      name: clear
+      virtual: true
+    - type: method
+      name: emplace
+      virtual: true
+      arguments:
+      - name: k
+        type:
+          java: K
+      - name: v
+        type:
+          java: V
+      doc_string: |
+        \brief Add a mapping to the map.
+    - type: method
+      name: find
+      virtual: true
+      const: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::forward_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      doc_string: |
+        \brief Find element in the map.
+        \param k Key to the element to find.
+        \returns Iterator to the element, or if the element is absent, an iterator to end.
+    - type: method
+      name: find
+      virtual: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::forward_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      doc_string: |
+        \brief Find element in the set.
+        \param k Key to the element to find.
+        \returns Iterator to the element, or if the element is absent, an iterator to end.
