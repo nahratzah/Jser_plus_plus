@@ -618,7 +618,7 @@ public class ClassType implements JavaType {
     }
 
     public String getSerialVersionUID_string() {
-        return String.format("%#xULL", getSerialVersionUID());
+        return String.format("%#016xULL", getSerialVersionUID());
     }
 
     private Stream<ClassType> findAllInherits() {
