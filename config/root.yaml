@@ -10,6 +10,7 @@ scan:
   - java.applet
   - java.awt
   - java.beans
+  - java.util.stream
   - javax.activation
   - javax.activity
   - javax.crypto
