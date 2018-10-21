@@ -337,9 +337,18 @@ public interface ClassMemberModel {
                 cdef.getFields().stream()
                         .filter(field -> constructor.getInitializers().containsKey(field.getName()))
                         .forEachOrdered(field -> {
-                            final String name = field.getName();
-                            final String initializer = constructor.getInitializers().get(name);
-                            initializersTmp.put(name, renderImpl(initializer));
+                            final String fieldName = field.getName();
+                            final String initializer = constructor.getInitializers().get(fieldName);
+
+                            String renderedInitializer = renderImpl(initializer);
+                            if (field.isJavaClassVarType()) {
+                                if (renderedInitializer.trim().isEmpty())
+                                    renderedInitializer = "*this";
+                                else
+                                    renderedInitializer = "*this, " + renderedInitializer;
+                            }
+
+                            initializersTmp.put(fieldName, renderedInitializer);
                         });
                 this.initializers = initializersTmp;
             }

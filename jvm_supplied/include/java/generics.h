@@ -349,6 +349,14 @@ struct is_satisfied_by_<X*, Y*>
     std::is_same<X, Y>>
 {};
 
+// Comparison with array on the right.
+template<typename X, typename Y>
+struct is_satisfied_by_<X, Y*> {
+  static_assert(is_generic_v<X>);
+
+  using type = std::false_type;
+};
+
 // Comparison with argument pack on the left.
 template<typename... X, typename Y>
 struct is_satisfied_by_<java::G::pack_t<X...>, Y> {

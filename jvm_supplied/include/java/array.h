@@ -7,6 +7,7 @@
 #include <iterator>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 #include <java/primitives.h>
@@ -1759,34 +1760,86 @@ class basic_ref<PtrImpl, Type*> final {
   JSER_INLINE basic_ref& operator=(basic_ref&&) = default;
   JSER_INLINE ~basic_ref() noexcept = default;
 
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner)
+  : p_(owner)
+  {}
+
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, const basic_ref& other)
+  : p_(owner, other.p_)
+  {}
+
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, basic_ref&& other)
+  : p_(owner, ::std::move(other.p_))
+  {}
+
   template<
-      typename NewArraySelector = typename ::java::_erased::java::select_array_new_impl_<Type>,
+      typename NewArraySelector = typename ::java::_erased::java::select_array_new_impl_<Type*>,
       typename NewArrayType = typename NewArraySelector::type>
   explicit JSER_INLINE basic_ref([[maybe_unused]] allocate_t a) {
-    if constexpr(::java::_erased::java::array_impl_is_primitive_<Type>::value)
+    if constexpr(::java::_erased::java::array_impl_is_primitive_<Type*>::value)
       p_ = ::cycle_ptr::make_cycle<NewArrayType>();
     else
-      p_ = ::cycle_ptr::make_cycle<NewArrayType>(::java::_erased::java::get_array_elem_class_<Type>::get_class());
+      p_ = ::cycle_ptr::make_cycle<NewArrayType>(::java::_erased::java::get_array_elem_class_<Type*>::get_class());
+  }
+
+  template<
+      bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>,
+      typename NewArraySelector = typename ::java::_erased::java::select_array_new_impl_<Type*>,
+      typename NewArrayType = typename NewArraySelector::type>
+  explicit JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, [[maybe_unused]] allocate_t a)
+  : p_(owner)
+  {
+    if constexpr(::java::_erased::java::array_impl_is_primitive_<Type*>::value)
+      p_ = ::cycle_ptr::make_cycle<NewArrayType>();
+    else
+      p_ = ::cycle_ptr::make_cycle<NewArrayType>(::java::_erased::java::get_array_elem_class_<Type*>::get_class());
   }
 
   template<
       typename... Args,
-      typename NewArraySelector = typename ::java::_erased::java::select_array_new_impl_<Type>,
+      typename NewArraySelector = typename ::java::_erased::java::select_array_new_impl_<Type*>,
       typename NewArrayType = typename NewArraySelector::type,
       typename = std::enable_if_t<
-          ( ::java::_erased::java::array_impl_is_primitive_<Type>::value
+          ( ::java::_erased::java::array_impl_is_primitive_<Type*>::value
           ? ::std::is_constructible_v<NewArrayType, Args...>
           : ::std::is_constructible_v<NewArrayType, ::java::lang::Class<::java::G::pack<>>, Args...>
           )>>
   explicit JSER_INLINE basic_ref([[maybe_unused]] allocate_t a, Args&&... args) {
-    if constexpr(::java::_erased::java::array_impl_is_primitive_<Type>::value)
+    if constexpr(::java::_erased::java::array_impl_is_primitive_<Type*>::value)
       p_ = ::cycle_ptr::make_cycle<NewArrayType>(::std::forward<Args>(args)...);
     else
-      p_ = ::cycle_ptr::make_cycle<NewArrayType>(::java::_erased::java::get_array_elem_class_<Type>::get_class(), ::std::forward<Args>(args)...);
+      p_ = ::cycle_ptr::make_cycle<NewArrayType>(::java::_erased::java::get_array_elem_class_<Type*>::get_class(), ::std::forward<Args>(args)...);
+  }
+
+  template<
+      bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>,
+      typename... Args,
+      typename NewArraySelector = typename ::java::_erased::java::select_array_new_impl_<Type*>,
+      typename NewArrayType = typename NewArraySelector::type,
+      typename = std::enable_if_t<
+          ( ::java::_erased::java::array_impl_is_primitive_<Type*>::value
+          ? ::std::is_constructible_v<NewArrayType, Args...>
+          : ::std::is_constructible_v<NewArrayType, ::java::lang::Class<::java::G::pack<>>, Args...>
+          )>>
+  explicit JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, [[maybe_unused]] allocate_t a, Args&&... args)
+  : p_(owner)
+  {
+    if constexpr(::java::_erased::java::array_impl_is_primitive_<Type*>::value)
+      p_ = ::cycle_ptr::make_cycle<NewArrayType>(::std::forward<Args>(args)...);
+    else
+      p_ = ::cycle_ptr::make_cycle<NewArrayType>(::java::_erased::java::get_array_elem_class_<Type*>::get_class(), ::std::forward<Args>(args)...);
   }
 
   explicit JSER_INLINE basic_ref([[maybe_unused]] allocate_t a, typename ::java::_erased::java::array_factory_<Type*>::initializer_list init)
   : p_(::java::_erased::java::array_factory_<Type*>()(init))
+  {}
+
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
+  explicit JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, [[maybe_unused]] allocate_t a, typename ::java::_erased::java::array_factory_<Type*>::initializer_list init)
+  : p_(owner, ::java::_erased::java::array_factory_<Type*>()(init))
   {}
 
   template<template<typename> class OPtrImpl, typename OType,
@@ -1797,12 +1850,32 @@ class basic_ref<PtrImpl, Type*> final {
   : p_(other.p_)
   {}
 
+  template<
+      bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>,
+      template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>
+          && !std::is_const_v<OType>>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, const basic_ref<OPtrImpl, OType>& other)
+  : p_(owner, other.p_)
+  {}
+
   template<template<typename> class OPtrImpl, typename OType,
       typename = std::enable_if_t<
           java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>
           && !std::is_const_v<OType>>>
   JSER_INLINE basic_ref(basic_ref<OPtrImpl, OType>&& other)
   : p_(std::move(other.p_))
+  {}
+
+  template<
+      bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>,
+      template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>
+          && !std::is_const_v<OType>>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, basic_ref<OPtrImpl, OType>&& other)
+  : p_(owner, std::move(other.p_))
   {}
 
   template<template<typename> class XImpl, typename XType>
@@ -1934,11 +2007,35 @@ class basic_ref<PtrImpl, Type*const> final {
   JSER_INLINE basic_ref& operator=(basic_ref&&) = default;
   JSER_INLINE ~basic_ref() noexcept = default;
 
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner)
+  : p_(owner)
+  {}
+
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, const basic_ref& other)
+  : p_(owner, other.p_)
+  {}
+
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, basic_ref&& other)
+  : p_(owner, ::std::move(other.p_))
+  {}
+
   template<template<typename> class OPtrImpl, typename OType,
       typename = std::enable_if_t<
           java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>>>
   JSER_INLINE basic_ref(const basic_ref<OPtrImpl, OType>& other)
   : p_(other.p_)
+  {}
+
+  template<
+      bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>,
+      template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, const basic_ref<OPtrImpl, OType>& other)
+  : p_(owner, other.p_)
   {}
 
   template<template<typename> class OPtrImpl, typename OType,
@@ -1948,6 +2045,15 @@ class basic_ref<PtrImpl, Type*const> final {
   : p_(std::move(other.p_))
   {}
 
+  template<
+      bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>,
+      template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, basic_ref<OPtrImpl, OType>&& other)
+  : p_(owner, std::move(other.p_))
+  {}
+
   template<template<typename> class OPtrImpl, typename OType,
       typename = std::enable_if_t<
           java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>>>
@@ -1955,11 +2061,29 @@ class basic_ref<PtrImpl, Type*const> final {
   : p_(other.p_)
   {}
 
+  template<
+      bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>,
+      template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, const basic_ref<OPtrImpl, const OType>& other)
+  : p_(owner, other.p_)
+  {}
+
   template<template<typename> class OPtrImpl, typename OType,
       typename = std::enable_if_t<
           java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>>>
   JSER_INLINE basic_ref(basic_ref<OPtrImpl, const OType>&& other)
   : p_(std::move(other.p_))
+  {}
+
+  template<
+      bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>,
+      template<typename> class OPtrImpl, typename OType,
+      typename = std::enable_if_t<
+          java::type_traits::is_assignable_v<Type*, std::remove_const_t<OType>>>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, basic_ref<OPtrImpl, const OType>&& other)
+  : p_(owner, std::move(other.p_))
   {}
 
   template<template<typename> class XImpl, typename XType>

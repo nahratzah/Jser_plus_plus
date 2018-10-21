@@ -274,12 +274,33 @@ public class FieldType {
         this.docString = docString;
     }
 
+    public boolean isJavaClassVarType() {
+        final boolean javaFieldType;
+
+        Type rawVarType = getRawVarType();
+        if (rawVarType instanceof ConstType)
+            rawVarType = ((ConstType) rawVarType).getType();
+        if (rawVarType instanceof BoundTemplate.ClassBinding) {
+            final JavaType classBindingType = ((BoundTemplate.ClassBinding<?>) rawVarType).getType();
+            javaFieldType = !(classBindingType instanceof PrimitiveType);
+        } else {
+            javaFieldType = rawVarType instanceof BoundTemplate;
+        }
+
+        return javaFieldType;
+    }
+
     /**
      * Get the default initializer for this field. May be null.
      *
      * @return The default initializer.
      */
     public String getDefault() {
+        if (isJavaClassVarType()) {
+            if (defaultInit == null || defaultInit.trim().isEmpty())
+                return "*this";
+            return "*this, " + defaultInit;
+        }
         return defaultInit;
     }
 

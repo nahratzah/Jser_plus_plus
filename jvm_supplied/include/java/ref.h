@@ -448,14 +448,38 @@ class basic_ref final
   JSER_INLINE basic_ref() = default;
   JSER_INLINE constexpr basic_ref(std::nullptr_t) : basic_ref() {}
 
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner)
+  : p_(owner)
+  {}
+
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, std::nullptr_t) : basic_ref(owner) {}
+
   JSER_INLINE basic_ref(const basic_ref&)
       noexcept(std::is_nothrow_copy_constructible_v<ptr_type>) = default;
   JSER_INLINE basic_ref(basic_ref&&)
       noexcept(std::is_nothrow_move_constructible_v<ptr_type>) = default;
 
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, const basic_ref& other)
+      noexcept(std::is_nothrow_copy_constructible_v<ptr_type>)
+  : p_(owner, other.p_)
+  {}
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, basic_ref&& other)
+      noexcept(std::is_nothrow_move_constructible_v<ptr_type>)
+  : p_(owner, ::std::move(other.p_))
+  {}
+
   template<typename... Args, typename = std::void_t<decltype(std::declval<::java::_constructor<Type>>()(std::declval<Args>()...))>>
   explicit JSER_INLINE basic_ref([[maybe_unused]] allocate_t a, Args&&... args)
   : basic_ref(_direct(), ::java::_constructor<std::remove_const_t<Type>>()(std::forward<Args>(args)...))
+  {}
+
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>, typename... Args, typename = std::void_t<decltype(std::declval<::java::_constructor<Type>>()(std::declval<Args>()...))>>
+  explicit JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, [[maybe_unused]] allocate_t a, Args&&... args)
+  : basic_ref(owner, _direct(), ::java::_constructor<std::remove_const_t<Type>>()(std::forward<Args>(args)...))
   {}
 
  private:
@@ -476,6 +500,21 @@ class basic_ref final
 
   template<typename X>
   JSER_INLINE basic_ref([[maybe_unused]] _direct d, const cycle_ptr::cycle_gptr<X>& p, [[maybe_unused]] java::G::pack_t<> my_type) {
+    if constexpr(std::is_convertible_v<cycle_ptr::cycle_gptr<X>, ptr_type>) {
+      p_ = p; // Implicit cast.
+    } else {
+      p_ = std::dynamic_pointer_cast<erased_type>(p); // Explicit cast.
+
+      // Error out if the cast failed.
+      if (p_ == nullptr && p != nullptr)
+        throw std::bad_cast();
+    }
+  }
+
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>, typename X>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, [[maybe_unused]] _direct d, const cycle_ptr::cycle_gptr<X>& p, [[maybe_unused]] java::G::pack_t<> my_type)
+  : basic_ref(owner)
+  {
     if constexpr(std::is_convertible_v<cycle_ptr::cycle_gptr<X>, ptr_type>) {
       p_ = p; // Implicit cast.
     } else {
@@ -508,9 +547,37 @@ class basic_ref final
     }
   }
 
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>, typename X, typename MyType0, typename... MyTypes>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, [[maybe_unused]] _direct d, const cycle_ptr::cycle_gptr<X>& p, [[maybe_unused]] MyType0 my_type0, [[maybe_unused]] MyTypes... my_types)
+  : basic_ref(owner)
+  {
+    if constexpr(std::is_convertible_v<cycle_ptr::cycle_gptr<X>, ptr_type>) {
+      p_ = p; // Implicit cast.
+    } else {
+      p_ = std::dynamic_pointer_cast<erased_type>(p); // Explicit cast.
+
+      // Error out if the cast failed.
+      if (p_ == nullptr && p != nullptr)
+        throw std::bad_cast();
+    }
+
+    // Validate that all the casts are correct.
+    for (bool b : /* initializer list */ {
+        basic_ref::is_instance_of_<typename MyType0::tag::erased_type>(p_.get(), p.get()),
+        basic_ref::is_instance_of_<typename MyTypes::tag::erased_type>(p_.get(), p.get())...
+        }) {
+      if (!b) throw std::bad_cast();
+    }
+  }
+
   template<typename X, typename... MyTypes>
   JSER_INLINE basic_ref(_direct d, const cycle_ptr::cycle_gptr<X>& p, [[maybe_unused]] java::G::pack_t<MyTypes...> my_type)
   : basic_ref(d, p, MyTypes()...)
+  {}
+
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>, typename X, typename... MyTypes>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, _direct d, const cycle_ptr::cycle_gptr<X>& p, [[maybe_unused]] java::G::pack_t<MyTypes...> my_type)
+  : basic_ref(owner, d, p, MyTypes()...)
   {}
 
  public:
@@ -520,6 +587,14 @@ class basic_ref final
   template<typename X>
   JSER_INLINE basic_ref(_direct d, const cycle_ptr::cycle_gptr<X>& p)
   : basic_ref(d, p, Type())
+  {}
+
+  ///\brief Direct assignment.
+  ///\details Assigns the pointer directly, bypassing any generics checks.
+  ///\throws std::bad_cast if the pointer element does not implement all erased types held by this basic_ref.
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>, typename X>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, _direct d, const cycle_ptr::cycle_gptr<X>& p)
+  : basic_ref(owner, d, p, Type())
   {}
 
  private:
