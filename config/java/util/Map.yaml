@@ -79,6 +79,39 @@ classes:
       doc_string: |
         \brief Add a mapping to the map.
     - type: method
+      name: merge
+      arguments:
+      - name: b
+        type:
+          cxx: ::java::forward_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: ::java::forward_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      doc_string: |
+        \brief Add all elements in the range \p b to \p e into the map.
+        \param[in] b Iterator to first element to add.
+        \param[in] e Iterator to one-past-the-end element to add.
+      body: |
+        while (b != e) emplace(b->first, b->second);
+    # XXX enable once we've solved the generics is_satisfied_by problem
+    # - type: method
+    #   name: merge
+    #   arguments:
+    #   - name: m
+    #     type:
+    #       java: java.util.Map<? extends K, ? extends V>
+    #   doc_string: |
+    #     \brief Add all elements in \p m into the map.
+    #     \param[in] m Map containing elements that are to be added.
+    #   body: |
+    #     merge(m->begin(), m->end());
+    - type: method
       name: find
       virtual: true
       const: true
