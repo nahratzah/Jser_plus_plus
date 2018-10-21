@@ -1,0 +1,60 @@
+---
+classes:
+  java.util.SortedMap<K, V>:
+    dev_mode: false
+    doc_string: |
+      \brief A sorted map of elements.
+      \details Essentially the java equivalent of std::map.
+    members:
+    - type: method
+      name: comparator
+      const: true
+      virtual: true
+      return:
+        java: const java.util.Comparator<? super K>
+    - type: method
+      name: front
+      virtual: true
+      const: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({const K}), "style=type, class")$, $boundTemplateType(java.({const V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      doc_string: |
+        \brief Retrieve the first element from the map.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      const: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({const K}), "style=type, class")$, $boundTemplateType(java.({const V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      doc_string: |
+        \brief Retrieve the last element from the map.
+        \returns The last element.
+    - type: method
+      name: front
+      virtual: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({K}), "style=type, class")$, $boundTemplateType(java.({V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      doc_string: |
+        \brief Retrieve the first element from the map.
+        \returns The first element.
+    - type: method
+      name: back
+      virtual: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({K}), "style=type, class")$, $boundTemplateType(java.({V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      doc_string: |
+        \brief Retrieve the last element from the map.
+        \returns The last element.
