@@ -8,14 +8,14 @@ classes:
     fields:
       data_:
         type:
-          cxx: ::std::unordered_set<$boundTemplateType(java.({E}), "style=type, class")$, ::std::hash<$boundTemplateType(java.({const E}), "style=type, class")$>, ::std::equal_to<$boundTemplateType(java.({const E}), "style=type, class")$>, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>>
+          cxx: ::std::unordered_set<$boundTemplateType(java.({E}), "style=type, class=field")$, ::std::hash<$boundTemplateType(java.({const E}), "style=type, class")$>, ::std::equal_to<$boundTemplateType(java.({const E}), "style=type, class")$>, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>>
           includes:
             declaration:
             - unordered_set
             - functional
             - cycle_ptr/allocator.h
         visibility: private
-        default: 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
+        default: 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
     members:
     - type: constructor
     - type: constructor
@@ -33,7 +33,7 @@ classes:
             declaration:
             - java/iterator.h
       initializers:
-        data_: std::move(b), std::move(e), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
+        data_: std::move(b), std::move(e), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
     - type: constructor
       arguments:
       - name: init
@@ -43,14 +43,14 @@ classes:
             declaration:
             - initializer_list
       initializers:
-        data_: std::move(init), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
+        data_: init.begin(), init.end(), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
     - type: constructor
       arguments:
       - name: init
         type:
           java: java.lang.Iterable<? extends E>
       initializers:
-        data_: init->begin(), init->end(), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class")$>>(*this)
+        data_: init->begin(), init->end(), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.({E}), "style=type, class=field")$>>(*this)
     - type: method
       name: begin
       override: true
@@ -143,7 +143,7 @@ classes:
           declaration:
           - cstddef
       body: |
-        return data_.erase(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e)));
+        return data_.erase({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e)) });
     - type: method
       name: find
       override: true
@@ -158,7 +158,7 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return ::java::forward_iterator<const $boundTemplateType(java.({E}), "style=type")$>(data_.find(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e))));
+        return ::java::forward_iterator<const $boundTemplateType(java.({E}), "style=type")$>(data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e)) }));
     - type: method
       name: find
       override: true
@@ -172,7 +172,7 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>(data_.find(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e))));
+        return ::java::forward_iterator<$boundTemplateType(java.({E}), "style=type")$>(data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e)) }));
     - type: method
       name: __decoder_annotation__
       visibility: private

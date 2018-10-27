@@ -6,12 +6,12 @@ classes:
       data_:
         visibility: private
         type:
-          cxx: ::std::list<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>
+          cxx: ::std::list<$boundTemplateType(java.("E"), "style=type, class=field")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class=field")$>>>
           includes:
             declaration:
             - list
             - cycle_ptr/allocator.h
-        default: ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        default: ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class=field")$>>(*this)
     members:
     - type: constructor
     - type: constructor
@@ -29,7 +29,7 @@ classes:
             declaration:
             - java/iterator.h
       initializers:
-        data_: std::move(b), std::move(e), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        data_: std::move(b), std::move(e), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class=field")$>>(*this)
     - type: constructor
       arguments:
       - name: init
@@ -39,14 +39,14 @@ classes:
             declaration:
             - initializer_list
       initializers:
-        data_: init, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        data_: init.begin(), init.end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class=field")$>>(*this)
     - type: constructor
       arguments:
       - name: init
         type:
           java: java.lang.Iterable<? extends E>
       initializers:
-        data_: init->begin(), init->end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        data_: init->begin(), init->end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class=field")$>>(*this)
     - type: method
       name: empty
       override: true

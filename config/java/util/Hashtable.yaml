@@ -14,14 +14,14 @@ classes:
         encoder_expr: data_.size()
       data_:
         type:
-          cxx: ::std::unordered_map<$boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$, ::std::hash<$boundTemplateType(java.("const K"), "style=type, class")$>, ::std::equal_to<$boundTemplateType(java.("const K"), "style=type, class")$>, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>>
+          cxx: ::std::unordered_map<$boundTemplateType(java.("K"), "style=type, class=field")$, $boundTemplateType(java.("V"), "style=type, class=field")$, ::std::hash<$boundTemplateType(java.("const K"), "style=type, class")$>, ::std::equal_to<$boundTemplateType(java.("const K"), "style=type, class")$>, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class=field")$, $boundTemplateType(java.("V"), "style=type, class=field")$>>>>
           includes:
             declaration:
             - unordered_map
             - functional
             - cycle_ptr/allocator.h
         visibility: private
-        default: 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+        default: 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class=field")$, $boundTemplateType(java.("V"), "style=type, class=field")$>>>(*this)
     members:
     - type: constructor
     - type: constructor
@@ -30,7 +30,7 @@ classes:
         type:
           java: java.util.Map<? extends K, ? extends V>
       initializers:
-        data_: m->begin(), m->end(), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+        data_: m->begin(), m->end(), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class=field")$, $boundTemplateType(java.("V"), "style=type, class=field")$>>>(*this)
     - type: constructor
       arguments:
       - name: b
@@ -46,7 +46,7 @@ classes:
             declaration:
             - java/iterator.h
       initializers:
-        data_: ::std::move(b), ::std::move(e), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+        data_: ::std::move(b), ::std::move(e), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class=field")$, $boundTemplateType(java.("V"), "style=type, class=field")$>>>(*this)
     - type: constructor
       arguments:
       - name: init
@@ -57,7 +57,7 @@ classes:
             - initializer_list
             - utility
       initializers:
-        data_: ::std::move(init), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+        data_: init.begin(), init.end(), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class=field")$, $boundTemplateType(java.("V"), "style=type, class=field")$>>>(*this)
     - type: method
       name: begin
       override: true
@@ -154,7 +154,7 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
     - type: method
       name: find
       override: true
@@ -168,7 +168,7 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
     - type: method
       name: __decoder_annotation__
       visibility: private

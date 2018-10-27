@@ -274,7 +274,7 @@ classes:
           declaration:
           - cstddef
       body: |
-        return data_.erase(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e)));
+        return data_.erase({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e)) });
     - type: method
       name: find
       override: true
@@ -289,7 +289,7 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return ::java::bidirectional_iterator<const $boundTemplateType(java.({E}), "style=type")$>(data_.find(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e))));
+        return ::java::bidirectional_iterator<const $boundTemplateType(java.({E}), "style=type")$>(data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e)) }));
     - type: method
       name: find
       override: true
@@ -303,7 +303,7 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return ::java::bidirectional_iterator<$boundTemplateType(java.({E}), "style=type")$>(data_.find(::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e))));
+        return ::java::bidirectional_iterator<$boundTemplateType(java.({E}), "style=type")$>(data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({E}), "style=type, class")$>(std::move(e)) }));
     - type: method
       name: __decoder_annotation__
       visibility: private

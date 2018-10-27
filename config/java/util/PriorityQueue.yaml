@@ -11,12 +11,12 @@ classes:
       data_:
         visibility: private
         type:
-          cxx: ::std::vector<$boundTemplateType(java.("E"), "style=type, class")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>>
+          cxx: ::std::vector<$boundTemplateType(java.("E"), "style=type, class=field")$, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class=field")$>>>
           includes:
             declaration:
             - vector
         default: |
-          ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+          ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class=field")$>>(*this)
       comparator:
         final: true
         const: true
@@ -45,7 +45,7 @@ classes:
             declaration:
             - java/iterator.h
       initializers:
-        data_: b, e, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        data_: b, e, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class=field")$>>(*this)
       body: |
         std::make_heap(data_.begin(), data_.end(),
                        [this](const auto& x, const auto& y) {
@@ -63,7 +63,7 @@ classes:
             declaration:
             - initializer_list
       initializers:
-        data_: init, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        data_: init.begin(), init.end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class=field")$>>(*this)
       body: |
         std::make_heap(data_.begin(), data_.end(),
                        [this](const auto& x, const auto& y) {
@@ -90,7 +90,7 @@ classes:
         type:
           java: java.util.Comparator<? super E>
       initializers:
-        data_: b, e, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        data_: b, e, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class=field")$>>(*this)
         comparator: std::move(comparator)
       body: |
         std::make_heap(data_.begin(), data_.end(),
@@ -112,7 +112,7 @@ classes:
         type:
           java: java.util.Comparator<? super E>
       initializers:
-        data_: init, ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class")$>>(*this)
+        data_: init.begin(), init.end(), ::cycle_ptr::cycle_allocator<::std::allocator<$boundTemplateType(java.("E"), "style=type, class=field")$>>(*this)
         comparator: std::move(comparator)
       body: |
         std::make_heap(data_.begin(), data_.end(),
