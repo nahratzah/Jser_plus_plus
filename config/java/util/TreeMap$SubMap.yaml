@@ -1,0 +1,140 @@
+---
+classes:
+  java.util.TreeMap$SubMap<K, V>:
+    dev_mode: true
+    suppress_local:
+    - java.io.Serializable/__decoder__
+    doc_string: |
+      \brief Deprecated serialized form of \ref TreeSet$AscendingSubMap "AscendingSubMap".
+      \deprecated This class only exists for deserialization.
+    friends:
+    - cxx: ::java::serialization::module
+      includes:
+        declaration:
+        - java/serialization/module_fwd.h
+    fields:
+      this$0:
+        visibility: private
+        getter: false
+        setter: false
+        decode_stage: initial
+        type:
+          java: java.util.TreeMap<K, V>
+      fromStart:
+        visibility: private
+        getter: false
+        setter: false
+        default: "false"
+        decode_stage: initial
+      toEnd:
+        visibility: private
+        getter: false
+        setter: false
+        default: "false"
+        decode_stage: initial
+      fromKey:
+        visibility: private
+        getter: false
+        setter: false
+        decode_stage: initial
+      toKey:
+        visibility: private
+        getter: false
+        setter: false
+        decode_stage: initial
+    members:
+    - type: method
+      name: comparator
+      const: true
+      override: true
+      return:
+        java: const java.util.Comparator<? super K>
+      body: |
+        return this\$0->comparator();
+    - type: method
+      name: empty
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+      body: |
+        return begin() == end();
+    - type: method
+      name: size
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        return ::std::distance(begin(), end());
+      includes:
+        implementation:
+        - iterator
+    - type: method
+      name: __decoder__
+      static: true
+      visibility: private
+      arguments:
+      - name: ctx
+        type:
+          cxx: ::java::serialization::decoder_ctx&
+          includes:
+            declaration:
+            - java/serialization/decoder_fwd.h
+      - name: raw_stream_elem
+        type:
+          cxx: ::cycle_ptr::cycle_gptr<const ::java::serialization::stream::stream_element>
+          includes:
+            declaration:
+            - cycle_ptr/cycle_ptr.h
+            - java/serialization/type_def_fwd.h
+            implementation:
+            - java/serialization/encdec.h
+      return:
+        cxx: ::cycle_ptr::cycle_gptr<::java::serialization::decoder>
+        includes:
+          declaration:
+          - cycle_ptr/cycle_ptr.h
+          - java/serialization/decoder_fwd.h
+          implementation:
+          - java/serialization/decoder.h
+      doc_string: |
+        \brief Specialized decoder for \ref ::java::util::TreeMap$SubMap "TreeMap::SubMap" yields a \ref ::java::util::TreeMap$AscendingSubMap "TreeMap::AscendingSubMap".
+        \details Decoder decodes the SubMap and then converts it to an AscendingMap.
+        This mimics the `readResolve()` behaviour in Java serialization.
+      body: |
+        class decoder_impl final
+        : public ::java::serialization::class_decoder_intf
+        {
+         public:
+          using ::java::serialization::class_decoder_intf::class_decoder_intf;
+          ~decoder_impl() noexcept override = default;
+
+         private:
+          auto init() -> ::java::lang::Object override {
+            ::cycle_ptr::cycle_member_ptr<$erasedType(model)$> dst = $if (model.devMode)$nullptr; // XXX $endif$::cycle_ptr::make_cycle<$erasedType(model)$>(*this);
+
+            return $if (java.({java.util.TreeMap\$AscendingSubMap<?, ?>}).type.devMode)$nullptr; // XXX $endif$$\\$
+                $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<?, ?>}), "style=type, class")$(::java::allocate, dst->this\$0, dst->fromStart, dst->fromKey, true, dst->toEnd, dst->toKey, false);
+          }
+        };
+
+        return ::cycle_ptr::make_cycle<decoder_impl>(ctx, raw_stream_elem);
+      includes:
+        implementation:
+        - java/serialization/encdec.h
+        - java/serialization/decoder.h
+        - java/serialization/exception.h
+        - cycle_ptr/allocator.h
+        - vector
+        - memory
+        - iterator
+        - type_traits
+        - cassert
