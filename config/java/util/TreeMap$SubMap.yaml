@@ -60,6 +60,7 @@ classes:
       return:
         cxx: bool
       body: |
+        if (fromStart && toEnd) return this\$0->empty();
         return begin() == end();
     - type: method
       name: size
@@ -73,10 +74,25 @@ classes:
           declaration:
           - cstddef
       body: |
-        return ::std::distance(begin(), end());
+        if (fromStart && toEnd) return this\$0->size();
+
+        // By writing out the loop, we prevent the pointee from being copied.
+        // By avoiding that, we avoid a call to the GC.
+        ::std::size_t sz = 0;
+        for (auto i = begin(), e = end(); i != e; ++i) ++sz;
+        return sz;
       includes:
         implementation:
         - iterator
+    - type: method
+      name: clear
+      override: true
+      body: |
+        auto& data_ = ::java::raw_ptr<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=tag")$>(this\$0)->data_;
+
+        data_.erase(
+            (fromStart ? data_.begin() : data_.lower_bound(fromKey)),
+            (toEnd ? data_.end() : data_.lower_bound(toKey)));
     - type: method
       name: begin
       const: true
