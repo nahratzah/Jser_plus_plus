@@ -69,3 +69,69 @@ classes:
         \brief Find element in the set.
         \param k Key to the element to find.
         \returns Iterator to the element, or if the element is absent, an iterator to end.
+    - type: method
+      name: lower_bound
+      virtual: true
+      arguments:
+      - name: k
+        type:
+          java: K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      doc_string: |
+        \brief Find element in the map.
+        \param k Key to the element to find.
+        \returns Iterator to the element with key greater than or equal to \p k.
+    - type: method
+      name: lower_bound
+      const: true
+      virtual: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      doc_string: |
+        \brief Find element in the map.
+        \param k Key to the element to find.
+        \returns Iterator to the element with key greater than or equal to \p k.
+    - type: method
+      name: upper_bound
+      virtual: true
+      arguments:
+      - name: k
+        type:
+          java: K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      doc_string: |
+        \brief Find element in the map.
+        \param k Key to the element to find.
+        \returns Iterator to the element with key greater than \p k.
+    - type: method
+      name: upper_bound
+      const: true
+      virtual: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      doc_string: |
+        \brief Find element in the map.
+        \param k Key to the element to find.
+        \returns Iterator to the element with key greater than \p k.
