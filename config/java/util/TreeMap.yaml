@@ -5,6 +5,8 @@ classes:
     doc_string: |
       \brief Sorted map.
       \details This is basically Java's `std::map` equavalent.
+    friends:
+    - java: java.util.TreeMap$NavigableSubMap
     fields:
       comparator:
         rename: comparator_

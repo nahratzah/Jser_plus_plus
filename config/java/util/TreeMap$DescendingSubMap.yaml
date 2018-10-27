@@ -1,0 +1,4 @@
+---
+classes:
+  java.util.TreeMap$DescendingSubMap<K, V>:
+    dev_mode: true

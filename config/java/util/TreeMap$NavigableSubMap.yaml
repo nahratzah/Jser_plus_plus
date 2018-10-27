@@ -1,0 +1,4 @@
+---
+classes:
+  java.util.TreeMap$NavigableSubMap<K, V>:
+    dev_mode: true
