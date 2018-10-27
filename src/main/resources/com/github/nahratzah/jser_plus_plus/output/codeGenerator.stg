@@ -8,6 +8,12 @@ $endif$
 
 $templateLine(model.templateArgumentNames, true)$
 class _static_accessor$templateArgs([tagType(model), model.templateArgumentNames], true)$ {
+$if (model.friends)$
+  $ model.friends
+    : {f| $if (f.unresolvedTemplateNames)$$templateLine(f.unresolvedTemplateNames)$$"\n"$$endif$friend $boundTemplateType(f, "style=erased")$;}
+    ; anchor, separator = "\n"$
+
+$endif$
  protected:
   JSER_INLINE _static_accessor() = default;
   JSER_INLINE _static_accessor(const _static_accessor&) = default;
@@ -35,6 +41,11 @@ class _accessor$templateArgs(["Base_", tagType(model), model.templateArgumentNam
 $accessorInheritance(model, "Base_")$
 {
   friend $erasedType(model)$;
+$if (model.friends)$
+  $ model.friends
+    : {f| $if (f.unresolvedTemplateNames)$$templateLine(f.unresolvedTemplateNames)$$"\n"$$endif$friend $boundTemplateType(f, "style=erased")$;}
+    ; anchor, separator = "\n"$
+$endif$
 
  protected:
   JSER_INLINE _accessor() = default;
