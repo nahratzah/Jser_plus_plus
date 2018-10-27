@@ -78,6 +78,48 @@ classes:
         implementation:
         - iterator
     - type: method
+      name: begin
+      const: true
+      override: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return (fromStart ? this\$0->begin() : this\$0->lower_bound(fromKey));
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return (fromStart ? this\$0->begin() : this\$0->lower_bound(fromKey));
+    - type: method
+      name: end
+      const: true
+      override: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return (toEnd ? this\$0->end() : this\$0->lower_bound(toKey));
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return (toEnd ? this\$0->end() : this\$0->lower_bound(toKey));
+    - type: method
       name: __decoder__
       static: true
       visibility: private

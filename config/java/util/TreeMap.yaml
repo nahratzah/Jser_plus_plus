@@ -338,7 +338,7 @@ classes:
 
     - type: method
       name: lower_bound
-      virtual: true
+      override: true
       arguments:
       - name: k
         type:
@@ -353,7 +353,7 @@ classes:
     - type: method
       name: lower_bound
       const: true
-      virtual: true
+      override: true
       arguments:
       - name: k
         type:
@@ -367,7 +367,7 @@ classes:
         return data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
     - type: method
       name: upper_bound
-      virtual: true
+      override: true
       arguments:
       - name: k
         type:
@@ -382,7 +382,7 @@ classes:
     - type: method
       name: upper_bound
       const: true
-      virtual: true
+      override: true
       arguments:
       - name: k
         type:

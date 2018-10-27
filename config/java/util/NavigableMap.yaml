@@ -71,7 +71,7 @@ classes:
         \returns Iterator to the element, or if the element is absent, an iterator to end.
     - type: method
       name: lower_bound
-      virtual: true
+      override: true
       arguments:
       - name: k
         type:
@@ -88,7 +88,7 @@ classes:
     - type: method
       name: lower_bound
       const: true
-      virtual: true
+      override: true
       arguments:
       - name: k
         type:
@@ -104,7 +104,7 @@ classes:
         \returns Iterator to the element with key greater than or equal to \p k.
     - type: method
       name: upper_bound
-      virtual: true
+      override: true
       arguments:
       - name: k
         type:
@@ -121,7 +121,7 @@ classes:
     - type: method
       name: upper_bound
       const: true
-      virtual: true
+      override: true
       arguments:
       - name: k
         type:
