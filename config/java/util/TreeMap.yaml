@@ -94,10 +94,10 @@ classes:
       arguments:
       - name: x
         type:
-          java: K
+          java: const K
       - name: y
         type:
-          java: K
+          java: const K
       return:
         cxx: bool
       body: |

@@ -1,7 +1,7 @@
 ---
 classes:
   java.util.TreeMap$SubMap<K, V>:
-    dev_mode: true
+    dev_mode: false
     suppress_local:
     - java.io.Serializable/__decoder__
     doc_string: |
@@ -81,6 +81,24 @@ classes:
         java: const java.util.Comparator<? super K>
       body: |
         return this\$0->comparator();
+    - type: method
+      name: icompare_
+      const: true
+      visibility: private
+      arguments:
+      - name: x
+        type:
+          java: const K
+      - name: y
+        type:
+          java: const K
+      return:
+        java: int
+      body: |
+        auto cmp = comparator();
+        if (cmp == nullptr)
+          return $boundTemplateType(java.("java.util.Comparator<K>"), "style=type, class")$::naturalOrder()->compare(std::move(x), std::move(y));
+        return cmp->compare(std::move(x), std::move(y));
     - type: method
       name: empty
       override: true
@@ -172,6 +190,189 @@ classes:
           - java/iterator.h
       body: |
         return (toEnd ? this\$0->end() : this\$0->lower_bound(toKey));
+    - type: method
+      name: find
+      const: true
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart && icompare_(k, fromKey) < 0)
+          return end();
+        if (!toEnd && icompare_(k, toKey) >= 0)
+          return end();
+
+        auto found = this\$0->find(::std::move(k));
+        if (found == this\$0->end()) return end();
+        return found;
+    - type: method
+      name: find
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart && icompare_(k, fromKey) < 0)
+          return end();
+        if (!toEnd && icompare_(k, toKey) >= 0)
+          return end();
+
+        auto found = this\$0->find(::std::move(k));
+        if (found == this\$0->end()) return end();
+        return found;
+    - type: method
+      name: lower_bound
+      const: true
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart && icompare_(k, fromKey) < 0)
+          return begin();
+        if (!toEnd && icompare_(k, toKey) >= 0)
+          return end();
+
+        return this\$0->lower_bound(::std::move(k));
+    - type: method
+      name: lower_bound
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart && icompare_(k, fromKey) < 0)
+          return begin();
+        if (!toEnd && icompare_(k, toKey) >= 0)
+          return end();
+
+        return this\$0->lower_bound(::std::move(k));
+    - type: method
+      name: upper_bound
+      const: true
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart && icompare_(k, fromKey) < 0)
+          return begin();
+        if (!toEnd && icompare_(k, toKey) >= 0)
+          return end();
+
+        return this\$0->upper_bound(::std::move(k));
+    - type: method
+      name: upper_bound
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart && icompare_(k, fromKey) < 0)
+          return begin();
+        if (!toEnd && icompare_(k, toKey) >= 0)
+          return end();
+
+        return this\$0->upper_bound(::std::move(k));
+    - type: method
+      name: emplace
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: K
+      - name: v
+        type:
+          java: V
+      body: |
+        if (!fromStart && icompare_(k, fromKey) < 0)
+          throw ::std::invalid_argument("key out of range");
+        if (!toEnd && icompare_(k, toKey) >= 0)
+          throw ::std::invalid_argument("key out of range");
+
+        this\$0->emplace(::std::move(k), ::std::move(v));
+      includes:
+        implementation:
+        - stdexcept
+    - type: method
+      name: front
+      virtual: true
+      const: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({const K}), "style=type, class")$, $boundTemplateType(java.({const V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *begin();
+    - type: method
+      name: back
+      virtual: true
+      const: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({const K}), "style=type, class")$, $boundTemplateType(java.({const V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *--end();
+    - type: method
+      name: front
+      virtual: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({K}), "style=type, class")$, $boundTemplateType(java.({V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *begin();
+    - type: method
+      name: back
+      virtual: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({K}), "style=type, class")$, $boundTemplateType(java.({V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *--end();
     - type: method
       name: __decoder__
       static: true
