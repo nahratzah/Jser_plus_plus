@@ -25,24 +25,54 @@ classes:
         getter: false
         setter: false
         default: "false"
+        const: true
         decode_stage: initial
       toEnd:
         visibility: private
         getter: false
         setter: false
         default: "false"
+        const: true
         decode_stage: initial
       fromKey:
         visibility: private
         getter: false
         setter: false
+        const: true
+        final: true
         decode_stage: initial
       toKey:
         visibility: private
         getter: false
         setter: false
+        const: true
+        final: true
         decode_stage: initial
     members:
+    - type: constructor
+      arguments:
+      - name: m
+        type:
+          java: java.util.TreeMap<K, V>
+      initializers:
+        this$0: ::std::move(m)
+    - type: constructor
+      arguments:
+      - name: m
+        type:
+          java: java.util.TreeMap<K, V>
+      - name: b
+        type:
+          java: const K
+      - name: e
+        type:
+          java: const K
+      initializers:
+        this$0: ::std::move(m)
+        fromStart: b == nullptr
+        toEnd: e == nullptr
+        fromKey: ::std::move(b)
+        toKey: ::std::move(e)
     - type: method
       name: comparator
       const: true
@@ -88,11 +118,18 @@ classes:
       name: clear
       override: true
       body: |
-        auto& data_ = ::java::raw_ptr<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=tag")$>(this\$0)->data_;
-
-        data_.erase(
-            (fromStart ? data_.begin() : data_.lower_bound(fromKey)),
-            (toEnd ? data_.end() : data_.lower_bound(toKey)));
+        if (fromStart && toEnd) {
+          this\$0->clear();
+        } else {
+          auto& data_ = ::java::raw_ptr<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=tag")$>(this\$0)->data_;
+          data_.erase(
+              (fromStart
+               ? data_.begin()
+               : data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(fromKey))),
+              (toEnd
+               ? data_.end()
+               : data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(toKey))));
+        }
     - type: method
       name: begin
       const: true

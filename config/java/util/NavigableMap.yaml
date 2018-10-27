@@ -75,7 +75,7 @@ classes:
       arguments:
       - name: k
         type:
-          java: K
+          java: const K
       return:
         cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
         includes:
@@ -108,7 +108,7 @@ classes:
       arguments:
       - name: k
         type:
-          java: K
+          java: const K
       return:
         cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
         includes:

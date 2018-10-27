@@ -342,14 +342,14 @@ classes:
       arguments:
       - name: k
         type:
-          java: K
+          java: const K
       return:
         cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
         includes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.lower_bound(::std::move(k));
+        return data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
     - type: method
       name: lower_bound
       const: true
@@ -371,14 +371,14 @@ classes:
       arguments:
       - name: k
         type:
-          java: K
+          java: const K
       return:
         cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
         includes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.upper_bound(::std::move(k));
+        return data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
     - type: method
       name: upper_bound
       const: true
