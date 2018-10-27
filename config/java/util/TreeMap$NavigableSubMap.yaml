@@ -1,7 +1,7 @@
 ---
 classes:
   java.util.TreeMap$NavigableSubMap<K, V>:
-    dev_mode: true
+    dev_mode: false
     doc_string: |
       \brief A submap of a \ref ::java::util::TreeMap "TreeMap".
     fields:
@@ -99,3 +99,660 @@ classes:
         - java/null_error.h
         - stdexcept
         - cassert
+    - type: method
+      name: comparator
+      override: true
+      const: true
+      return:
+        java: const java.util.Comparator<? super K>
+      body: |
+        return m->comparator();
+    - type: method
+      name: icompare_
+      const: true
+      visibility: private
+      arguments:
+      - name: x
+        type:
+          java: const K
+      - name: y
+        type:
+          java: const K
+      return:
+        java: int
+      body: |
+        auto cmp = comparator();
+        if (cmp == nullptr)
+          return $boundTemplateType(java.("java.util.Comparator<K>"), "style=type, class")$::naturalOrder()->compare(std::move(x), std::move(y));
+        return cmp->compare(std::move(x), std::move(y));
+    - type: method
+      name: empty
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: bool
+      body: |
+        if (fromStart && toEnd) return m_->data_.empty();
+
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::const_iterator;
+        iterator b, e;
+
+        if (fromStart)
+          b = m_->data_.begin();
+        else if (loInclusive)
+          b = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+        else
+          b = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+
+        if (toEnd)
+          e = m_->data_.end();
+        else if (hiInclusive)
+          e = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+        else
+          e = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+
+        return b == e;
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: size
+      override: true
+      const: true
+      noexcept: true
+      covariant_return: false
+      return:
+        cxx: ::std::size_t
+        includes:
+          declaration:
+          - cstddef
+      body: |
+        if (fromStart && toEnd) return m_->data_.size();
+
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::const_iterator;
+        iterator b, e;
+
+        if (fromStart)
+          b = m_->data_.begin();
+        else if (loInclusive)
+          b = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+        else
+          b = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+
+        if (toEnd)
+          e = m_->data_.end();
+        else if (hiInclusive)
+          e = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+        else
+          e = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+
+        ::std::size_t sz = 0;
+        for (auto i = b; i != e; ++i) ++sz;
+        return sz;
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: clear
+      override: true
+      body: |
+        if (fromStart && toEnd) {
+          m_->data_.clear();
+          return;
+        }
+
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::iterator;
+        iterator b, e;
+
+        if (fromStart)
+          b = m_->data_.begin();
+        else if (loInclusive)
+          b = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+        else
+          b = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+
+        if (toEnd)
+          e = m_->data_.end();
+        else if (hiInclusive)
+          e = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+        else
+          e = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+
+        m_->data_.erase(b, e);
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: begin_
+      visibility: protected
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        if (fromStart)
+          return m_->data_.begin();
+        else if (loInclusive)
+          return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+        else
+          return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+    - type: method
+      name: begin_
+      visibility: protected
+      const: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        if (fromStart)
+          return m_->data_.begin();
+        else if (loInclusive)
+          return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+        else
+          return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+    - type: method
+      name: end_
+      visibility: protected
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        if (toEnd)
+          return m_->data_.end();
+        else if (hiInclusive)
+          return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+        else
+          return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+    - type: method
+      name: end_
+      visibility: protected
+      const: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        if (toEnd)
+          return m_->data_.end();
+        else if (hiInclusive)
+          return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+        else
+          return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+    - type: method
+      name: rbegin_
+      visibility: protected
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::reverse_iterator;
+
+        if (toEnd)
+          return iterator(m_->data_.end());
+        else if (hiInclusive)
+          return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi)));
+        else
+          return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi)));
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: rbegin_
+      visibility: protected
+      const: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::const_reverse_iterator;
+
+        if (toEnd)
+          return iterator(m_->data_.end());
+        else if (hiInclusive)
+          return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi)));
+        else
+          return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi)));
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: rend_
+      visibility: protected
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::reverse_iterator;
+
+        if (fromStart)
+          return iterator(m_->data_.begin());
+        else if (loInclusive)
+          return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo)));
+        else
+          return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo)));
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: rend_
+      visibility: protected
+      const: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::const_reverse_iterator;
+
+        if (fromStart)
+          return iterator(m_->data_.begin());
+        else if (loInclusive)
+          return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo)));
+        else
+          return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo)));
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: emplace
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: K
+      - name: v
+        type:
+          java: V
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+
+        m->emplace(::std::move(k), ::std::move(v));
+      includes:
+        implementation:
+        - stdexcept
+    - type: method
+      name: find_
+      visibility: protected
+      const: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return end_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return end_();
+        }
+
+        auto found = m_->data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        if (found == m_->data_.end()) return end_();
+        return found;
+    - type: method
+      name: find_
+      visibility: protected
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return end_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return end_();
+        }
+
+        auto found = m_->data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        if (found == m_->data_.end()) return end_();
+        return found;
+    - type: method
+      name: rfind_
+      visibility: protected
+      const: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::const_reverse_iterator;
+
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return rend_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return rend_();
+        }
+
+        auto found = m_->data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        if (found == m_->data_.end()) return rend_();
+        return iterator(found);
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: rfind_
+      visibility: protected
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::reverse_iterator;
+
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return rend_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return rend_();
+        }
+
+        auto found = m_->data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        if (found == m_->data_.end()) return rend_();
+        return iterator(found);
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: front_
+      visibility: protected
+      const: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({const K}), "style=type, class")$, $boundTemplateType(java.({const V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *begin_();
+    - type: method
+      name: front_
+      visibility: protected
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({K}), "style=type, class")$, $boundTemplateType(java.({V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *begin_();
+    - type: method
+      name: back_
+      visibility: protected
+      const: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({const K}), "style=type, class")$, $boundTemplateType(java.({const V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *rbegin_();
+    - type: method
+      name: back_
+      visibility: protected
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({K}), "style=type, class")$, $boundTemplateType(java.({V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *rbegin_();
+    - type: method
+      name: lower_bound_
+      visibility: protected
+      const: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return begin_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return end_();
+        }
+
+        return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+    - type: method
+      name: lower_bound_
+      visibility: protected
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return begin_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return end_();
+        }
+
+        return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+    - type: method
+      name: rlower_bound_
+      visibility: protected
+      const: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::const_reverse_iterator;
+
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return rend_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return rbegin_();
+        }
+
+        return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k))));
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: rlower_bound_
+      visibility: protected
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::reverse_iterator;
+
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return rend_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return rend_();
+        }
+
+        return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k))));
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: upper_bound_
+      visibility: protected
+      const: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return begin_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return end_();
+        }
+
+        return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+    - type: method
+      name: upper_bound_
+      visibility: protected
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return begin_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return end_();
+        }
+
+        return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+    - type: method
+      name: rupper_bound_
+      visibility: protected
+      const: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::const_reverse_iterator;
+
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return rend_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return rbegin_();
+        }
+
+        return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k))));
+      includes:
+        implementation:
+        - type_traits
+    - type: method
+      name: rupper_bound_
+      visibility: protected
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        using iterator = typename ::std::remove_reference_t<decltype(::std::declval<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>().data_)>::reverse_iterator;
+
+        if (!fromStart) {
+          const auto cmp = icompare_(k, lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            return rend_();
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(k, hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            return rend_();
+        }
+
+        return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k))));
+      includes:
+        implementation:
+        - type_traits

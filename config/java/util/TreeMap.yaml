@@ -336,7 +336,6 @@ classes:
         implementation:
         - stdexcept
         - java/serialization/writer.h
-
     - type: method
       name: lower_bound
       override: true

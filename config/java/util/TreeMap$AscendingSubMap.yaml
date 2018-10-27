@@ -1,4 +1,165 @@
 ---
 classes:
   java.util.TreeMap$AscendingSubMap<K, V>:
-    dev_mode: true
+    dev_mode: false
+    inherit_constructors: true
+    members:
+    - type: method
+      name: begin
+      override: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        return begin_();
+    - type: method
+      name: begin
+      override: true
+      const: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        return begin_();
+    - type: method
+      name: end
+      override: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        return end_();
+    - type: method
+      name: end
+      override: true
+      const: true
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+      body: |
+        return end_();
+    - type: method
+      name: find
+      override: true
+      const: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return find_(::std::move(k));
+    - type: method
+      name: find
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return find_(::std::move(k));
+    - type: method
+      name: front
+      override: true
+      const: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({const K}), "style=type, class")$, $boundTemplateType(java.({const V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return front_();
+    - type: method
+      name: front
+      override: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({K}), "style=type, class")$, $boundTemplateType(java.({V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return front_();
+    - type: method
+      name: back
+      override: true
+      const: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({const K}), "style=type, class")$, $boundTemplateType(java.({const V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return back_();
+    - type: method
+      name: back
+      override: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({K}), "style=type, class")$, $boundTemplateType(java.({V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return back_();
+    - type: method
+      name: lower_bound
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return lower_bound_(::std::move(k));
+    - type: method
+      name: lower_bound
+      const: true
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return lower_bound_(::std::move(k));
+    - type: method
+      name: upper_bound
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return upper_bound_(::std::move(k));
+    - type: method
+      name: upper_bound
+      const: true
+      override: true
+      arguments:
+      - name: k
+        type:
+          java: const K
+      return:
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        includes:
+          declaration:
+          - java/iterator.h
+      body: |
+        return upper_bound_(::std::move(k));
