@@ -142,16 +142,16 @@ classes:
         if (fromStart)
           b = m_->data_.begin();
         else if (loInclusive)
-          b = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+          b = m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) });
         else
-          b = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+          b = m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) });
 
         if (toEnd)
           e = m_->data_.end();
         else if (hiInclusive)
-          e = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+          e = m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) });
         else
-          e = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+          e = m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) });
 
         return b == e;
       includes:
@@ -177,16 +177,16 @@ classes:
         if (fromStart)
           b = m_->data_.begin();
         else if (loInclusive)
-          b = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+          b = m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) });
         else
-          b = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+          b = m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) });
 
         if (toEnd)
           e = m_->data_.end();
         else if (hiInclusive)
-          e = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+          e = m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) });
         else
-          e = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+          e = m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) });
 
         ::std::size_t sz = 0;
         for (auto i = b; i != e; ++i) ++sz;
@@ -209,16 +209,16 @@ classes:
         if (fromStart)
           b = m_->data_.begin();
         else if (loInclusive)
-          b = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+          b = m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) });
         else
-          b = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+          b = m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) });
 
         if (toEnd)
           e = m_->data_.end();
         else if (hiInclusive)
-          e = m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+          e = m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) });
         else
-          e = m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+          e = m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) });
 
         m_->data_.erase(b, e);
       includes:
@@ -233,9 +233,9 @@ classes:
         if (fromStart)
           return m_->data_.begin();
         else if (loInclusive)
-          return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+          return m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) });
         else
-          return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+          return m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) });
     - type: method
       name: begin_
       visibility: protected
@@ -246,9 +246,9 @@ classes:
         if (fromStart)
           return m_->data_.begin();
         else if (loInclusive)
-          return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+          return m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) });
         else
-          return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo));
+          return m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) });
     - type: method
       name: end_
       visibility: protected
@@ -258,9 +258,9 @@ classes:
         if (toEnd)
           return m_->data_.end();
         else if (hiInclusive)
-          return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+          return m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) });
         else
-          return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+          return m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) });
     - type: method
       name: end_
       visibility: protected
@@ -271,9 +271,9 @@ classes:
         if (toEnd)
           return m_->data_.end();
         else if (hiInclusive)
-          return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+          return m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) });
         else
-          return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi));
+          return m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) });
     - type: method
       name: rbegin_
       visibility: protected
@@ -285,9 +285,9 @@ classes:
         if (toEnd)
           return iterator(m_->data_.end());
         else if (hiInclusive)
-          return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi)));
+          return iterator(m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) }));
         else
-          return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi)));
+          return iterator(m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) }));
       includes:
         implementation:
         - type_traits
@@ -303,9 +303,9 @@ classes:
         if (toEnd)
           return iterator(m_->data_.end());
         else if (hiInclusive)
-          return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi)));
+          return iterator(m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) }));
         else
-          return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi)));
+          return iterator(m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(hi) }));
       includes:
         implementation:
         - type_traits
@@ -320,9 +320,9 @@ classes:
         if (fromStart)
           return iterator(m_->data_.begin());
         else if (loInclusive)
-          return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo)));
+          return iterator(m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) }));
         else
-          return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo)));
+          return iterator(m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) }));
       includes:
         implementation:
         - type_traits
@@ -338,9 +338,9 @@ classes:
         if (fromStart)
           return iterator(m_->data_.begin());
         else if (loInclusive)
-          return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo)));
+          return iterator(m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) }));
         else
-          return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo)));
+          return iterator(m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(lo) }));
       includes:
         implementation:
         - type_traits
@@ -395,7 +395,7 @@ classes:
             return end_();
         }
 
-        auto found = m_->data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        auto found = m_->data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
         if (found == m_->data_.end()) return end_();
         return found;
     - type: method
@@ -422,7 +422,7 @@ classes:
             return end_();
         }
 
-        auto found = m_->data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        auto found = m_->data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
         if (found == m_->data_.end()) return end_();
         return found;
     - type: method
@@ -452,7 +452,7 @@ classes:
             return rend_();
         }
 
-        auto found = m_->data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        auto found = m_->data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
         if (found == m_->data_.end()) return rend_();
         return iterator(found);
       includes:
@@ -484,7 +484,7 @@ classes:
             return rend_();
         }
 
-        auto found = m_->data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        auto found = m_->data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
         if (found == m_->data_.end()) return rend_();
         return iterator(found);
       includes:
@@ -557,7 +557,7 @@ classes:
             return end_();
         }
 
-        return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
     - type: method
       name: lower_bound_
       visibility: protected
@@ -582,7 +582,7 @@ classes:
             return end_();
         }
 
-        return m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
     - type: method
       name: rlower_bound_
       visibility: protected
@@ -610,7 +610,7 @@ classes:
             return rbegin_();
         }
 
-        return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k))));
+        return iterator(m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) }));
       includes:
         implementation:
         - type_traits
@@ -640,7 +640,7 @@ classes:
             return rend_();
         }
 
-        return iterator(m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k))));
+        return iterator(m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) }));
       includes:
         implementation:
         - type_traits
@@ -669,7 +669,7 @@ classes:
             return end_();
         }
 
-        return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
     - type: method
       name: upper_bound_
       visibility: protected
@@ -694,7 +694,7 @@ classes:
             return end_();
         }
 
-        return m_->data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return m_->data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
     - type: method
       name: rupper_bound_
       visibility: protected
@@ -722,7 +722,7 @@ classes:
             return rbegin_();
         }
 
-        return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k))));
+        return iterator(m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) }));
       includes:
         implementation:
         - type_traits
@@ -752,7 +752,7 @@ classes:
             return rend_();
         }
 
-        return iterator(m_->data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k))));
+        return iterator(m_->data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) }));
       includes:
         implementation:
         - type_traits

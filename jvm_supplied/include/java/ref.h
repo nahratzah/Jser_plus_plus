@@ -452,9 +452,15 @@ class basic_ref final
   JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner)
   : p_(owner)
   {}
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::unowned_cycle_t>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::unowned_cycle_t> owner)
+  : p_(owner)
+  {}
 
   template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
   JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, std::nullptr_t) : basic_ref(owner) {}
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::unowned_cycle_t>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::unowned_cycle_t> owner, std::nullptr_t) : basic_ref(owner) {}
 
   JSER_INLINE basic_ref(const basic_ref&)
       noexcept(std::is_nothrow_copy_constructible_v<ptr_type>) = default;
@@ -468,6 +474,16 @@ class basic_ref final
   {}
   template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::cycle_base&>>
   JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::cycle_base&> owner, basic_ref&& other)
+      noexcept(std::is_nothrow_move_constructible_v<ptr_type>)
+  : p_(owner, ::std::move(other.p_))
+  {}
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::unowned_cycle_t>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::unowned_cycle_t> owner, const basic_ref& other)
+      noexcept(std::is_nothrow_copy_constructible_v<ptr_type>)
+  : p_(owner, other.p_)
+  {}
+  template<bool Enable = ::std::is_constructible_v<ptr_type, ::cycle_ptr::unowned_cycle_t>>
+  JSER_INLINE basic_ref(::std::enable_if_t<Enable, ::cycle_ptr::unowned_cycle_t> owner, basic_ref&& other)
       noexcept(std::is_nothrow_move_constructible_v<ptr_type>)
   : p_(owner, ::std::move(other.p_))
   {}

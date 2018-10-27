@@ -158,10 +158,10 @@ classes:
           data_.erase(
               (fromStart
                ? data_.begin()
-               : data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(fromKey))),
+               : data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(fromKey) })),
               (toEnd
                ? data_.end()
-               : data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(toKey))));
+               : data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(toKey) })));
         }
     - type: method
       name: begin

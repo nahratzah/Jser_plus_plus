@@ -92,6 +92,7 @@ classes:
     - type: method
       name: compare_
       visibility: private
+      const: true
       arguments:
       - name: x
         type:
@@ -201,7 +202,7 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
     - type: method
       name: find
       override: true
@@ -215,7 +216,7 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return data_.find({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
     - type: method
       name: front
       virtual: true
@@ -349,7 +350,7 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
     - type: method
       name: lower_bound
       const: true
@@ -364,7 +365,7 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.lower_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return data_.lower_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
     - type: method
       name: upper_bound
       override: true
@@ -378,7 +379,7 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
     - type: method
       name: upper_bound
       const: true
@@ -393,4 +394,4 @@ classes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.upper_bound(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+        return data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
