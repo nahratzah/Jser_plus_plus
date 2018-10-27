@@ -1,26 +1,32 @@
 ---
 classes:
-  java.util.HashMap<K, V>:
+  java.util.TreeMap<K, V>:
     dev_mode: false
     doc_string: |
-      \brief A hash map.
-      \details This is implemented in terms of `std::unordered_map`.
+      \brief Sorted map.
+      \details This is basically Java's `std::map` equavalent.
     fields:
-      loadFactor:
-        omit: true
-        encoder_expr: 1.0f
-      threshold:
-        omit: true
+      comparator:
+        rename: comparator_
+        visibility: private
+        getter: false
+        setter: false
+        const: true
+        final: true
+        decode_complete: true
       data_:
         type:
-          cxx: ::std::unordered_map<$boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$, ::std::hash<$boundTemplateType(java.("const K"), "style=type, class")$>, ::std::equal_to<$boundTemplateType(java.("const K"), "style=type, class")$>, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>>
+          cxx: ::std::map<$boundTemplateType(java.({K}), "style=type, class=field")$, $boundTemplateType(java.({V}), "style=type, class=field")$, ::std::decay_t<decltype(::std::bind(&$model.className$::compare_, ::std::declval<$model.className$*>(), ::std::placeholders::_1, ::std::placeholders::_2))>, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.({K}), "style=type, class=field")$, $boundTemplateType(java.({V}), "style=type, class=field")$>>>>
           includes:
             declaration:
-            - unordered_map
+            - map
             - functional
+            - type_traits
             - cycle_ptr/allocator.h
-        visibility: private
-        default: 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+            - cycle_ptr/cycle_ptr.h
+        getter: false
+        setter: false
+        default: ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.({K}), "style=type, class=field")$, $boundTemplateType(java.({V}), "style=type, class=field")$>>>(*this)
     members:
     - type: constructor
     - type: constructor
@@ -29,7 +35,12 @@ classes:
         type:
           java: java.util.Map<? extends K, ? extends V>
       initializers:
-        data_: m->begin(), m->end(), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+        data_: m->begin(), m->end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.({K}), "style=type, class=field")$, $boundTemplateType(java.({V}), "style=type, class=field")$>>>(*this)
+      includes:
+        declaration:
+        - functional
+        - cycle_ptr/allocator.h
+        - cycle_ptr/cycle_ptr.h
     - type: constructor
       arguments:
       - name: b
@@ -45,7 +56,12 @@ classes:
             declaration:
             - java/iterator.h
       initializers:
-        data_: ::std::move(b), ::std::move(e), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+        data_: ::std::move(b), ::std::move(e), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.({K}), "style=type, class=field")$, $boundTemplateType(java.({V}), "style=type, class=field")$>>>(*this)
+      includes:
+        declaration:
+        - functional
+        - cycle_ptr/allocator.h
+        - cycle_ptr/cycle_ptr.h
     - type: constructor
       arguments:
       - name: init
@@ -56,49 +72,78 @@ classes:
             - initializer_list
             - utility
       initializers:
-        data_: init.begin(), init.end(), 8u, ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>>(*this)
+        data_: init.begin(), init.end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.({K}), "style=type, class=field")$, $boundTemplateType(java.({V}), "style=type, class=field")$>>>(*this)
+      includes:
+        declaration:
+        - functional
+        - cycle_ptr/allocator.h
+        - cycle_ptr/cycle_ptr.h
+    - type: method
+      name: comparator
+      const: true
+      override: true
+      return:
+        java: const java.util.Comparator<? super K>
+      body: |
+        return comparator_;
+    - type: method
+      name: compare_
+      visibility: private
+      arguments:
+      - name: x
+        type:
+          java: K
+      - name: y
+        type:
+          java: K
+      return:
+        cxx: bool
+      body: |
+        if (this->comparator_ == nullptr)
+          return $boundTemplateType(java.("java.util.Comparator<K>"), "style=type, class")$::naturalOrder()->compare(std::move(x), std::move(y)) > 0;
+        return this->comparator_->compare(std::move(x), std::move(y)) < 0;
     - type: method
       name: begin
       override: true
       return:
-        cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
         includes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.begin();
+        return ::java::bidirectional_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>(data_.begin());
     - type: method
       name: end
       override: true
       return:
-        cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
         includes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.end();
+        return ::java::bidirectional_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>(data_.end());
     - type: method
       name: begin
-      override: true
       const: true
+      override: true
       return:
-        cxx: ::java::forward_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
         includes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.begin();
+        return ::java::bidirectional_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>(data_.begin());
     - type: method
       name: end
-      override: true
       const: true
+      override: true
       return:
-        cxx: ::java::forward_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>
         includes:
           declaration:
           - java/iterator.h
       body: |
-        return data_.end();
+        return ::java::bidirectional_pair_iterator<const $boundTemplateType(java.("K"), "style=type")$, const $boundTemplateType(java.("V"), "style=type")$>(data_.end());
     - type: method
       name: empty
       override: true
@@ -148,7 +193,7 @@ classes:
         type:
           java: const K
       return:
-        cxx: ::java::forward_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
+        cxx: ::java::bidirectional_pair_iterator<const $boundTemplateType(java.({K}), "style=type")$, const $boundTemplateType(java.({V}), "style=type")$>
         includes:
           declaration:
           - java/iterator.h
@@ -162,12 +207,54 @@ classes:
         type:
           java: const K
       return:
-        cxx: ::java::forward_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
+        cxx: ::java::bidirectional_pair_iterator<$boundTemplateType(java.({K}), "style=type")$, $boundTemplateType(java.({V}), "style=type")$>
         includes:
           declaration:
           - java/iterator.h
       body: |
         return data_.find(::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)));
+    - type: method
+      name: front
+      virtual: true
+      const: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({const K}), "style=type, class")$, $boundTemplateType(java.({const V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *data_.begin();
+    - type: method
+      name: back
+      virtual: true
+      const: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({const K}), "style=type, class")$, $boundTemplateType(java.({const V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *data_.rbegin();
+    - type: method
+      name: front
+      virtual: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({K}), "style=type, class")$, $boundTemplateType(java.({V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *data_.begin();
+    - type: method
+      name: back
+      virtual: true
+      return:
+        cxx: ::std::pair<const $boundTemplateType(java.({K}), "style=type, class")$, $boundTemplateType(java.({V}), "style=type, class")$>
+        includes:
+          declaration:
+          - utility
+      body: |
+        return *data_.rbegin();
     - type: method
       name: __decoder_annotation__
       visibility: private
@@ -183,12 +270,9 @@ classes:
       body: |
         auto annotation = ::java::serialization::annotation_reader(decoder.get_annotation());
 
-        annotation.read_int(); // number of buckets
-
         auto len = annotation.read_int();
         if (len < 0) throw ::java::serialization::decoding_error($cxxString({$model.name$: negative collection size})$);
 
-        data_.reserve(len);
         ::std::generate_n(
             ::std::inserter(data_, data_.end()),
             ::std::size_t(len),
@@ -238,7 +322,6 @@ classes:
         if (data_.size() > 0x7fffffffu)
           throw ::std::logic_error($cxxString({$model.name$: size too large})$);
 
-        annotation.write_int(data_.size()); // buckets
         annotation.write_int(data_.size());
         for (const auto& i : data_) {
           annotation.write_object(i.first);
