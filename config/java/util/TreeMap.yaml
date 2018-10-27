@@ -7,6 +7,7 @@ classes:
       \details This is basically Java's `std::map` equavalent.
     friends:
     - java: java.util.TreeMap$NavigableSubMap
+    - java: java.util.TreeMap$SubMap
     fields:
       comparator:
         rename: comparator_

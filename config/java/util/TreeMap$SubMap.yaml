@@ -56,6 +56,11 @@ classes:
           java: java.util.TreeMap<K, V>
       initializers:
         this$0: ::std::move(m)
+      body: |
+        if (this->this\$0 == nullptr) throw ::java::null_error();
+      includes:
+        implementation:
+        - java/null_error.h
     - type: constructor
       arguments:
       - name: m
@@ -73,6 +78,16 @@ classes:
         toEnd: e == nullptr
         fromKey: ::std::move(b)
         toKey: ::std::move(e)
+      body: |
+        if (this->this\$0 == nullptr) throw ::java::null_error();
+        if (!this->fromStart) this->this\$0->compare_(this->fromKey, this->fromKey);
+        if (!this->toEnd) this->this\$0->compare_(this->toKey, this->toKey);
+        if (!this->fromStart && !this->toEnd && this->this\$0->compare_(this->toKey, this->fromKey))
+          throw ::std::invalid_argument($cxxString({$model.name$: invalid range})$);
+      includes:
+        implementation:
+        - java/null_error.h
+        - stdexcept
     - type: method
       name: comparator
       const: true

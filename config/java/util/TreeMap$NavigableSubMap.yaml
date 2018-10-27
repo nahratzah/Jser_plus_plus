@@ -2,3 +2,100 @@
 classes:
   java.util.TreeMap$NavigableSubMap<K, V>:
     dev_mode: true
+    doc_string: |
+      \brief A submap of a \ref ::java::util::TreeMap "TreeMap".
+    fields:
+      m:
+        visibility: private
+        getter: false
+        setter: false
+        final: true
+        type:
+          java: java.util.TreeMap<K, V>
+      lo:
+        visibility: private
+        getter: false
+        setter: false
+        final: true
+        const: true
+      hi:
+        visibility: private
+        getter: false
+        setter: false
+        final: true
+        const: true
+      fromStart:
+        visibility: private
+        getter: false
+        setter: false
+        const: true
+      toEnd:
+        visibility: private
+        getter: false
+        setter: false
+        const: true
+      loInclusive:
+        visibility: private
+        getter: false
+        setter: false
+        const: true
+      hiInclusive:
+        visibility: private
+        getter: false
+        setter: false
+        const: true
+      m_:
+        visibility: private
+        getter: false
+        setter: false
+        const: true
+        type:
+          cxx: ::cycle_ptr::cycle_member_ptr<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=erased")$>
+          includes:
+            declaration:
+            - cycle_ptr/cycle_ptr.h
+    members:
+    - type: constructor
+      arguments:
+      - name: m
+        type:
+          java: java.util.TreeMap<K, V>
+      - name: fromStart
+        type:
+          java: boolean
+      - name: lo
+        type:
+          java: const K
+      - name: loInclusive
+        type:
+          java: boolean
+      - name: toEnd
+        type:
+          java: boolean
+      - name: hi
+        type:
+          java: const K
+      - name: hiInclusive
+        type:
+          java: boolean
+      initializers:
+        m: ::std::move(m)
+        fromStart: fromStart
+        lo: ::std::move(lo)
+        loInclusive: loInclusive
+        toEnd: toEnd
+        hi: ::std::move(hi)
+        hiInclusive: hiInclusive
+        m_: ::java::raw_ptr<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=tag")$>(this->m)
+      body: |
+        if (this->m == nullptr) throw ::java::null_error();
+        if (!this->fromStart) this->m->compare_(this->lo, this->lo);
+        if (!this->toEnd) this->m->compare_(this->hi, this->hi);
+        if (!this->fromStart && !this->toEnd && this->m->compare_(this->hi, this->lo))
+          throw ::std::invalid_argument($cxxString({$model.name$: invalid range})$);
+        assert(m_ != nullptr);
+      includes:
+        implementation:
+        - java/null_error.h
+        - stdexcept
+        - cassert
