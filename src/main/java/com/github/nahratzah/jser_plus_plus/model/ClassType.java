@@ -532,9 +532,23 @@ public class ClassType implements JavaType {
                     .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
             memberIncludes = Stream.concat(
                     getClassMemberFunctions().stream()
-                            .flatMap(member -> member.getDeclarationIncludes()),
+                            .flatMap(member -> {
+                                final Stream<String> implStream;
+                                if (member.getInline() == null)
+                                    implStream = Stream.empty();
+                                else
+                                    implStream = member.getImplementationIncludes();
+                                return Stream.concat(implStream, member.getDeclarationIncludes());
+                            }),
                     getClassNonMemberFunctions().stream()
-                            .flatMap(member -> member.getDeclarationIncludes()));
+                            .flatMap(member -> {
+                                final Stream<String> implStream;
+                                if (member.getInline() == null)
+                                    implStream = Stream.empty();
+                                else
+                                    implStream = member.getImplementationIncludes();
+                                return Stream.concat(implStream, member.getDeclarationIncludes());
+                            }));
             friendIncludes = friends.stream()
                     .flatMap(friend -> friend.getIncludes(true));
         } else {
@@ -929,13 +943,13 @@ public class ClassType implements JavaType {
                     .add("underlying", underlying)
                     .render(Locale.ROOT, 78);
 
-            // XXX change to inline
             final MethodModel.SimpleMethodModel newMethod = new MethodModel.SimpleMethodModel(
                     this,
                     declare.getDeclaringType(),
                     declare.getName(),
                     new Includes(
-                            declare.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
+                            Stream.concat(Stream.of("java/inline.h"), declare.getUnderlyingMethod().getDeclarationIncludes())
+                                    .collect(Collectors.toList()),
                             Stream.of(declare.getUnderlyingMethod().getImplementationIncludes(), underlying.getUnderlyingMethod().getDeclarationIncludes(), Stream.of("java/_maybe_cast.h"))
                                     .flatMap(Function.identity())
                                     .collect(Collectors.toList())),
@@ -951,6 +965,7 @@ public class ClassType implements JavaType {
                     false,// delegate is never override.
                     underlying.isConst(),
                     false,// delegate is never final.
+                    "JSER_INLINE", // Delegate method is inline.
                     underlying.getUnderlyingMethod().getNoexcept(),
                     underlying.getUnderlyingMethod().getVisibility(),
                     underlying.getUnderlyingMethod().getDocString());
@@ -1182,6 +1197,7 @@ public class ClassType implements JavaType {
                         (tagged ? method.getTagType() != this : underlyingMethod.isOverride()), // We always apply the `override` modifier if we can, but must hide it if we had to re-tag.
                         underlyingMethod.isConst(),
                         underlyingMethod.isFinal(),
+                        null, // not inline
                         underlyingMethod.getNoexcept(),
                         (tagged ? Visibility.PRIVATE : underlyingMethod.getVisibility()), // Make actual virtual method private: it's only accessed via the untagged forwarding function.
                         underlyingMethod.getDocString());
@@ -1224,6 +1240,7 @@ public class ClassType implements JavaType {
                         false, // Forwarding function is not overriding, but hiding instead.
                         underlyingMethod.isConst(),
                         false, // Forwarding function is not final, because it is not virtual.
+                        "JSER_INLINE", // Forwarding function is inline.
                         underlyingMethod.getNoexcept(),
                         underlyingMethod.getVisibility(),
                         underlyingMethod.getDocString());
@@ -1274,6 +1291,7 @@ public class ClassType implements JavaType {
                             true, // We do override the base implementation.
                             erasedOverrideFn.getUnderlyingMethod().isConst(),
                             erasedOverrideFn.getUnderlyingMethod().isFinal(),
+                            null, // We're not inline: we implement an override.
                             erasedOverrideFn.getUnderlyingMethod().getNoexcept(),
                             Visibility.PRIVATE, // Make actual virtual method private: it's only accessed via the untagged forwarding function.
                             null);

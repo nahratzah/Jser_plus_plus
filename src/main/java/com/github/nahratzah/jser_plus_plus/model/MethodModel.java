@@ -3,6 +3,7 @@ package com.github.nahratzah.jser_plus_plus.model;
 import com.github.nahratzah.jser_plus_plus.config.Includes;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import com.github.nahratzah.jser_plus_plus.input.Context;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -231,6 +232,14 @@ public interface MethodModel {
     }
 
     /**
+     * Get the inline declaration of this method.
+     *
+     * @return A string containing the inline declaration of this method. Or
+     * null if this method isn't inlined.
+     */
+    public String getInline();
+
+    /**
      * Retrieve the override selector of the method.
      *
      * @param ctx Lookup context to resolve classes.
@@ -240,6 +249,13 @@ public interface MethodModel {
         if (isStatic()) return Optional.empty();
         return Optional.of(new OverrideSelector(ctx, this));
     }
+
+    /**
+     * Retrieve the the names of generics specification local to the function.
+     *
+     * @return Ordered list of names.
+     */
+    public Collection<String> getFunctionGenericsNames();
 
     /**
      * Very simple implementation of {@link MethodModel}.
@@ -264,8 +280,9 @@ public interface MethodModel {
         private final Object noexcept;
         private final Visibility visibility;
         private final String docString;
+        private final String inline;
 
-        public SimpleMethodModel(ClassType declaringClass, BoundTemplate.ClassBinding<? extends ClassType> argumentDeclaringClass, String name, Includes includes, Set<Type> declarationTypes, Set<Type> implementationTypes, Type returnType, List<Type> argumentTypes, List<String> argumentNames, String body, boolean staticVar, boolean virtualVar, boolean pureVirtualVar, boolean overrideVar, boolean constVar, boolean finalVar, Object noexcept, Visibility visibility, String docString) {
+        public SimpleMethodModel(ClassType declaringClass, BoundTemplate.ClassBinding<? extends ClassType> argumentDeclaringClass, String name, Includes includes, Set<Type> declarationTypes, Set<Type> implementationTypes, Type returnType, List<Type> argumentTypes, List<String> argumentNames, String body, boolean staticVar, boolean virtualVar, boolean pureVirtualVar, boolean overrideVar, boolean constVar, boolean finalVar, String inline, Object noexcept, Visibility visibility, String docString) {
             this.declaringClass = declaringClass;
             this.argumentDeclaringClass = argumentDeclaringClass;
             this.name = name;
@@ -282,6 +299,7 @@ public interface MethodModel {
             this.overrideVar = overrideVar;
             this.constVar = constVar;
             this.finalVar = finalVar;
+            this.inline = inline;
             this.noexcept = noexcept;
             this.visibility = visibility;
             this.docString = docString;
@@ -380,6 +398,16 @@ public interface MethodModel {
         @Override
         public String getDocString() {
             return docString;
+        }
+
+        @Override
+        public String getInline() {
+            return inline;
+        }
+
+        @Override
+        public Collection<String> getFunctionGenericsNames() {
+            throw new UnsupportedOperationException(getClass().getName() + ": need implementation for getFunctionGenericsNames()");
         }
 
         @Override

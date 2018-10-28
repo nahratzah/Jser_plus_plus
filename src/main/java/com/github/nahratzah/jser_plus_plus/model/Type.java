@@ -97,17 +97,32 @@ public interface Type {
      * corresponding to the configuration type.
      */
     public static Type typeFromCfgType(CfgType cfgType, Context ctx, Collection<String> variables, BoundTemplate.ClassBinding<?> thisType) {
-        if (cfgType.getCxxType() == null && cfgType.getJavaType() == null)
-            throw new NullPointerException("no types");
+        final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
+                .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
+        return typeFromCfgType(cfgType, ctx, variablesMap, thisType);
+    }
+
+    /**
+     * Create a {@link Type} from a {@link CfgType configuration type}.
+     *
+     * @param cfgType A type in the configuration.
+     * @param ctx Class lookup context.
+     * @param variablesMap Type variables that are declared in the context.
+     * @param thisType Type when encountering the `this` keyword.
+     * @return Instance of {@link CxxType} or {@link BoundTemplate}
+     * corresponding to the configuration type.
+     */
+    public static Type typeFromCfgType(CfgType cfgType, Context ctx, Map<String, ? extends BoundTemplate> variablesMap, BoundTemplate.ClassBinding<?> thisType) {
+        if (cfgType.getCxxType() != null && cfgType.getJavaType() != null)
+            throw new IllegalStateException("may only specify one of \"cxx\" or \"java\" for return type");
 
         if (cfgType.getCxxType() != null) {
             return new CxxType(cfgType.getCxxType(), cfgType.getIncludes());
         } else if (cfgType.getJavaType() != null) {
-            final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
-                    .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
             return BoundTemplate.fromString(cfgType.getJavaType(), ctx, variablesMap, thisType);
         }
 
-        throw new IllegalStateException("may only specify one of \"cxx\" or \"java\" for return type");
+        // Neither cfgType.getCxxType(), nor cfgType.getJavaType() was specified.
+        throw new NullPointerException("no types");
     }
 }

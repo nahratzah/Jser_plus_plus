@@ -81,6 +81,13 @@ $codeGen.types:{model|$accessorImpl(model)$}; separator = "\n\n"$
 
 } /* namespace java */
 
+// Render inline class members.
+namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
+
+$codeGen.types:{model|$classHeaderImpl(model)$}; separator = "\n\n"$
+
+} /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
+
 #endif /* $codeGen.includeGuard$ */
 
 >>

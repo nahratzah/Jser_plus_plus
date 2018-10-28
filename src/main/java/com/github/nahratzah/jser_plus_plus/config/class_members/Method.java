@@ -7,7 +7,9 @@ import com.github.nahratzah.jser_plus_plus.config.ClassMember;
 import com.github.nahratzah.jser_plus_plus.config.Includes;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Describe a class method.
@@ -45,6 +47,8 @@ public class Method implements ClassMember {
     private Boolean covariantReturn = null;
     @JsonProperty("allow_hide")
     private boolean hideOk = false;
+    @JsonProperty("generics")
+    private Map<String, String> generics = new LinkedHashMap<>();
 
     public Method() {
         returnType = new CfgType("void", null);
@@ -246,5 +250,22 @@ public class Method implements ClassMember {
 
     public void setHideOk(boolean hideOk) {
         this.hideOk = hideOk;
+    }
+
+    /**
+     * Additional variables for the purpose of generics.
+     *
+     * The key of the map is the variable name.
+     *
+     * The value of the map is a string encoding for a generic.
+     *
+     * @return Map of variable name to generic definition.
+     */
+    public Map<String, String> getGenerics() {
+        return generics;
+    }
+
+    public void setGenerics(Map<String, String> generics) {
+        this.generics = generics;
     }
 }

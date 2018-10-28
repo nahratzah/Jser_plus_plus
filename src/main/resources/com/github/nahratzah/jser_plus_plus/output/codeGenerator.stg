@@ -112,7 +112,7 @@ $endif$
   $endif$
   ~$model.className$() noexcept override$if (model.interface || model.abstract)$ = 0$endif$;
 
-  $ classMembers(model, false); anchor$
+  $ classMembers(model, false, true, true); anchor$
 $if(model.fields)$
 
   // fields
@@ -167,16 +167,21 @@ case enum_t::$v.remappedName$:
 >>
 
 
-classImpl(model) ::= <<
-$model.className$::~$model.className$() noexcept = default;
-
-$ classMembers(model, true)$
+classHeaderImpl(model) ::= <<
+$classMembers(model, true, true, false)$
 >>
 
 
-classMembers(model, doImplement) ::= <<
+classImpl(model) ::= <<
+$model.className$::~$model.className$() noexcept = default;
+
+$classMembers(model, true, false, true)$
+>>
+
+
+classMembers(model, doImplement, emitInline, emitNonInline) ::= <<
 $ [model.classNonMemberFunctions, model.classMemberFunctions]
-  : {m | $if (!doImplement || !m.pureVirtual || m.destructorMethod)$$\\$
+  : {m | $if ((!doImplement || !m.pureVirtual || m.destructorMethod) && ((emitInline && m.inline) || (emitNonInline && !m.inline)))$$\\$
          $if (!doImplement)$$if (m.constructor)$public$else$$m.visibility$$endif$:$"\n"$$endif$$\\$
          $function(
               name=m.name,
@@ -236,6 +241,7 @@ $ model.accessorMethods
               containingClass="_accessor",
               containingClassTemplateArguments=["Base_", model.templateArgumentNames],
               containingClassTemplateArgumentsImpl=["Base_", tagType(model), model.templateArgumentNames],
+              templateArguments=m.functionGenericsNames,
               inline="JSER_INLINE",
               const=m.const,
               noexcept=m.noexcept,
@@ -258,6 +264,7 @@ $ model.staticAccessorMethods
               containingClass="_static_accessor",
               containingClassTemplateArguments=[model.templateArgumentNames],
               containingClassTemplateArgumentsImpl=[tagType(model), model.templateArgumentNames],
+              templateArguments=m.functionGenericsNames,
               inline="JSER_INLINE",
               const=m.const,
               noexcept=m.noexcept,
