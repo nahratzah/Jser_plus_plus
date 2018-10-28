@@ -2,6 +2,7 @@ package com.github.nahratzah.jser_plus_plus.model;
 
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.misc.ListComparator;
+import com.google.common.collect.Streams;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singleton;
@@ -14,6 +15,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -48,6 +50,14 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
      * template variabe in bindings has been replaced with its mapping.
      */
     public BoundTemplate rebind(Map<String, ? extends BoundTemplate> bindings);
+
+    /**
+     * Compute a selector to read a type from this template.
+     *
+     * @param varName The name of a variable to look up.
+     * @return A stream of selectors that resolves the type of that variable.
+     */
+    public Stream<TemplateSelector> findSelectorFor(String varName);
 
     /**
      * Visit specializations.
@@ -224,6 +234,13 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             return new VarBinding(getName());
         }
 
+        @Override
+        public Stream<TemplateSelector> findSelectorFor(String varName) {
+            if (Objects.equals(varName, getName()))
+                return Stream.of(new TemplateSelector.Type());
+            return Stream.empty();
+        }
+
         /**
          * Visit specialization.
          *
@@ -354,6 +371,20 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             return new ClassBinding<>(getType(), newBindings);
         }
 
+        @Override
+        public Stream<TemplateSelector> findSelectorFor(String varName) {
+            return Streams.mapWithIndex(
+                    bindings.stream(),
+                    (binding, idx) -> {
+                        if (idx > Integer.MAX_VALUE)
+                            throw new IndexOutOfBoundsException("Too many bindings to resolve a path.");
+                        final Stream<TemplateSelector> selectors = binding.findSelectorFor(varName)
+                                .map(selector -> new TemplateSelector.Binding<>(getType(), (int) idx, selector));
+                        return selectors;
+                    })
+                    .flatMap(Function.identity());
+        }
+
         /**
          * Visit specialization.
          *
@@ -465,6 +496,12 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         @Override
         public ArrayBinding rebind(Map<String, ? extends BoundTemplate> bindings) {
             return new ArrayBinding(getType().rebind(bindings), getExtents());
+        }
+
+        @Override
+        public Stream<TemplateSelector> findSelectorFor(String varName) {
+            return getType().findSelectorFor(varName)
+                    .map(selector -> new TemplateSelector.Array(extents, selector));
         }
 
         /**
@@ -587,6 +624,11 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
                     .map(type -> type.rebind(bindings))
                     .collect(Collectors.toList());
             return new Any(newSuperTypes, newExtendTypes);
+        }
+
+        @Override
+        public Stream<TemplateSelector> findSelectorFor(String varName) {
+            return Stream.empty();
         }
 
         /**
@@ -717,6 +759,12 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             return new MultiType(types.stream()
                     .map(type -> type.rebind(bindings))
                     .collect(Collectors.toList()));
+        }
+
+        @Override
+        public Stream<TemplateSelector> findSelectorFor(String varName) {
+            return types.stream()
+                    .flatMap(type -> type.findSelectorFor(varName));
         }
 
         /**
