@@ -81,6 +81,74 @@ classes:
         - functional
         - cycle_ptr/allocator.h
         - cycle_ptr/cycle_ptr.h
+    - type: constructor
+      arguments:
+      - name: c
+        type:
+          java: java.util.Comparator<? super K>
+      initializers:
+        comparator_: ::std::move(c)
+    - type: constructor
+      arguments:
+      - name: m
+        type:
+          java: java.util.Map<? extends K, ? extends V>
+      - name: c
+        type:
+          java: java.util.Comparator<? super K>
+      initializers:
+        data_: m->begin(), m->end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.({K}), "style=type, class=field")$, $boundTemplateType(java.({V}), "style=type, class=field")$>>>(*this)
+        comparator_: ::std::move(c)
+      includes:
+        declaration:
+        - functional
+        - cycle_ptr/allocator.h
+        - cycle_ptr/cycle_ptr.h
+    - type: constructor
+      arguments:
+      - name: b
+        type:
+          cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: e
+        type:
+          cxx: ::java::forward_pair_iterator<$boundTemplateType(java.("K"), "style=type")$, $boundTemplateType(java.("V"), "style=type")$>
+          includes:
+            declaration:
+            - java/iterator.h
+      - name: c
+        type:
+          java: java.util.Comparator<? super K>
+      initializers:
+        data_: ::std::move(b), ::std::move(e), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.({K}), "style=type, class=field")$, $boundTemplateType(java.({V}), "style=type, class=field")$>>>(*this)
+        comparator_: ::std::move(c)
+      includes:
+        declaration:
+        - functional
+        - cycle_ptr/allocator.h
+        - cycle_ptr/cycle_ptr.h
+    - type: constructor
+      arguments:
+      - name: init
+        type:
+          cxx: ::std::initializer_list<::std::pair<const $boundTemplateType(java.("K"), "style=type, class")$, $boundTemplateType(java.("V"), "style=type, class")$>>
+          includes:
+            declaration:
+            - initializer_list
+            - utility
+      - name: c
+        type:
+          java: java.util.Comparator<? super K>
+      initializers:
+        data_: init.begin(), init.end(), ::std::bind(&$erasedType(model)$::compare_, this, ::std::placeholders::_1, ::std::placeholders::_2), ::cycle_ptr::cycle_allocator<::std::allocator<::std::pair<const $boundTemplateType(java.({K}), "style=type, class=field")$, $boundTemplateType(java.({V}), "style=type, class=field")$>>>(*this)
+        comparator_: ::std::move(c)
+      includes:
+        declaration:
+        - functional
+        - cycle_ptr/allocator.h
+        - cycle_ptr/cycle_ptr.h
     - type: method
       name: comparator
       const: true
@@ -395,3 +463,149 @@ classes:
           - java/iterator.h
       body: |
         return data_.upper_bound({ ::cycle_ptr::unowned_cycle, ::java::constcast<$boundTemplateType(java.({K}), "style=type, class")$>(::std::move(k)) });
+    - type: method
+      name: headMap
+      override: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: java.util.NavigableMap<K, V>
+      body: |
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            $boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$(::java::_direct(), this->shared_from_this(this)),
+            true, nullptr, false,
+            false, toKey, toInclusive);
+    - type: method
+      name: headMap
+      override: true
+      const: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: const java.util.NavigableMap<K, V>
+      body: |
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            ::java::constcast<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$>($boundTemplateType(java.({const java.util.TreeMap<K, V>}), "style=type, class")$(::java::_direct(), this->shared_from_this(this))),
+            true, nullptr, false,
+            false, toKey, toInclusive);
+    - type: method
+      name: tailMap
+      override: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      return:
+        java: java.util.NavigableMap<K, V>
+      body: |
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            $boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$(::java::_direct(), this->shared_from_this(this)),
+            false, fromKey, fromInclusive,
+            true, nullptr, false);
+    - type: method
+      name: tailMap
+      override: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      return:
+        java: const java.util.NavigableMap<K, V>
+      body: |
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            ::java::constcast<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$>($boundTemplateType(java.({const java.util.TreeMap<K, V>}), "style=type, class")$(::java::_direct(), this->shared_from_this(this))),
+            false, fromKey, fromInclusive,
+            true, nullptr, false);
+    - type: method
+      name: subMap
+      override: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: java.util.NavigableMap<K, V>
+      body: |
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            $boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$(::java::_direct(), this->shared_from_this(this)),
+            false, fromKey, fromInclusive,
+            false, toKey, toInclusive);
+    - type: method
+      name: subMap
+      override: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: const java.util.NavigableMap<K, V>
+      body: |
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            ::java::constcast<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$>($boundTemplateType(java.({const java.util.TreeMap<K, V>}), "style=type, class")$(::java::_direct(), this->shared_from_this(this))),
+            false, fromKey, fromInclusive,
+            false, toKey, toInclusive);
+    - type: method
+      name: descendingMap
+      override: true
+      return:
+        java: java.util.NavigableMap<K, V>
+      body: |
+        return $boundTemplateType(java.({java.util.TreeMap\$DescendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            $boundTemplateType(model.boundType, "style=type, class")$(::java::_direct(), this->shared_from_this(this)),
+            true, nullptr, false,
+            true, nullptr, false);
+    - type: method
+      name: descendingMap
+      override: true
+      const: true
+      return:
+        java: const java.util.NavigableMap<K, V>
+      body: |
+        return $boundTemplateType(java.({java.util.TreeMap\$DescendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            $boundTemplateType(model.boundType, "style=type, class")$(::java::_direct(), ::std::const_pointer_cast<$model.className$>(this->shared_from_this(this))),
+            true, nullptr, false,
+            true, nullptr, false);

@@ -6,41 +6,41 @@ classes:
       \brief A submap of a \ref ::java::util::TreeMap "TreeMap".
     fields:
       m:
-        visibility: private
+        visibility: protected
         getter: false
         setter: false
         final: true
         type:
           java: java.util.TreeMap<K, V>
       lo:
-        visibility: private
+        visibility: protected
         getter: false
         setter: false
         final: true
         const: true
       hi:
-        visibility: private
+        visibility: protected
         getter: false
         setter: false
         final: true
         const: true
       fromStart:
-        visibility: private
+        visibility: protected
         getter: false
         setter: false
         const: true
       toEnd:
-        visibility: private
+        visibility: protected
         getter: false
         setter: false
         const: true
       loInclusive:
-        visibility: private
+        visibility: protected
         getter: false
         setter: false
         const: true
       hiInclusive:
-        visibility: private
+        visibility: protected
         getter: false
         setter: false
         const: true
@@ -110,7 +110,7 @@ classes:
     - type: method
       name: icompare_
       const: true
-      visibility: private
+      visibility: protected
       arguments:
       - name: x
         type:
@@ -121,7 +121,7 @@ classes:
       return:
         java: int
       body: |
-        auto cmp = comparator();
+        auto cmp = m->comparator();
         if (cmp == nullptr)
           return $boundTemplateType(java.("java.util.Comparator<K>"), "style=type, class")$::naturalOrder()->compare(std::move(x), std::move(y));
         return cmp->compare(std::move(x), std::move(y));

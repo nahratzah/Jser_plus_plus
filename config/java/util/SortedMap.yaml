@@ -124,3 +124,84 @@ classes:
         \brief Find element in the map.
         \param k Key to the element to find.
         \returns Iterator to the element with key greater than \p k.
+    - type: method
+      name: headMap
+      virtual: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: java.util.SortedMap<K, V>
+      doc_string: |
+        \brief Retrieve a submap containing all keys until \p toKey.
+        \details The returned map is a view of this map.
+    - type: method
+      name: headMap
+      virtual: true
+      const: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: const java.util.SortedMap<K, V>
+      doc_string: |
+        \brief Retrieve a submap containing all keys until \p toKey.
+        \details The returned map is a view of this map.
+    - type: method
+      name: tailMap
+      virtual: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      return:
+        java: java.util.SortedMap<K, V>
+      doc_string: |
+        \brief Retrieve a submap containing all keys starting at \p fromKey.
+        \details The returned map is a view of this map.
+    - type: method
+      name: tailMap
+      virtual: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      return:
+        java: const java.util.SortedMap<K, V>
+      doc_string: |
+        \brief Retrieve a submap containing all keys starting at \p fromKey.
+        \details The returned map is a view of this map.
+    - type: method
+      name: subMap
+      virtual: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: java.util.SortedMap<K, V>
+      doc_string: |
+        \brief Retrieve a submap containing all keys starting at \p fromKey, until \p toKey.
+        \details The returned map is a view of this map.
+    - type: method
+      name: subMap
+      virtual: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: const java.util.SortedMap<K, V>
+      doc_string: |
+        \brief Retrieve a submap containing all keys starting at \p fromKey, until \p toKey.
+        \details The returned map is a view of this map.

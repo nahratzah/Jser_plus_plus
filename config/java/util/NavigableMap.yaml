@@ -135,3 +135,180 @@ classes:
         \brief Find element in the map.
         \param k Key to the element to find.
         \returns Iterator to the element with key greater than \p k.
+    - type: method
+      name: headMap
+      virtual: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: java.util.NavigableMap<K, V>
+      body: |
+        return headMap(toKey, false);
+    - type: method
+      name: headMap
+      virtual: true
+      const: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: const java.util.NavigableMap<K, V>
+      body: |
+        return headMap(toKey, false);
+    - type: method
+      name: tailMap
+      virtual: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      return:
+        java: java.util.NavigableMap<K, V>
+      body: |
+        return tailMap(fromKey, true);
+    - type: method
+      name: tailMap
+      virtual: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      return:
+        java: const java.util.NavigableMap<K, V>
+      body: |
+        return tailMap(fromKey, true);
+    - type: method
+      name: subMap
+      virtual: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: java.util.NavigableMap<K, V>
+      body: |
+        return subMap(fromKey, true, toKey, false);
+    - type: method
+      name: subMap
+      virtual: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: const java.util.NavigableMap<K, V>
+      body: |
+        return subMap(fromKey, true, toKey, false);
+    - type: method
+      name: headMap
+      virtual: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: java.util.NavigableMap<K, V>
+    - type: method
+      name: headMap
+      virtual: true
+      const: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: const java.util.NavigableMap<K, V>
+    - type: method
+      name: tailMap
+      virtual: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      return:
+        java: java.util.NavigableMap<K, V>
+    - type: method
+      name: tailMap
+      virtual: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      return:
+        java: const java.util.NavigableMap<K, V>
+    - type: method
+      name: subMap
+      virtual: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: java.util.NavigableMap<K, V>
+    - type: method
+      name: subMap
+      virtual: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: const java.util.NavigableMap<K, V>
+    - type: method
+      name: descendingMap
+      virtual: true
+      return:
+        java: java.util.NavigableMap<K, V>
+      doc_string: |
+        \brief Create a view of this map, with reversed ordering.
+    - type: method
+      name: descendingMap
+      virtual: true
+      const: true
+      return:
+        java: const java.util.NavigableMap<K, V>
+      doc_string: |
+        \brief Create a view of this map, with reversed ordering.

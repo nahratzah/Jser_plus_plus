@@ -449,3 +449,144 @@ classes:
         - iterator
         - type_traits
         - cassert
+
+
+    - type: method
+      name: headMap
+      override: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: java.util.SortedMap<K, V>
+      body: |
+        if (!fromStart && this\$0->compare_(toKey, this->fromKey))
+          throw ::std::invalid_argument("key out of range");
+        if (!toEnd && this\$0->compare_(this->toKey, toKey))
+          throw ::std::invalid_argument("key out of range");
+
+        return $boundTemplateType(java.({java.util.TreeMap\$SubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            this\$0,
+            (fromStart ? this->fromKey : nullptr),
+            toKey);
+    - type: method
+      name: headMap
+      override: true
+      const: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: const java.util.SortedMap<K, V>
+      body: |
+        if (!fromStart && this\$0->compare_(toKey, this->fromKey))
+          throw ::std::invalid_argument("key out of range");
+        if (!toEnd && this\$0->compare_(this->toKey, toKey))
+          throw ::std::invalid_argument("key out of range");
+
+        return $boundTemplateType(java.({java.util.TreeMap\$SubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            ::java::constcast<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$>(this\$0),
+            (fromStart ? this->fromKey : nullptr),
+            toKey);
+    - type: method
+      name: tailMap
+      override: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      return:
+        java: java.util.SortedMap<K, V>
+      body: |
+        if (!fromStart && this\$0->compare_(fromKey, this->fromKey))
+          throw ::std::invalid_argument("key out of range");
+        if (!toEnd && this\$0->compare_(this->toKey, fromKey))
+          throw ::std::invalid_argument("key out of range");
+
+        return $boundTemplateType(java.({java.util.TreeMap\$SubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            this\$0,
+            fromKey,
+            (toEnd ? this->toKey : nullptr));
+    - type: method
+      name: tailMap
+      override: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      return:
+        java: const java.util.SortedMap<K, V>
+      body: |
+        if (!fromStart && this\$0->compare_(fromKey, this->fromKey))
+          throw ::std::invalid_argument("key out of range");
+        if (!toEnd && this\$0->compare_(this->toKey, fromKey))
+          throw ::std::invalid_argument("key out of range");
+
+        return $boundTemplateType(java.({java.util.TreeMap\$SubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            ::java::constcast<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$>(this\$0),
+            fromKey,
+            (toEnd ? this->toKey : nullptr));
+    - type: method
+      name: subMap
+      override: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: java.util.SortedMap<K, V>
+      body: |
+        if (!fromStart && this\$0->compare_(fromKey, this->fromKey))
+          throw ::std::invalid_argument("key out of range");
+        if (!toEnd && this\$0->compare_(this->toKey, fromKey))
+          throw ::std::invalid_argument("key out of range");
+
+        if (!fromStart && this\$0->compare_(toKey, this->fromKey))
+          throw ::std::invalid_argument("key out of range");
+        if (!toEnd && this\$0->compare_(this->toKey, toKey))
+          throw ::std::invalid_argument("key out of range");
+
+        return $boundTemplateType(java.({java.util.TreeMap\$SubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            this\$0,
+            fromKey,
+            toKey);
+    - type: method
+      name: subMap
+      override: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: toKey
+        type:
+          java: const K
+      return:
+        java: const java.util.SortedMap<K, V>
+      body: |
+        if (!fromStart && this\$0->compare_(fromKey, this->fromKey))
+          throw ::std::invalid_argument("key out of range");
+        if (!toEnd && this\$0->compare_(this->toKey, fromKey))
+          throw ::std::invalid_argument("key out of range");
+
+        if (!fromStart && this\$0->compare_(toKey, this->fromKey))
+          throw ::std::invalid_argument("key out of range");
+        if (!toEnd && this\$0->compare_(this->toKey, toKey))
+          throw ::std::invalid_argument("key out of range");
+
+        return $boundTemplateType(java.({java.util.TreeMap\$SubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            ::java::constcast<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$>(this\$0),
+            fromKey,
+            toKey);

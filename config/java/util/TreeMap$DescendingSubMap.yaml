@@ -2,8 +2,49 @@
 classes:
   java.util.TreeMap$DescendingSubMap<K, V>:
     dev_mode: false
-    inherit_constructors: true
+    fields:
+      reverseComparator:
+        visibility: private
+        getter: false
+        setter: false
+        const: true
+        final: true
     members:
+    - type: constructor
+      arguments:
+      - name: m
+        type:
+          java: java.util.TreeMap<K, V>
+      - name: fromStart
+        type:
+          java: boolean
+      - name: lo
+        type:
+          java: const K
+      - name: loInclusive
+        type:
+          java: boolean
+      - name: toEnd
+        type:
+          java: boolean
+      - name: hi
+        type:
+          java: const K
+      - name: hiInclusive
+        type:
+          java: boolean
+      super: m, fromStart, ::std::move(lo), loInclusive, toEnd, ::std::move(hi), hiInclusive
+      initializers:
+        # XXX not correct
+        reverseComparator: m->comparator() /* XXX invoke java.util.Collections::reverseOrder() on this comparator! */
+    - type: method
+      name: comparator
+      override: true
+      const: true
+      return:
+        java: const java.util.Comparator<? super K>
+      body: |
+        return reverseComparator;
     - type: method
       name: begin
       override: true
@@ -163,3 +204,255 @@ classes:
           - java/iterator.h
       body: |
         return rupper_bound_(::std::move(k));
+    - type: method
+      name: headMap
+      override: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: java.util.NavigableMap<K, V>
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(toKey, this->lo);
+          if (toInclusive ? cmp < 0 : cmp <= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(toKey, this->hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            m,
+            false, toKey, toInclusive,
+            toEnd, hi, hiInclusive);
+      includes:
+        implementation:
+        - stdexcept
+    - type: method
+      name: headMap
+      override: true
+      const: true
+      arguments:
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: const java.util.NavigableMap<K, V>
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(toKey, this->lo);
+          if (toInclusive ? cmp < 0 : cmp <= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(toKey, this->hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            ::java::constcast<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$>(m),
+            false, toKey, toInclusive,
+            toEnd, hi, hiInclusive);
+      includes:
+        implementation:
+        - stdexcept
+    - type: method
+      name: tailMap
+      override: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      return:
+        java: java.util.NavigableMap<K, V>
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(fromKey, this->lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(fromKey, this->hi);
+          if (fromInclusive ? cmp > 0 : cmp >= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            m,
+            fromStart, lo, loInclusive,
+            false, fromKey, fromInclusive);
+      includes:
+        implementation:
+        - stdexcept
+    - type: method
+      name: tailMap
+      override: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      return:
+        java: const java.util.NavigableMap<K, V>
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(fromKey, this->lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(fromKey, this->hi);
+          if (fromInclusive ? cmp > 0 : cmp >= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            ::java::constcast<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$>(m),
+            fromStart, lo, loInclusive,
+            false, fromKey, fromInclusive);
+      includes:
+        implementation:
+        - stdexcept
+    - type: method
+      name: subMap
+      override: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: java.util.NavigableMap<K, V>
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(toKey, this->lo);
+          if (toInclusive ? cmp < 0 : cmp <= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(toKey, this->hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+
+        if (!fromStart) {
+          const auto cmp = icompare_(fromKey, this->lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(fromKey, this->hi);
+          if (fromInclusive ? cmp > 0 : cmp >= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            m,
+            false, toKey, toInclusive,
+            false, fromKey, fromInclusive);
+      includes:
+        implementation:
+        - stdexcept
+    - type: method
+      name: subMap
+      override: true
+      const: true
+      arguments:
+      - name: fromKey
+        type:
+          java: const K
+      - name: fromInclusive
+        type:
+          java: boolean
+      - name: toKey
+        type:
+          java: const K
+      - name: toInclusive
+        type:
+          java: boolean
+      return:
+        java: const java.util.NavigableMap<K, V>
+      body: |
+        if (!fromStart) {
+          const auto cmp = icompare_(toKey, this->lo);
+          if (toInclusive ? cmp < 0 : cmp <= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(toKey, this->hi);
+          if (hiInclusive ? cmp > 0 : cmp >= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+
+        if (!fromStart) {
+          const auto cmp = icompare_(fromKey, this->lo);
+          if (loInclusive ? cmp < 0 : cmp <= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+        if (!toEnd) {
+          const auto cmp = icompare_(fromKey, this->hi);
+          if (fromInclusive ? cmp > 0 : cmp >= 0)
+            throw ::std::invalid_argument("key out of range");
+        }
+
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            ::java::constcast<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$>(m),
+            false, toKey, toInclusive,
+            false, fromKey, fromInclusive);
+      includes:
+        implementation:
+        - stdexcept
+    - type: method
+      name: descendingMap
+      override: true
+      return:
+        java: java.util.NavigableMap<K, V>
+      body: |
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            m,
+            fromStart, lo, loInclusive,
+            toEnd, hi, hiInclusive);
+    - type: method
+      name: descendingMap
+      override: true
+      const: true
+      return:
+        java: const java.util.NavigableMap<K, V>
+      body: |
+        return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
+            ::java::allocate,
+            ::java::constcast<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$>(m),
+            fromStart, lo, loInclusive,
+            toEnd, hi, hiInclusive);
