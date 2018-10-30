@@ -284,9 +284,12 @@ public interface ClassMemberModel {
 
         @Override
         public boolean isCovariantReturn() {
+            if (!isVirtual()) return false;
             final Boolean covariantReturn = method.isCovariantReturn();
-            if (covariantReturn != null) return isVirtual() && covariantReturn;
-            return isVirtual();
+            if (covariantReturn != null) return covariantReturn;
+
+            final Type voidType = new CxxType(Context.UNIMPLEMENTED_CONTEXT, "void", new Includes(), EMPTY_MAP, EMPTY_LIST, null);
+            return !(getArgumentNames().isEmpty() && voidType.equals(getReturnType()));
         }
 
         @Override
