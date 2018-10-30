@@ -78,7 +78,7 @@ classes:
         push_back(std::move(e));
     - type: method
       name: pop
-      virtual: true
+      override: true
       return:
         cxx: void
       body: |
