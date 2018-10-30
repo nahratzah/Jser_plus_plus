@@ -323,7 +323,6 @@ public interface ClassDelegateMethod extends MethodModel {
             this.name = requireNonNull(name);
             this.delegateName = requireNonNull(delegateName);
             this.argumentNames = requireNonNull(argumentNames);
-            this.returnType = returnType;
             this.includes = requireNonNull(includes);
             this.staticVar = staticVar;
             this.constVar = constVar;
@@ -331,6 +330,7 @@ public interface ClassDelegateMethod extends MethodModel {
             this.visibility = requireNonNull(visibility);
             this.docString = docString;
             this.generics = new MethodGenerics(methodGenerics, argumentTypes);
+            this.returnType = (returnType == null ? null : returnType.rebind(generics.getGenericNameToDerivationNameRebindMap()));
         }
 
         @Override

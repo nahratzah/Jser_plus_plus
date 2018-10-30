@@ -11,9 +11,11 @@ import com.github.nahratzah.jser_plus_plus.model.TemplateSelector;
 import com.github.nahratzah.jser_plus_plus.model.Type;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import com.google.common.collect.Streams;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import static java.util.Objects.requireNonNull;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.stringtemplate.v4.ST;
 
@@ -145,18 +147,23 @@ public interface AccessorMethod {
         return false;
     }
 
+    public default boolean isReturnTypeCastRequired() {
+        final Type returnType = getReturnType();
+        if (getReturnType() == null || isVoidReturnType()) return false;
+
+        final Set<String> unresolvedTemplateNames = returnType.getUnresolvedTemplateNames();
+        if (unresolvedTemplateNames.isEmpty()) return false;
+        return unresolvedTemplateNames.stream()
+                .anyMatch(new HashSet<>(getModel().getTemplateArgumentNames())::contains);
+    }
+
     /**
      * Accessor method body.
      *
      * @return Method body.
      */
     public default ST getBody() {
-        final String templateString;
-        if (isStatic()) {
-            templateString = "$if (m.returnType && !m.voidReturnType)$return $if (m.returnType.unresolvedTemplateNames)$::java::cast<$boundTemplateType(m.returnType, \"style=type, class=return\")$>($endif$$endif$$erasedType(m.model)$::$m.name$($m.argumentNames:{name | ::std::forward<decltype($name$)>($name$)}; anchor, wrap, separator = \", \"$)$if (m.returnType && !m.voidReturnType && m.returnType.unresolvedTemplateNames)$)$endif$;";
-        } else {
-            templateString = "$if (m.returnType && !m.voidReturnType)$return $if (m.returnType.unresolvedTemplateNames)$::java::cast<$boundTemplateType(m.returnType, \"style=type, class=return\")$>($endif$$endif$this->template ref_<$erasedType(m.model)$>().$m.name$($m.argumentNames:{name | ::std::forward<decltype($name$)>($name$)}; anchor, wrap, separator = \", \"$)$if (m.returnType && !m.voidReturnType && m.returnType.unresolvedTemplateNames)$)$endif$;";
-        }
+        final String templateString = "$if (m.returnType && !m.voidReturnType)$return $if (m.returnTypeCastRequired)$::java::cast<$boundTemplateType(m.returnType, \"style=type, class=return\")$>($endif$$endif$$if (m.static)$$erasedType(m.model)$::$else$this->template ref_<$erasedType(m.model)$>().$endif$$m.name$($m.argumentNames:{name | ::std::forward<decltype($name$)>($name$)}; anchor, wrap, separator = \", \"$)$if (m.returnTypeCastRequired)$)$endif$;";
         return new ST(StCtx.BUILTINS, templateString)
                 .add("m", this);
     }
@@ -248,7 +255,6 @@ public interface AccessorMethod {
             this.model = requireNonNull(model);
             this.name = requireNonNull(name);
             this.argumentNames = requireNonNull(argumentNames);
-            this.returnType = returnType;
             this.includes = requireNonNull(includes);
             this.staticVar = staticVar;
             this.constVar = constVar;
@@ -256,6 +262,7 @@ public interface AccessorMethod {
             this.visibility = requireNonNull(visibility);
             this.docString = docString;
             this.generics = new MethodGenerics(methodGenerics, argumentTypes);
+            this.returnType = (returnType == null ? null : returnType.rebind(generics.getGenericNameToDerivationNameRebindMap()));
         }
 
         @Override
