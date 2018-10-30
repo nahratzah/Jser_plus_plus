@@ -107,9 +107,7 @@ public final class CxxType implements Type {
     /**
      * Retrieve prerendered text.
      *
-     * May be null, if there is none.
-     *
-     * @return Prerendered text or null.
+     * @return Prerendered text.
      */
     public String getPreRendered() {
         return preRendered;

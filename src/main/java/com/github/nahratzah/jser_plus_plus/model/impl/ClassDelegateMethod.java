@@ -169,7 +169,7 @@ public interface ClassDelegateMethod extends MethodModel {
         if (type instanceof ConstType)
             type = ((ConstType) type).getType();
         if (type instanceof CxxType)
-            return "void".equals(((CxxType) type).getPreRendered().trim());
+            return "void".equals(((CxxType) type).getPreRendered());
         return false;
     }
 

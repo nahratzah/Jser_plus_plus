@@ -3,7 +3,6 @@ package com.github.nahratzah.jser_plus_plus.output.builtins;
 import com.github.nahratzah.jser_plus_plus.model.CxxType;
 import com.github.nahratzah.jser_plus_plus.model.Type;
 import java.util.Locale;
-import org.stringtemplate.v4.ST;
 
 /**
  * Render a {@link CxxType C++ type}.
@@ -20,10 +19,8 @@ public class CxxTypeRenderer implements TypeAttributeRenderer {
         final StringBuilder result = new StringBuilder();
         if (emitConst) result.append("const ");
 
-        if (cxxType.getPreRendered() != null)
-            result.append(cxxType.getPreRendered());
-        else
-            result.append(new ST(StCtx.BUILTINS, cxxType.getTemplate()).render(Locale.ROOT));
+        assert cxxType.getPreRendered() != null;
+        result.append(cxxType.getPreRendered());
 
         return result.toString();
     }
