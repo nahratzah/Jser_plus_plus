@@ -439,6 +439,8 @@ classes:
       return:
         java: java.util.NavigableMap<K, V>
       body: |
+        if (fromStart && toEnd) return m;
+
         return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
             ::java::allocate,
             m,
@@ -451,6 +453,8 @@ classes:
       return:
         java: const java.util.NavigableMap<K, V>
       body: |
+        if (fromStart && toEnd) return m;
+
         return $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(
             ::java::allocate,
             ::java::constcast<$boundTemplateType(java.({java.util.TreeMap<K, V>}), "style=type, class")$>(m),
