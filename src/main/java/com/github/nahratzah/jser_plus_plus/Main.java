@@ -70,7 +70,8 @@ public class Main {
                 cmake.addSupplied(
                         new File("/usr/home/ariane/programming/JSer++-2/jvm_supplied/include"),
                         new File("/usr/home/ariane/programming/JSer++-2/jvm_supplied/src"));
-                p.emit(cmake);
+                final int changedFiles = p.emit(cmake);
+                LOG.log(Level.INFO, "Updated {0} files.", changedFiles);
             }
         }
     }

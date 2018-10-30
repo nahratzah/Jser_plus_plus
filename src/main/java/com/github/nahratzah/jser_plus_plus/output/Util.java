@@ -90,14 +90,16 @@ public class Util {
      * @param fileName The name of the file that is to be updated.
      * @param contents The new contents of the file.
      * @param charset The character set that the file should use.
+     * @return True if the file contents was updated, false if the file contents
+     * was unchanged.
      * @throws IOException If the write operation fails.
      */
-    public static void setFileContents(Path fileName, String contents, Charset charset) throws IOException {
+    public static boolean setFileContents(Path fileName, String contents, Charset charset) throws IOException {
         try {
             final String oldContents = new String(Files.readAllBytes(fileName), charset);
             if (Objects.equals(oldContents, contents)) {
                 LOG.log(Level.FINER, "Skipping update for {0}: contents already the same", fileName);
-                return;
+                return false;
             }
         } catch (IOException ex) {
             // SKIP, just replace the contents anyway
@@ -106,6 +108,7 @@ public class Util {
         LOG.log(Level.FINE, "Updating {0}", fileName);
         Files.createDirectories(fileName.getParent());
         Files.write(fileName, contents.getBytes(charset));
+        return true;
     }
 
     /**
@@ -116,10 +119,12 @@ public class Util {
      *
      * @param fileName The name of the file that is to be updated.
      * @param contents The new contents of the file.
+     * @return True if the file contents was updated, false if the file contents
+     * was unchanged.
      * @throws IOException If the write operation fails.
      */
-    public static void setFileContents(Path fileName, String contents) throws IOException {
-        setFileContents(fileName, contents, UTF_8);
+    public static boolean setFileContents(Path fileName, String contents) throws IOException {
+        return setFileContents(fileName, contents, UTF_8);
     }
 
     /**
@@ -130,9 +135,10 @@ public class Util {
      *
      * @param dir The directory on which to perform the cleanup.
      * @param relNames List of relative file names of files that are to be kept.
+     * @return Number of files that was erased.
      * @throws IOException If the file system operations fail.
      */
-    public static void cleanDirExcepting(Path dir, List<Path> relNames) throws IOException {
+    public static int cleanDirExcepting(Path dir, List<Path> relNames) throws IOException {
         // Build the set of files that are to be kept.
         final Set<Path> keep = relNames.stream()
                 .map(name -> {
@@ -170,5 +176,7 @@ public class Util {
                     Files.delete(subdir);
             }
         }
+
+        return toErase.size();
     }
 }

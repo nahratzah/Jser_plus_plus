@@ -97,9 +97,10 @@ public class Processor implements Context {
      * those files.
      *
      * @param module The cmake module that will contain the project.
+     * @return Number of files that was modified.
      * @throws IOException If any of the file write operations fails.
      */
-    public synchronized void emit(CmakeModule module) throws IOException {
+    public synchronized int emit(CmakeModule module) throws IOException {
         if (!postProcessingStarted)
             throw new IllegalStateException("Must run post processing phase prior to emitting all classes.");
 
@@ -112,24 +113,34 @@ public class Processor implements Context {
                             .add(jc);
                 });
 
+        int changedFileCounter = 0;
         for (final CodeGenerator cg : cgMap.values()) {
-            setFileContents(
+            final boolean fwdHeaderChanged = setFileContents(
                     module.addHeader(cg.getFwdHeaderName()).toPath(),
                     cg.fwdHeaderFile());
-            setFileContents(
+            final boolean headerChanged = setFileContents(
                     module.addHeader(cg.getHeaderName()).toPath(),
                     cg.headerFile());
-            setFileContents(
+            final boolean sourceChanged = setFileContents(
                     module.addSource(cg.sourceName()).toPath(),
                     cg.sourceFile());
+            changedFileCounter += (fwdHeaderChanged ? 1 : 0)
+                    + (headerChanged ? 1 : 0)
+                    + (sourceChanged ? 1 : 0);
         }
 
-        setFileContents(
-                module.addHeader(CodeGenerator.moduleHeaderFilename(module.getTargetName())).toPath(),
-                CodeGenerator.moduleHeader(module.getTargetName(), unmodifiableCollection(classes.values())));
-        setFileContents(
-                module.addSource(CodeGenerator.moduleSourceFilename(module.getTargetName())).toPath(),
-                CodeGenerator.moduleSource(module.getTargetName(), unmodifiableCollection(classes.values())));
+        {
+            final boolean moduleHeaderChanged = setFileContents(
+                    module.addHeader(CodeGenerator.moduleHeaderFilename(module.getTargetName())).toPath(),
+                    CodeGenerator.moduleHeader(module.getTargetName(), unmodifiableCollection(classes.values())));
+            final boolean moduleSourceChanged = setFileContents(
+                    module.addSource(CodeGenerator.moduleSourceFilename(module.getTargetName())).toPath(),
+                    CodeGenerator.moduleSource(module.getTargetName(), unmodifiableCollection(classes.values())));
+            changedFileCounter += (moduleHeaderChanged ? 1 : 0)
+                    + (moduleSourceChanged ? 1 : 0);
+        }
+
+        return changedFileCounter;
     }
 
     /**
