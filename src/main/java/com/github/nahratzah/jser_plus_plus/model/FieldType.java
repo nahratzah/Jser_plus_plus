@@ -4,14 +4,9 @@ import com.github.nahratzah.jser_plus_plus.config.cplusplus.DecodeStage;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.stringtemplate.v4.ST;
 
 /**
@@ -394,43 +389,6 @@ public class FieldType {
 
     public void setEncoderExpr(String encoderExpr) {
         this.encoderExpr = encoderExpr;
-    }
-
-    /**
-     * Prerender the types.
-     *
-     * @param renderArgs Arguments to the renderer.
-     * @param variables List of type variables in this context.
-     */
-    @Deprecated
-    public void prerender(Map<String, ?> renderArgs, Collection<String> variables) {
-        defaultInit = prerender(defaultInit, ctx, renderArgs, variables, declaringClass.getBoundType());
-    }
-
-    /**
-     * Prerender the types.
-     *
-     * @param renderArgs Arguments to the renderer.
-     * @param variables List of type variables in this context.
-     */
-    @Deprecated
-    public void prerender(Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
-        defaultInit = prerender(defaultInit, ctx, renderArgs, variables, declaringClass.getBoundType());
-    }
-
-    private static String prerender(String text, Context ctx, Map<String, ?> renderArgs, Collection<String> variables, BoundTemplate.ClassBinding<?> thisType) {
-        final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
-                .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
-        return prerender(text, ctx, renderArgs, variablesMap, thisType);
-    }
-
-    private static String prerender(String text, Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables, BoundTemplate.ClassBinding<?> thisType) {
-        if (text == null) return null;
-
-        final Collection<Type> newDeclTypes = new HashSet<>(); // XXX use
-        final ST stringTemplate = new ST(StCtx.contextGroup(ctx, variables, thisType, newDeclTypes::add), text);
-        renderArgs.forEach(stringTemplate::add);
-        return stringTemplate.render(Locale.ROOT);
     }
 
     /**

@@ -290,8 +290,15 @@ public class ClassType implements JavaType {
                         iField.setDocString(fieldCfg.getDocString());
                     if (fieldCfg.getType() != null)
                         iField.setType(typeFromCfgType(fieldCfg.getType(), ctx, singletonMap("model", this), argRename.values(), getBoundType()));
-                    if (fieldCfg.getDefault() != null)
-                        iField.setDefault(fieldCfg.getDefault());
+                    if (fieldCfg.getDefault() != null) {
+                        // Render the default initializer.
+                        final Map<String, BoundTemplate.VarBinding> variablesMap = getTemplateArgumentNames().stream()
+                                .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
+                        final Collection<Type> newDeclTypes = new HashSet<>(); // XXX use
+                        iField.setDefault(new ST(StCtx.contextGroup(ctx, variablesMap, getBoundType(), newDeclTypes::add), fieldCfg.getDefault())
+                                .add("model", this)
+                                .render(Locale.ROOT));
+                    }
                     if (fieldCfg.getRename() != null)
                         iField.setName(fieldCfg.getRename());
                     iField.setCompleteInit(fieldCfg.isCompleteInit());
@@ -300,9 +307,6 @@ public class ClassType implements JavaType {
                     iField.setOmit(fieldCfg.isOmit());
                     if (fieldCfg.getEncoderExpr() != null)
                         iField.setEncoderExpr(fieldCfg.getEncoderExpr());
-                })
-                .peek(iField -> {
-                    iField.prerender(singletonMap("model", this), getTemplateArgumentNames());
                 })
                 .collect(Collectors.toMap(
                         FieldType::getSerializationName,
