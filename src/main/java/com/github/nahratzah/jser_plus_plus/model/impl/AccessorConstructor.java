@@ -102,10 +102,10 @@ public interface AccessorConstructor {
      */
     public default Stream<String> getImplementationIncludes() {
         return Streams.concat(
-                getDeclarationTypes().flatMap(type -> type.getIncludes(false)),
-                getImplementationTypes().flatMap(type -> type.getIncludes(false)),
+                getDeclarationTypes().flatMap(type -> type.getIncludes(true)),
+                getImplementationTypes().flatMap(type -> type.getIncludes(true)),
                 getIncludes().getImplementationIncludes().stream(),
-                getArgumentTypes().stream().flatMap(at -> at.getIncludes(false)));
+                getArgumentTypes().stream().flatMap(at -> at.getIncludes(true)));
     }
 
     /**
@@ -123,7 +123,7 @@ public interface AccessorConstructor {
      * @return All types required to create the implementation.
      */
     public default Stream<Type> getImplementationTypes() {
-        return getDeclarationTypes();
+        return Stream.empty();
     }
 
     /**

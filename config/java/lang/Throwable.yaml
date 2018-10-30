@@ -114,10 +114,9 @@ classes:
       return:
         cxx: ::std::ostream&
         includes:
+          # We omit <ostream> from the implementation, as it is already covered for, by virtue of the argument.
           declaration:
           - iosfwd
-          implementation:
-          - ostream
       doc_string: |
         \brief Write this $model.className$ to \p out.
         \param[out] out The stream to write this throwable to.
@@ -301,13 +300,14 @@ classes:
           includes:
             declaration:
             - java/serialization/decoder_fwd.h
-            implementation:
-            - java/serialization/decoder.h
       body: |
         if (stackTrace == _nullStackTrace_())
           stackTrace = nullptr;
         if (suppressedExceptions != nullptr)
           suppressedExceptions = $boundTemplateType(java.({java.util.ArrayList<java.lang.Throwable>}), "style=type, class")$(::java::allocate, suppressedExceptions->begin(), suppressedExceptions->end());
+      includes:
+        implementation:
+        - java/serialization/decoder.h
     - type: method
       name: _nullStackTrace_
       static: true

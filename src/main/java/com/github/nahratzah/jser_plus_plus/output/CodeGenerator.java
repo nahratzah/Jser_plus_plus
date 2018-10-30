@@ -7,6 +7,7 @@ import com.github.nahratzah.jser_plus_plus.model.ClassType;
 import com.github.nahratzah.jser_plus_plus.model.JavaType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Streams;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -84,7 +85,9 @@ public class CodeGenerator {
     public String fwdHeaderFile() {
         final Collection<String> includes = types.stream()
                 .flatMap(type -> {
-                    return Stream.concat(
+                    return Streams.concat(
+                            type.getAccessor().getDeclarationIncludes(),
+                            type.getAccessor().getDeclarationTypes().map(CodeGenerator::fwdHeaderName),
                             type.getImplementationIncludes(true),
                             type.getForwardDeclarationJavaTypes().map(CodeGenerator::fwdHeaderName));
                 })
@@ -102,26 +105,55 @@ public class CodeGenerator {
     }
 
     public String headerFile() {
-        final Collection<String> includes = Stream.concat(
+        final Collection<String> includesForTypes = Stream.concat(
                 Stream.of("java/inline.h", "java/object_intf.h", "java/_maybe_cast.h"),
                 types.stream()
                         .flatMap(type -> {
-                            return Stream.of(
+                            return Streams.concat(
                                     type.getImplementationIncludes(true),
                                     type.getDeclarationCompleteJavaTypes().map(CodeGenerator::headerName),
-                                    type.getDeclarationForwardJavaTypes().map(CodeGenerator::fwdHeaderName))
-                                    .flatMap(Function.identity());
+                                    type.getDeclarationForwardJavaTypes().map(CodeGenerator::fwdHeaderName));
                         }))
                 .distinct()
                 .sorted(INCLUDE_SORTER)
                 .filter(include -> !PRE_INCLUDES.contains(include))
                 .filter(include -> !Objects.equals(getFwdHeaderName(), include))
                 .filter(include -> !Objects.equals(getHeaderName(), include))
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        final Collection<String> includesForAccessors = types.stream()
+                .map(ClassType::getAccessor)
+                .flatMap(accessor -> {
+                    return Streams.concat(
+                            accessor.getImplementationIncludes(),
+                            accessor.getDeclarationTypes().map(CodeGenerator::fwdHeaderName),
+                            accessor.getImplementationTypes().map(CodeGenerator::fwdHeaderName));
+                })
+                .distinct()
+                .sorted(INCLUDE_SORTER)
+                .filter(include -> !PRE_INCLUDES.contains(include))
+                .filter(include -> !Objects.equals(getFwdHeaderName(), include))
+                .filter(include -> !Objects.equals(getHeaderName(), include))
+                .filter(include -> !includesForTypes.contains(include))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        final Collection<String> includesForCompletion = types.stream()
+                .map(ClassType::getAccessor)
+                .flatMap(accessor -> accessor.getImplementationTypes().map(CodeGenerator::headerName))
+                .distinct()
+                .sorted(INCLUDE_SORTER)
+                .filter(include -> !PRE_INCLUDES.contains(include))
+                .filter(include -> !Objects.equals(getFwdHeaderName(), include))
+                .filter(include -> !Objects.equals(getHeaderName(), include))
+                .filter(include -> !includesForTypes.contains(include))
+                .filter(include -> !includesForAccessors.contains(include))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         return FILES_TEMPLATE.getInstanceOf("headerFile")
                 .add("codeGen", this)
-                .add("includes", includes)
+                .add("includesForTypes", includesForTypes)
+                .add("includesForAccessors", includesForAccessors)
+                .add("includesForCompletion", includesForCompletion)
                 .render(Locale.ROOT, LINE_WRAP);
     }
 

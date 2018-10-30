@@ -12,6 +12,7 @@ import java.util.List;
 import static java.util.Objects.requireNonNull;
 import java.util.TreeSet;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Models an accessor to a class.
@@ -38,7 +39,8 @@ public class Accessor {
      * @param constructor The constructor to add.
      */
     public void add(AccessorConstructor constructor) {
-        constructors.add(constructor);
+        if (constructor.getVisibility() == Visibility.PUBLIC)
+            constructors.add(constructor);
     }
 
     /**
@@ -47,7 +49,8 @@ public class Accessor {
      * @param method The method to add.
      */
     public void add(AccessorMethod method) {
-        methods.add(method);
+        if (!method.getName().startsWith("__") && !method.getName().endsWith("__"))
+            methods.add(method);
     }
 
     /**
@@ -83,7 +86,7 @@ public class Accessor {
      * @return Collection of constructors.
      */
     public Collection<AccessorConstructor> getConstructors() {
-        return Collections2.filter(unmodifiableCollection(constructors), constructor -> constructor.getVisibility() == Visibility.PUBLIC);
+        return unmodifiableCollection(constructors);
     }
 
     /**
@@ -139,6 +142,34 @@ public class Accessor {
      */
     public boolean isDevMode() {
         return model.isDevMode();
+    }
+
+    public Stream<String> getDeclarationIncludes() {
+        return Stream.concat(
+                constructors.stream().flatMap(AccessorConstructor::getDeclarationIncludes),
+                methods.stream().flatMap(AccessorMethod::getDeclarationIncludes));
+    }
+
+    public Stream<String> getImplementationIncludes() {
+        return Stream.concat(
+                constructors.stream().flatMap(AccessorConstructor::getImplementationIncludes),
+                methods.stream().flatMap(AccessorMethod::getImplementationIncludes));
+    }
+
+    public Stream<JavaType> getDeclarationTypes() {
+        return Stream.concat(
+                constructors.stream().flatMap(AccessorConstructor::getDeclarationTypes),
+                methods.stream().flatMap(AccessorMethod::getDeclarationTypes))
+                .flatMap(Type::getAllJavaTypes)
+                .filter(type -> !(type instanceof PrimitiveType));
+    }
+
+    public Stream<JavaType> getImplementationTypes() {
+        return Stream.concat(
+                constructors.stream().flatMap(AccessorConstructor::getImplementationTypes),
+                methods.stream().flatMap(AccessorMethod::getImplementationTypes))
+                .flatMap(Type::getAllJavaTypes)
+                .filter(type -> !(type instanceof PrimitiveType));
     }
 
     /**

@@ -28,7 +28,7 @@ $codeGen.types:{model|$tagDeclaration(model)$}; separator = "\n\n"$
 // Forward declare accessors.
 namespace java {
 
-$codeGen.accessors:{accessorModel|$forwardDeclareAccessor(accessorModel)$; // Forward declaration.}; separator = "\n\n"$
+$codeGen.accessors: forwardDeclareAccessor(); separator = "\n\n"$
 
 } /* namespace java */
 
@@ -56,7 +56,7 @@ $codeGen.accessors:{accessorModel|$accessor(accessorModel)$}; separator = "\n\n"
 >>
 
 
-headerFile(codeGen, includes) ::= <<
+headerFile(codeGen, includesForTypes, includesForAccessors, includesForCompletion) ::= <<
 #ifndef $codeGen.includeGuard$
 #define $codeGen.includeGuard$
 
@@ -65,7 +65,7 @@ $include(codeGen.fwdHeaderName)$
 ///\file
 ///\brief Code for $codeGen.baseType; separator = "."$
 
-$includes:{f|$include(f)$}; separator = "\n"$
+$includesForTypes:{f|$include(f)$}; separator = "\n"$
 
 // render erased types
 namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
@@ -73,6 +73,8 @@ namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
 $codeGen.reorderTypesForInheritance:{model|$class(model)$}; separator = "\n\n"$
 
 } /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
+
+$includesForAccessors:{f|$include(f)$}; separator = "\n"$
 
 // render accessors
 namespace java {
@@ -87,6 +89,8 @@ namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
 $codeGen.types:{model|$classHeaderImpl(model)$}; separator = "\n\n"$
 
 } /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
+
+$includesForCompletion:{f|$include(f)$}; separator = "\n"$
 
 #endif /* $codeGen.includeGuard$ */
 
@@ -170,7 +174,13 @@ struct $model.className$ {
 
 forwardDeclareAccessor(accessorModel) ::= <<
 template<$["Base_", accessorModel.model.templateArgumentNames]:{x|typename $x$}; anchor, wrap, separator = ", "$>
-class _accessor<$["Base_", tagType(accessorModel.model), accessorModel.model.templateArgumentNames]; anchor, wrap, separator = ", "$>
+class _accessor<$["Base_", tagType(accessorModel.model), accessorModel.model.templateArgumentNames]; anchor, wrap, separator = ", "$>;
+$templateLine(accessorModel.model.templateArgumentNames, true)$
+class _static_accessor$templateArgs([tagType(accessorModel.model), accessorModel.model.templateArgumentNames], true)$;
+$if (!accessorModel.interface && !accessorModel.abstract && !accessorModel.enum)$
+$templateLine(accessorModel.model.templateArgumentNames, true)$
+struct _constructor$templateArgs([{::java::G::is_t<$[tagType(accessorModel.model), accessorModel.model.templateArgumentNames]; separator = ", "$>}], true)$;
+$endif$
 >>
 
 

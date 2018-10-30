@@ -228,8 +228,6 @@ classes:
           declaration:
           - cycle_ptr/cycle_ptr.h
           - java/serialization/decoder_fwd.h
-          implementation:
-          - java/serialization/decoder.h
       body: |
         class decoder_impl final
         : public ::java::serialization::decoder
