@@ -28,7 +28,7 @@ $codeGen.types:{model|$tagDeclaration(model)$}; separator = "\n\n"$
 // Forward declare accessors.
 namespace java {
 
-$codeGen.types:{model|$forwardDeclareAccessor(model)$; // Forward declaration.}; separator = "\n\n"$
+$codeGen.accessors:{accessorModel|$forwardDeclareAccessor(accessorModel)$; // Forward declaration.}; separator = "\n\n"$
 
 } /* namespace java */
 
@@ -47,7 +47,7 @@ $includes:{f|$include(f)$}; separator = "\n"$
 // render accessors
 namespace java {
 
-$codeGen.types:{model|$accessor(model)$}; separator = "\n\n"$
+$codeGen.accessors:{accessorModel|$accessor(accessorModel)$}; separator = "\n\n"$
 
 } /* namespace java */
 
@@ -77,7 +77,7 @@ $codeGen.reorderTypesForInheritance:{model|$class(model)$}; separator = "\n\n"$
 // render accessors
 namespace java {
 
-$codeGen.types:{model|$accessorImpl(model)$}; separator = "\n\n"$
+$codeGen.accessors:{accessorModel|$accessorImpl(accessorModel)$}; separator = "\n\n"$
 
 } /* namespace java */
 
@@ -107,7 +107,7 @@ $codeGen.types:{model|$classImpl(model)$}; separator = "\n\n"$
 
 namespace java {
 
-$codeGen.types:{model|$accessorImplSrc(model)$}; separator = "\n\n"$
+$codeGen.accessors:{accessorModel|$accessorImplSrc(accessorModel)$}; separator = "\n\n"$
 
 } /* namespace java */
 
@@ -168,9 +168,9 @@ struct $model.className$ {
 >>
 
 
-forwardDeclareAccessor(model) ::= <<
-template<$["Base_", model.templateArgumentNames]:{x|typename $x$}; anchor, wrap, separator = ", "$>
-class _accessor<$["Base_", {::$["java", "_tags", model.namespace, model.className]; separator = "::"$}, model.templateArgumentNames]; anchor, wrap, separator = ", "$>
+forwardDeclareAccessor(accessorModel) ::= <<
+template<$["Base_", accessorModel.model.templateArgumentNames]:{x|typename $x$}; anchor, wrap, separator = ", "$>
+class _accessor<$["Base_", tagType(accessorModel.model), accessorModel.model.templateArgumentNames]; anchor, wrap, separator = ", "$>
 >>
 
 

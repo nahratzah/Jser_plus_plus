@@ -109,8 +109,27 @@ struct _template_selector_tmpl_t<Tag, ArgumentIndex>::select_<::java::G::pack_t<
 {};
 
 
-template<typename T>
+template<typename T, typename Preselected>
 struct _template_selector_ {
+  ///\brief Select the generics for the resolved type.
+  using type = Preselected;
+  ///\brief Select the variable for the resolved type.
+  using var_type = var_ref<type>;
+
+  ///\brief Perform array resolution.
+  ///\tparam Extents Number of extents to remove from the array.
+  template<::std::size_t Extents>
+  using array = _template_selector_;
+
+  ///\brief Perform class argument resolution.
+  ///\tparam Tag Indentifier for the type on which to resolve the binding.
+  ///\tparam ArgumentIndex Generics argument index (zero based) for the type.
+  template<typename Tag, ::std::size_t ArgumentIndex>
+  using binding = _template_selector_;
+};
+
+template<typename T>
+struct _template_selector_<T, void> {
   ///\brief Select the generics for the resolved type.
   using type = T;
   ///\brief Select the variable for the resolved type.
@@ -119,19 +138,19 @@ struct _template_selector_ {
   ///\brief Perform array resolution.
   ///\tparam Extents Number of extents to remove from the array.
   template<::std::size_t Extents>
-  using array = _template_selector_<typename _template_selector_array_t<type, Extents>::type>;
+  using array = _template_selector_<typename _template_selector_array_t<type, Extents>::type, void>;
 
   ///\brief Perform class argument resolution.
   ///\tparam Tag Indentifier for the type on which to resolve the binding.
   ///\tparam ArgumentIndex Generics argument index (zero based) for the type.
   template<typename Tag, ::std::size_t ArgumentIndex>
-  using binding = _template_selector_<typename _template_selector_tmpl_t<Tag, ArgumentIndex>::template type<type>>;
+  using binding = _template_selector_<typename _template_selector_tmpl_t<Tag, ArgumentIndex>::template type<type>, void>;
 };
 
 } /* namespace java::<unnamed> */
 
-template<typename T>
-using _template_selector = _template_selector_<::std::remove_const_t<typename maybe_unpack_type_<T>::type>>;
+template<typename T, typename Preselected = void>
+using _template_selector = _template_selector_<::std::remove_const_t<typename maybe_unpack_type_<T>::type>, maybe_unpack_type_<Preselected>>;
 
 } /* namespace java */
 

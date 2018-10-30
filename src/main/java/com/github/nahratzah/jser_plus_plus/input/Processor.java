@@ -104,10 +104,13 @@ public class Processor implements Context {
             throw new IllegalStateException("Must run post processing phase prior to emitting all classes.");
 
         final Map<List<String>, CodeGenerator> cgMap = new HashMap<>();
-        classes.values().forEach(jc -> {
-            cgMap.computeIfAbsent(CodeGenerator.computeBaseType(jc), baseType -> new CodeGenerator(baseType))
-                    .add(jc);
-        });
+        classes.values().stream()
+                .filter(ClassType.class::isInstance)
+                .map(ClassType.class::cast)
+                .forEach(jc -> {
+                    cgMap.computeIfAbsent(CodeGenerator.computeBaseType(jc), baseType -> new CodeGenerator(baseType))
+                            .add(jc);
+                });
 
         for (final CodeGenerator cg : cgMap.values()) {
             setFileContents(

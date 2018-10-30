@@ -1,20 +1,20 @@
-accessor(model) ::= <<
-$if (!model.interface && !model.abstract && !model.enum)$
-$templateLine(model.templateArgumentNames, true)$
-struct _constructor$templateArgs([{::java::G::is_t<$[tagType(model), model.templateArgumentNames]; separator = ", "$>}], true)$ {
-  $constructors(model, false); anchor$
+accessor(accessorModel) ::= <<
+$if (!accessorModel.interface && !accessorModel.abstract && !accessorModel.enum)$
+$templateLine(accessorModel.model.templateArgumentNames, true)$
+struct _constructor$templateArgs([{::java::G::is_t<$[tagType(accessorModel.model), accessorModel.model.templateArgumentNames]; separator = ", "$>}], true)$ {
+  $constructors(accessorModel.model, false); anchor$
 };
 $endif$
 
-$templateLine(model.templateArgumentNames, true)$
-class _static_accessor$templateArgs([tagType(model), model.templateArgumentNames], true)$ {
-$if (model.friends)$
-  $ model.friends
+$templateLine(accessorModel.model.templateArgumentNames, true)$
+class _static_accessor$templateArgs([tagType(accessorModel.model), accessorModel.model.templateArgumentNames], true)$ {
+$if (accessorModel.friends)$
+  $ accessorModel.friends
     : {f| $if (f.unresolvedTemplateNames)$$templateLine(f.unresolvedTemplateNames)$$"\n"$$endif$friend $boundTemplateType(f, "style=erased")$;}
     ; anchor, separator = "\n"$
 
 $endif$
- protected:
+  protected:
   JSER_INLINE _static_accessor() = default;
   JSER_INLINE _static_accessor(const _static_accessor&) = default;
   JSER_INLINE _static_accessor(_static_accessor&&) = default;
@@ -22,27 +22,27 @@ $endif$
   JSER_INLINE _static_accessor& operator=(_static_accessor&&) = default;
   JSER_INLINE ~_static_accessor() = default;
 
- public:
-$if (model.enum)$
+$if (accessorModel.enum)$
+  public:
   /**
-   * \brief Raw enum constants for $[model.namespace, model.className]; separator = "."$
+   * \brief Raw enum constants for $accessorModel.model.name$
    * \note Enums start with upper case, followed by lower case, to avoid name clashes with defines.
    */
   enum class enum_t : ::java::int_t {
-    $model.enumValues:{kv|$kv.remappedName$}; anchor, separator = ",\n"$
+    $accessorModel.model.enumValues:{kv|$kv.remappedName$}; anchor, separator = ",\n"$
   };
 $endif$
 
-  $staticAccessorClassMembers(model, false); anchor$
+  $staticAccessorClassMembers(accessorModel, false); anchor$
 };
 
-$templateLine(["Base_", model.templateArgumentNames], true)$
-class _accessor$templateArgs(["Base_", tagType(model), model.templateArgumentNames], true)$
-$accessorInheritance(model, "Base_")$
+$templateLine(["Base_", accessorModel.model.templateArgumentNames], true)$
+class _accessor$templateArgs(["Base_", tagType(accessorModel.model), accessorModel.model.templateArgumentNames], true)$
+$accessorInheritance(accessorModel.model, "Base_")$
 {
-  friend $erasedType(model)$;
-$if (model.friends)$
-  $ model.friends
+  friend $erasedType(accessorModel.model)$;
+$if (accessorModel.friends)$
+  $ accessorModel.friends
     : {f| $if (f.unresolvedTemplateNames)$$templateLine(f.unresolvedTemplateNames)$$"\n"$$endif$friend $boundTemplateType(f, "style=erased")$;}
     ; anchor, separator = "\n"$
 $endif$
@@ -55,16 +55,17 @@ $endif$
   _accessor& operator=(_accessor&&) = delete;
   JSER_INLINE ~_accessor() = default;
 
-$if (model.fields)$
+$if (accessorModel.model.fields)$
   // field accessors
-  $model.fields:{f|$fieldAccessors(model, f, false)$}; anchor, separator = "\n"$
+  // XXX change ClassType to pre-generate these for us!
+  $accessorModel.model.fields:{f|$fieldAccessors(accessorModel.model, f, false)$}; anchor, separator = "\n"$
 $endif$
 
-  $accessorClassMembers(model, false); anchor$
+  $accessorClassMembers(accessorModel, false); anchor$
 };
-$if (model.enum)$
+$if (accessorModel.enum)$
 
-$accessorEnumToString(model, false)$
+$accessorEnumToString(accessorModel.model, false)$
 $endif$
 >>
 
@@ -74,6 +75,7 @@ $renderDocString(model.docString)$
 class $model.className$$if (model.final)$ final$endif$
 $classInheritance(model)$
 {
+  template<typename Tag, typename... Arguments> friend class ::java::_static_accessor;
   template<typename Base, typename Tag, typename... Arguments> friend class ::java::_accessor;
 $if (model.friends)$
   $ model.friends
@@ -122,21 +124,21 @@ $endif$
 >>
 
 
-accessorImpl(model) ::= <<
-$model.fields:{f|$fieldAccessors(model, f, true)$}; separator = "\n"$
+accessorImpl(accessorModel) ::= <<
+$accessorModel.model.fields:{f|$fieldAccessors(accessorModel.model, f, true)$}; separator = "\n"$
 
-$if (!model.interface && !model.abstract && !model.enum)$
-$constructors(model, true)$
+$if (!accessorModel.interface && !accessorModel.abstract && !accessorModel.enum)$
+$constructors(accessorModel.model, true)$
 $endif$
 
-$accessorClassMembers(model, true)$
+$accessorClassMembers(accessorModel, true)$
 
-$staticAccessorClassMembers(model, true)$
+$staticAccessorClassMembers(accessorModel, true)$
 >>
 
 
-accessorImplSrc(model) ::= <<
-$if (model.enum)$$accessorEnumToString(model, true)$$endif$
+accessorImplSrc(accessorModel) ::= <<
+$if (accessorModel.enum)$$accessorEnumToString(accessorModel.model, true)$$endif$
 >>
 
 
@@ -227,22 +229,23 @@ $ model.constructors
 >>
 
 
-accessorClassMembers(model, doImplement) ::= <<
-$ model.accessorMethods
+accessorClassMembers(accessorModel, doImplement) ::= <<
+$ accessorModel.instanceMethods
   : {m | $if (!doImplement)$$m.visibility$:$"\n"$$endif$$\\$
          $function(
               name=m.name,
               doImplement=doImplement,
               return=m.returnType,
-              body={return $if (m.returnType.unresolvedTemplateNames)$::java::cast<$boundTemplateType(m.returnType, "style=type, class=return")$>($endif$this->template ref_<$erasedType(model)$>().$m.name$($m.argumentNames:{name | ::std::forward<decltype($name$)>($name$)}; anchor, wrap, separator = ", "$)$if (m.returnType.unresolvedTemplateNames)$)$endif$;},
+              body=m.body,
               docString=m.docString,
               argumentNames=m.argumentNames,
               argumentTypes=m.argumentTypes,
               containingClass="_accessor",
-              containingClassTemplateArguments=["Base_", model.templateArgumentNames],
-              containingClassTemplateArgumentsImpl=["Base_", tagType(model), model.templateArgumentNames],
+              containingClassTemplateArguments=["Base_", accessorModel.model.templateArgumentNames],
+              containingClassTemplateArgumentsImpl=["Base_", tagType(accessorModel.model), accessorModel.model.templateArgumentNames],
               templateArguments=m.functionGenericsNames,
-              inline="JSER_INLINE",
+              templateArgumentDefaults=m.functionGenericsDefault,
+              inline=m.inline,
               const=m.const,
               noexcept=m.noexcept,
               static=m.static
@@ -252,20 +255,22 @@ $ model.accessorMethods
 
 
 staticAccessorClassMembers(model, doImplement) ::= <<
-$ model.staticAccessorMethods
-  : {m | $function(
+$ accessorModel.staticMethods
+  : {m | $if (!doImplement)$$m.visibility$:$"\n"$$endif$$\\$
+         $function(
               name=m.name,
               doImplement=doImplement,
               return=m.returnType,
-              body={return $if (m.returnType.unresolvedTemplateNames)$::java::cast<$boundTemplateType(m.returnType, "style=type, class=return")$>($endif$$erasedType(model)$::$m.name$($m.argumentNames:{name | ::std::move($name$)}; anchor, wrap, separator = ", "$)$if (m.returnType.unresolvedTemplateNames)$)$endif$;},
+              body=m.body,
               docString=m.docString,
               argumentNames=m.argumentNames,
               argumentTypes=m.argumentTypes,
               containingClass="_static_accessor",
-              containingClassTemplateArguments=[model.templateArgumentNames],
-              containingClassTemplateArgumentsImpl=[tagType(model), model.templateArgumentNames],
+              containingClassTemplateArguments=[accessorModel.model.templateArgumentNames],
+              containingClassTemplateArgumentsImpl=[tagType(accessorModel.model), accessorModel.model.templateArgumentNames],
               templateArguments=m.functionGenericsNames,
-              inline="JSER_INLINE",
+              templateArgumentDefaults=m.functionGenericsDefault,
+              inline=m.inline,
               const=m.const,
               noexcept=m.noexcept,
               static=m.static

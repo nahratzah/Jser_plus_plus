@@ -11,15 +11,12 @@ import com.github.nahratzah.jser_plus_plus.input.Context;
 import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.EMPTY_MAP;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -27,10 +24,8 @@ import java.util.Map;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -542,60 +537,13 @@ public interface ClassMemberModel {
         public AbstractClassMemberModel(Context ctx, ClassType cdef, CfgType returnType, List<CfgArgument> arguments, String body, Map<String, String> rawMethodGenerics) {
             this.cdef = requireNonNull(cdef);
 
-            final Map<String, BoundTemplate> allVariables;
-            {
-                final Map<String, BoundTemplate.VarBinding> classVariables = cdef.getTemplateArguments().stream()
-                        .map(ClassTemplateArgument::getName)
-                        .collect(Collectors.toMap(
-                                Function.identity(),
-                                BoundTemplate.VarBinding::new, (u, v) -> {
-                                    throw new IllegalStateException(String.format("Duplicate key %s", u));
-                                },
-                                LinkedHashMap::new));
-                final Map<String, BoundTemplate.VarBinding> methodGenericsVariables = rawMethodGenerics.keySet().stream()
-                        .collect(Collectors.toMap(
-                                Function.identity(),
-                                BoundTemplate.VarBinding::new, (u, v) -> {
-                                    throw new IllegalStateException(String.format("Duplicate key %s", u));
-                                },
-                                LinkedHashMap::new));
-                final Map<String, BoundTemplate.VarBinding> allVariablesUnbound = Stream.concat(classVariables.entrySet().stream(), methodGenericsVariables.entrySet().stream())
-                        .collect(Collectors.toMap(
-                                Map.Entry::getKey,
-                                Map.Entry::getValue,
-                                (u, v) -> {
-                                    throw new IllegalStateException(String.format("Duplicate key %s", u));
-                                },
-                                LinkedHashMap::new));
-                methodGenerics = rawMethodGenerics.entrySet().stream()
-                        .collect(
-                                Collectors.collectingAndThen(
-                                        Collectors.collectingAndThen(
-                                                Collectors.toMap(
-                                                        Map.Entry::getKey,
-                                                        genericsEntry -> {
-                                                            final BoundTemplate result;
-                                                            if (genericsEntry.getValue() == null)
-                                                                result = new BoundTemplate.Any();
-                                                            else
-                                                                result = (BoundTemplate) BoundTemplate.fromString(genericsEntry.getValue(), ctx, allVariablesUnbound, this.cdef.getBoundType());
-                                                            return result;
-                                                        },
-                                                        (u, v) -> {
-                                                            throw new IllegalStateException(String.format("Duplicate key %s", u));
-                                                        },
-                                                        LinkedHashMap::new),
-                                                methodTypesMap -> squashMethodTypes(methodTypesMap)),
-                                        Collections::unmodifiableMap));
-                allVariables = Stream.concat(classVariables.entrySet().stream(), methodGenerics.entrySet().stream())
-                        .collect(Collectors.toMap(
-                                Map.Entry::getKey,
-                                Map.Entry::getValue,
-                                (u, v) -> {
-                                    throw new IllegalStateException(String.format("Duplicate key %s", u));
-                                },
-                                LinkedHashMap::new));
-            }
+            final Map<String, BoundTemplate> allVariables = Stream.concat(cdef.getTemplateArguments().stream().map(ClassTemplateArgument::getName), rawMethodGenerics.keySet().stream())
+                    .collect(
+                            Collectors.collectingAndThen(
+                                    Collectors.toMap(
+                                            Function.identity(),
+                                            BoundTemplate.VarBinding::new),
+                                    Collections::unmodifiableMap));
 
             this.variables = allVariables.keySet().stream()
                     .collect(Collectors.collectingAndThen(
@@ -614,19 +562,35 @@ public interface ClassMemberModel {
             this.returnType = prerender(returnType, ctx);
 
             {
-                final Map<String, BoundTemplate> squashMap = Stream.concat(cdef.getErasedTemplateArguments().stream(), methodGenerics.entrySet().stream())
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                 final List<Type> argumentTypesTmp = new ArrayList<>();
                 final List<String> argumentNamesTmp = new ArrayList<>();
-                final List<Type> argumentTypesSquashedTmp = new ArrayList<>();
                 arguments.forEach(arg -> {
                     argumentTypesTmp.add(prerender(arg.getType(), ctx));
                     argumentNamesTmp.add(arg.getName());
-                    argumentTypesSquashedTmp.add(prerender(arg.getType(), ctx, squashMap));
                 });
                 this.argumentNames = unmodifiableList(argumentNamesTmp);
                 this.argumentTypes = unmodifiableList(argumentTypesTmp);
-                this.argumentTypesSquashed = unmodifiableList(argumentTypesSquashedTmp);
+            }
+
+            this.generics = new MethodModel.BaseMethodGenerics(
+                    ctx,
+                    this.cdef.getTemplateArguments().stream()
+                            .map(ClassTemplateArgument::getName)
+                            .collect(Collectors.toSet()),
+                    rawMethodGenerics,
+                    this.cdef.getBoundType(),
+                    this.argumentTypes);
+
+            {
+                final Map<String, BoundTemplate> classSquashMap = cdef.getErasedTemplateArguments().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                final Map<String, BoundTemplate> methodSquashMap = generics.getErasedMethodGenerics().entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().rebind(classSquashMap)));
+                final Map<String, BoundTemplate> squashMap = Stream.concat(classSquashMap.entrySet().stream(), methodSquashMap.entrySet().stream())
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                this.argumentTypesSquashed = arguments.stream()
+                        .map(arg -> prerender(arg.getType(), ctx, squashMap))
+                        .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
             }
 
             if (body == null) {
@@ -696,62 +660,16 @@ public interface ClassMemberModel {
             return body;
         }
 
-        public Collection<String> getFunctionGenericsNames() {
-            if (cdef.getName().equals(java.util.Collections.class.getName()))
-                LOG.log(Level.SEVERE, "{0}: {1}", new Object[]{this, methodGenerics.keySet()});
-            return methodGenerics.keySet();
+        public final List<String> getFunctionGenericsNames() {
+            return generics.getFunctionGenericsNames();
         }
 
-        private static Map<String, BoundTemplate> squashMethodTypes(Map<String, ? extends BoundTemplate> map) {
-            // First, figure out the dependency ordering between template variables.
-            final List<String> resolutionOrder = new ArrayList<>(map.size());
-            final BiConsumer<String, Type> resolutionWorker = new BiConsumer<String, Type>() {
-                private final Set<String> active = new HashSet<>();
-
-                @Override
-                public void accept(String name, Type type) {
-                    requireNonNull(name);
-                    requireNonNull(type);
-
-                    if (resolutionOrder.contains(name)) return; // Skip
-
-                    if (!active.add(name))
-                        throw new IllegalStateException("recursion while evaluating type " + name);
-                    try {
-                        type.getUnresolvedTemplateNames().stream()
-                                .filter(map::containsKey)
-                                .forEach(unresolvedName -> accept(unresolvedName, map.get(unresolvedName)));
-
-                        resolutionOrder.add(name);
-                    } finally {
-                        active.remove(name);
-                    }
-                }
-            };
-            map.forEach(resolutionWorker);
-
-            assert resolutionOrder.size() == map.size() : "resolutionOrder should contain same number of elements";
-
-            // Second, apply resolution.
-            final LinkedHashMap<String, BoundTemplate> result = new LinkedHashMap<>(map);
-            final Map<String, BoundTemplate> resolutionMap = new HashMap<>();
-            for (final String name : resolutionOrder) {
-                final BoundTemplate template = requireNonNull(map.get(name));
-                final BoundTemplate resolvedTemplate = template.rebind(resolutionMap);
-                resolutionMap.put(name, resolvedTemplate);
-                result.put(name, resolvedTemplate);
-            }
-
-            assert result.size() == map.size();
-            assert Arrays.equals(result.keySet().toArray(), map.keySet().toArray()) : "Input map and output map have the same ordering of keys";
-            if (!map.isEmpty())
-                LOG.log(Level.FINE, "resolved {0} to {1}", new Object[]{map, result});
-            return result;
+        public final List<String> getFunctionGenericsDefault() {
+            return generics.getFunctionGenericsDefault();
         }
 
         protected final ClassType cdef;
         protected final List<String> variables;
-        protected final Map<String, BoundTemplate> methodGenerics;
         private final List<Type> declarationTypes = new ArrayList<>();
         private final List<Type> implementationTypes = new ArrayList<>();
         private final Function<String, String> declRenderer;
@@ -760,6 +678,7 @@ public interface ClassMemberModel {
         private final List<String> argumentNames;
         private final List<Type> argumentTypes;
         private final List<Type> argumentTypesSquashed;
+        private final MethodModel.BaseMethodGenerics generics;
         private final String body;
     }
 }

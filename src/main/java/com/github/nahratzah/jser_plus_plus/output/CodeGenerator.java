@@ -1,9 +1,12 @@
 package com.github.nahratzah.jser_plus_plus.output;
 
 import com.github.nahratzah.jser_plus_plus.misc.ListComparator;
+import com.github.nahratzah.jser_plus_plus.model.Accessor;
 import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
+import com.github.nahratzah.jser_plus_plus.model.ClassType;
 import com.github.nahratzah.jser_plus_plus.model.JavaType;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
+import com.google.common.collect.Collections2;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -60,7 +63,7 @@ public class CodeGenerator {
         this.namespace = this.baseType.subList(0, this.baseType.size() - 1);
     }
 
-    public boolean add(JavaType c) {
+    public boolean add(ClassType c) {
         // Input validation.
         if (!Objects.equals(this.baseType, computeBaseType(c)))
             throw new IllegalArgumentException("mismatching base type");
@@ -68,7 +71,7 @@ public class CodeGenerator {
         return this.types.add(c);
     }
 
-    public boolean addAll(Collection<? extends JavaType> c) {
+    public boolean addAll(Collection<? extends ClassType> c) {
         // Input validation.
         c.forEach(cItem -> {
             if (!Objects.equals(this.baseType, computeBaseType(cItem)))
@@ -257,8 +260,12 @@ public class CodeGenerator {
      *
      * @return All types for this code generator.
      */
-    public Collection<JavaType> getTypes() {
+    public Collection<ClassType> getTypes() {
         return unmodifiableCollection(types);
+    }
+
+    public Collection<Accessor> getAccessors() {
+        return Collections2.transform(getTypes(), ClassType::getAccessor);
     }
 
     /**
@@ -393,7 +400,7 @@ public class CodeGenerator {
     /**
      * List of types that are to be rendered by this code generator.
      */
-    private final Set<JavaType> types = new TreeSet<>(Comparator.comparing(JavaType::getClassName));
+    private final Set<ClassType> types = new TreeSet<>(Comparator.comparing(JavaType::getClassName));
     /**
      * Base type.
      *

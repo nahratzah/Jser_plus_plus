@@ -20,6 +20,7 @@ function(name,
          containingClassTemplateArguments=[],
          containingClassTemplateArgumentsImpl=[],
          templateArguments=[],
+         templateArgumentDefaults=[],
          static=false,
          virtual=false,
          pureVirtual=false,
@@ -32,7 +33,7 @@ function(name,
          ) ::= <%
 $if (!doImplement && docString)$$renderDocString(docString)$$"\n"$$endif$
 $if (doImplement)$$templateLine(containingClassTemplateArguments)$$"\n"$$endif$
-$if (templateArguments)$$templateLine(templateArguments)$$"\n"$$endif$
+$if (templateArguments)$$if (doImplement)$$templateLine(names=templateArguments)$$else$$templateLine(names=templateArguments, defaults=templateArgumentDefaults)$$endif$$"\n"$$endif$
 $if (!doImplement && static)$static $endif$
 $if (!doImplement && virtual)$virtual $endif$
 $if (inline)$$inline$ $endif$
@@ -87,10 +88,10 @@ functionArguments(argumentTypes, argumentNames) ::= <%
 %>
 
 
-templateLine(names, force=false) ::= <%
+templateLine(names, force=false, defaults=[]) ::= <%
 $if (names || force)$
   template<
-  $names:{name | typename $name$}; anchor, wrap, separator = ", "$
+  $names, defaults:{name, def | typename $name$$if (def)$ = $def$$endif$}; anchor, wrap, separator = ", "$
   >
 $endif$
 %>

@@ -1,6 +1,5 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
-import com.github.nahratzah.jser_plus_plus.output.builtins.FunctionAttrMap;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import java.util.Locale;
 import java.util.Objects;
@@ -37,37 +36,16 @@ public interface TemplateSelector {
      * Render the selector.
      *
      * @param inputType A string representing the input type of the selector.
+     * @param preselectedType A string representing the preselected input type
+     * of the selector. If this type is not void, the selector will simply
+     * ignore any instructions and return this type.
      * @param classSelector If set, return a class selector, otherwise return a
      * generics selector.
      * @return Selector statement for the given input type. Note that the
      * returned type if not prefixed with {@literal typename}.
      */
-    public default String selector(String inputType, boolean classSelector) {
-        return String.format("::java::_template_selector_<%s>%s", inputType, subSelector(classSelector));
-    }
-
-    /**
-     * Retrieve the class selector.
-     *
-     * This method exists so the template engine can select the rendered string.
-     *
-     * @return Attribute map that renders the type selector based on an input
-     * variable.
-     */
-    public default FunctionAttrMap getClassSelector() {
-        return new FunctionAttrMap(inputType -> selector(inputType, true));
-    }
-
-    /**
-     * Retrieve the class selector.
-     *
-     * This method exists so the template engine can select the rendered string.
-     *
-     * @return Attribute map that renders the class selector based on an input
-     * variable.
-     */
-    public default FunctionAttrMap getTypeSelector() {
-        return new FunctionAttrMap(inputType -> selector(inputType, false));
+    public default String selector(String inputType, String preselectedType, boolean classSelector) {
+        return String.format("::java::_template_selector_<%s, %s>%s", inputType, preselectedType, subSelector(classSelector));
     }
 
     /**

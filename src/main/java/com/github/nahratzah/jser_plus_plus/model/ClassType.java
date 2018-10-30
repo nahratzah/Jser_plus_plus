@@ -17,6 +17,7 @@ import com.github.nahratzah.jser_plus_plus.misc.MethodModelComparator;
 import com.github.nahratzah.jser_plus_plus.misc.SimpleMapEntry;
 import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
 import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
+import com.github.nahratzah.jser_plus_plus.model.impl.AccessorMethod;
 import com.github.nahratzah.jser_plus_plus.output.builtins.ConstTypeRenderer;
 import com.github.nahratzah.jser_plus_plus.output.builtins.FunctionAttrMap;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
@@ -94,6 +95,15 @@ public class ClassType implements JavaType {
 
     public ClassType(Class<?> c) {
         this.c = requireNonNull(c);
+    }
+
+    /**
+     * Retrieve the accessor for this type.
+     *
+     * @return The accessor for this type.
+     */
+    public Accessor getAccessor() {
+        return accessor;
     }
 
     @Override
@@ -725,19 +735,6 @@ public class ClassType implements JavaType {
                 .collect(Collectors.toList());
     }
 
-    public Collection<MethodModel> getAccessorMethods() {
-        return accessorMethods;
-    }
-
-    public Collection<MethodModel> getStaticAccessorMethods() {
-        return getClassMembers().stream()
-                .filter(member -> member.isPublicMethod())
-                .filter(member -> member.isStatic())
-                .filter(MethodModel.class::isInstance)
-                .map(MethodModel.class::cast)
-                .collect(Collectors.toList());
-    }
-
     public List<MethodModel> getClassMemberFunctions() {
         return classMemberFunctions.stream()
                 .sorted(Comparator.comparing(MethodModel::getVisibility)
@@ -840,7 +837,7 @@ public class ClassType implements JavaType {
                     .peek(member -> LOG.log(Level.FINE, "{0}: examining {1}", new Object[]{getName(), member}))
                     .filter(ClassMemberModel.ClassMethod.class::isInstance)
                     .map(ClassMemberModel.ClassMethod.class::cast)
-                    .map(classMember -> classMember.getOverrideSelector(ctx))
+                    .map(classMember -> classMember.getOverrideSelector(ctx)) // This optional does not exist for static methods!
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .collect(Collectors.collectingAndThen(
@@ -890,6 +887,8 @@ public class ClassType implements JavaType {
         postProcessEmitVirtualClassMembers(virtualClassMembers, ctx);
         // Implement non-virtual functions.
         postProcessEmitNonVirtualClassMembers(nonVirtualClassMembers);
+        // Implement all static functions.
+        postProcessEmitStaticClassMembers(Collections2.transform(Collections2.filter(classMembers, ClassMemberModel::isStatic), ClassMemberModel.ClassMethod.class::cast));
 
         // Record all methods we implement.
         implementedMethods = Stream.of(keptParentMethodsWithChangedTypes, keptParentMethodsWithoutChangedTypes, nonVirtualClassMembers, virtualClassMembers)
@@ -1206,8 +1205,22 @@ public class ClassType implements JavaType {
                 // As an extra optimization, we also add the method if this class is final,
                 // so the compiler has an opportunity to optimize out the vtable dispatch.
                 classMemberFunctions.add(methodImpl);
-                if (!tagged && (method.getOverridenMethods().size() != 1) || isFinal())
-                    accessorMethods.add(methodImpl);
+                if (!tagged && (method.getOverridenMethods().size() != 1 || isFinal())) {
+                    accessor.add(new AccessorMethod.Impl(
+                            this,
+                            underlyingMethod.getName(),
+                            underlyingMethod.getArgumentTypes(),
+                            underlyingMethod.getArgumentNames(),
+                            underlyingMethod.getReturnType(),
+                            new Includes(underlyingMethod.getIncludes().getDeclarationIncludes(), EMPTY_LIST),
+                            false, // Not static, because virtual methods can not be static.
+                            underlyingMethod.isConst(),
+                            underlyingMethod.getNoexcept(),
+                            underlyingMethod.getVisibility(),
+                            underlyingMethod.getDocString(),
+                            EMPTY_LIST, // XXX add generics names
+                            EMPTY_LIST)); // XX add generics defaults
+                }
             }
 
             // Emit forwarder.
@@ -1246,7 +1259,20 @@ public class ClassType implements JavaType {
                         underlyingMethod.getDocString());
                 // Add to both class and accessor implementation.
                 classMemberFunctions.add(primaryForwarder);
-                accessorMethods.add(primaryForwarder);
+                accessor.add(new AccessorMethod.Impl(
+                        this,
+                        underlyingMethod.getName(),
+                        underlyingMethod.getArgumentTypes(),
+                        underlyingMethod.getArgumentNames(),
+                        underlyingMethod.getReturnType(),
+                        new Includes(underlyingMethod.getIncludes().getDeclarationIncludes(), EMPTY_LIST),
+                        false, // Not static, because virtual methods can not be static.
+                        underlyingMethod.isConst(),
+                        underlyingMethod.getNoexcept(),
+                        underlyingMethod.getVisibility(),
+                        underlyingMethod.getDocString(),
+                        EMPTY_LIST, // XXX add generics names
+                        EMPTY_LIST)); // XX add generics defaults
             }
 
             // Emit the forwarders from other implementations.
@@ -1316,9 +1342,50 @@ public class ClassType implements JavaType {
                     assert !method.isVirtual();
                 })
                 .forEach(method -> {
-                    accessorMethods.add(method);
+                    accessor.add(new AccessorMethod.Impl(
+                            this,
+                            method.getName(),
+                            method.getArgumentTypes(),
+                            method.getArgumentNames(),
+                            method.getReturnType(),
+                            new Includes(method.getIncludes().getDeclarationIncludes(), EMPTY_LIST),
+                            method.isStatic(),
+                            method.isConst(),
+                            method.getNoexcept(),
+                            method.getVisibility(),
+                            method.getDocString(),
+                            method.getFunctionGenericsNames(),
+                            method.getFunctionGenericsDefault()));
                     classMemberFunctions.add(method);
                 });
+    }
+
+    /**
+     * Emit accessors for static functions.
+     *
+     * @param staticMethods Collection of static functions.
+     */
+    private void postProcessEmitStaticClassMembers(Collection<ClassMemberModel.ClassMethod> staticMethods) {
+        staticMethods.forEach(method -> {
+            assert method.isStatic() : "Only static methods should be supplied.";
+
+            // XXX not yet
+            // classStaticFunctions.add(method);
+            accessor.add(new AccessorMethod.Impl(
+                    this,
+                    method.getName(),
+                    method.getArgumentTypes(),
+                    method.getArgumentNames(),
+                    method.getReturnType(),
+                    new Includes(method.getIncludes().getDeclarationIncludes(), EMPTY_LIST),
+                    method.isStatic(),
+                    method.isConst(),
+                    method.getNoexcept(),
+                    method.getVisibility(),
+                    method.getDocString(),
+                    method.getFunctionGenericsNames(),
+                    method.getFunctionGenericsDefault()));
+        });
     }
 
     /**
@@ -1692,15 +1759,11 @@ public class ClassType implements JavaType {
      */
     private Set<ImplementedClassMethod> implementedMethods;
     /**
-     * All accessor methods.
-     *
-     * Filled in by
-     * {@link #postProcess(com.github.nahratzah.jser_plus_plus.input.Context) post processing}
-     * logic.
-     */
-    private final Collection<MethodModel> accessorMethods = new TreeSet<>(new MethodModelComparator());
-    /**
      * Raw content for source file, to be emitted prior to any includes.
      */
     private String srcRaw;
+    /**
+     * Accessor model for this class.
+     */
+    private final Accessor accessor = new Accessor(this);
 }
