@@ -31,4 +31,25 @@ public interface Context {
                     }
                 });
     }
+
+    /**
+     * Context that never resolves anything, but instead always throws
+     * {@link UnsupportedOperationException}.
+     */
+    public static Context UNIMPLEMENTED_CONTEXT = new Context() {
+        @Override
+        public ClassLoader getClassLoader() {
+            throw new UnsupportedOperationException("Unimplemented context.");
+        }
+
+        @Override
+        public JavaType resolveClass(Class<?> c) {
+            throw new UnsupportedOperationException("Unimplemented context.");
+        }
+
+        @Override
+        public JavaType resolveClass(String c) {
+            throw new UnsupportedOperationException("Unimplemented context.");
+        }
+    };
 }

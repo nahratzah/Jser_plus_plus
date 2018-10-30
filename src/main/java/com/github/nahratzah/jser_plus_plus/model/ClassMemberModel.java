@@ -664,6 +664,10 @@ public interface ClassMemberModel {
             return body;
         }
 
+        public final Map<String, BoundTemplate> getMethodGenerics() {
+            return generics.getMethodGenerics();
+        }
+
         public final List<String> getFunctionGenericsNames() {
             return generics.getFunctionGenericsNames();
         }

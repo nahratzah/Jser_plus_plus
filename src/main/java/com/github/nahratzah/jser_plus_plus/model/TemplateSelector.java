@@ -14,7 +14,7 @@ public interface TemplateSelector {
     /**
      * The header file that needs to be included to the selector logic.
      */
-    public static final String HEADER = "java/_template_selector.";
+    public static final String HEADER = "java/_template_selector.h";
 
     /**
      * Retrieve the subselector for resolution.

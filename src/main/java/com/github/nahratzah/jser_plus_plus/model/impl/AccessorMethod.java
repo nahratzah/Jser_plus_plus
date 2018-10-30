@@ -2,14 +2,17 @@ package com.github.nahratzah.jser_plus_plus.model.impl;
 
 import com.github.nahratzah.jser_plus_plus.config.Includes;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
+import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
 import com.github.nahratzah.jser_plus_plus.model.ConstType;
 import com.github.nahratzah.jser_plus_plus.model.CxxType;
 import com.github.nahratzah.jser_plus_plus.model.JavaType;
+import com.github.nahratzah.jser_plus_plus.model.MethodGenerics;
 import com.github.nahratzah.jser_plus_plus.model.TemplateSelector;
 import com.github.nahratzah.jser_plus_plus.model.Type;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import com.google.common.collect.Streams;
 import java.util.List;
+import java.util.Map;
 import static java.util.Objects.requireNonNull;
 import java.util.stream.Stream;
 import org.stringtemplate.v4.ST;
@@ -231,7 +234,6 @@ public interface AccessorMethod {
     public static class Impl implements AccessorMethod {
         private final JavaType model;
         private final String name;
-        private final List<Type> argumentTypes;
         private final List<String> argumentNames;
         private final Type returnType;
         private final Includes includes;
@@ -240,13 +242,11 @@ public interface AccessorMethod {
         private final Object noexcept;
         private final Visibility visibility;
         private final String docString;
-        private final List<String> functionGenericsNames;
-        private final List<String> functionGenericsDefault;
+        private final MethodGenerics generics;
 
-        public Impl(JavaType model, String name, List<Type> argumentTypes, List<String> argumentNames, Type returnType, Includes includes, boolean staticVar, boolean constVar, Object noexcept, Visibility visibility, String docString, List<String> functionGenericsNames, List<String> functionGenericsDefault) {
+        public Impl(JavaType model, String name, List<Type> argumentTypes, List<String> argumentNames, Type returnType, Includes includes, boolean staticVar, boolean constVar, Object noexcept, Visibility visibility, String docString, Map<String, BoundTemplate> methodGenerics) {
             this.model = requireNonNull(model);
             this.name = requireNonNull(name);
-            this.argumentTypes = requireNonNull(argumentTypes);
             this.argumentNames = requireNonNull(argumentNames);
             this.returnType = returnType;
             this.includes = requireNonNull(includes);
@@ -255,8 +255,7 @@ public interface AccessorMethod {
             this.noexcept = noexcept;
             this.visibility = requireNonNull(visibility);
             this.docString = docString;
-            this.functionGenericsNames = requireNonNull(functionGenericsNames);
-            this.functionGenericsDefault = requireNonNull(functionGenericsDefault);
+            this.generics = new MethodGenerics(methodGenerics, argumentTypes);
         }
 
         @Override
@@ -271,7 +270,7 @@ public interface AccessorMethod {
 
         @Override
         public List<Type> getArgumentTypes() {
-            return argumentTypes;
+            return generics.getTemplatedArgumentTypes();
         }
 
         @Override
@@ -316,17 +315,12 @@ public interface AccessorMethod {
 
         @Override
         public List<String> getFunctionGenericsNames() {
-            return functionGenericsNames;
+            return generics.getFunctionGenericsNames();
         }
 
         @Override
         public List<String> getFunctionGenericsDefault() {
-            return functionGenericsDefault;
-        }
-
-        @Override
-        public String toString() {
-            return "Impl{" + "model=" + model + ", name=" + name + ", argumentTypes=" + argumentTypes + ", argumentNames=" + argumentNames + ", returnType=" + returnType + ", includes=" + includes + ", staticVar=" + staticVar + ", constVar=" + constVar + ", noexcept=" + noexcept + ", visibility=" + visibility + ", docString=" + docString + ", functionGenericsNames=" + functionGenericsNames + ", functionGenericsDefault=" + functionGenericsDefault + '}';
+            return generics.getFunctionGenericsDefault();
         }
     }
 }

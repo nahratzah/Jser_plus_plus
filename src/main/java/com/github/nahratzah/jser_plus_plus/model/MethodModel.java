@@ -5,6 +5,7 @@ import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
 import com.github.nahratzah.jser_plus_plus.input.Context;
 import static java.util.Collections.EMPTY_MAP;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -249,6 +250,13 @@ public interface MethodModel {
         if (isStatic()) return Optional.empty();
         return Optional.of(new OverrideSelector(ctx, this));
     }
+
+    /**
+     * Retrieve the map of method generics.
+     *
+     * @return Generics defined at method level.
+     */
+    public Map<String, BoundTemplate> getMethodGenerics();
 
     /**
      * Retrieve the the names of generics specification local to the function.

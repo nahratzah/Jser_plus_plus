@@ -1221,8 +1221,7 @@ public class ClassType implements JavaType {
                             underlyingMethod.getNoexcept(),
                             underlyingMethod.getVisibility(),
                             underlyingMethod.getDocString(),
-                            EMPTY_LIST, // XXX add generics names
-                            EMPTY_LIST)); // XX add generics defaults
+                            underlyingMethod.getMethodGenerics()));
                 }
             }
 
@@ -1274,8 +1273,7 @@ public class ClassType implements JavaType {
                         underlyingMethod.getNoexcept(),
                         underlyingMethod.getVisibility(),
                         underlyingMethod.getDocString(),
-                        EMPTY_LIST, // XXX add generics names
-                        EMPTY_LIST)); // XX add generics defaults
+                        underlyingMethod.getMethodGenerics()));
             }
 
             // Emit the forwarders from other implementations.
@@ -1357,8 +1355,7 @@ public class ClassType implements JavaType {
                             method.getNoexcept(),
                             method.getVisibility(),
                             method.getDocString(),
-                            method.getFunctionGenericsNames(),
-                            method.getFunctionGenericsDefault()));
+                            method.getMethodGenerics()));
                     classMemberFunctions.add(method);
                 });
     }
@@ -1386,8 +1383,7 @@ public class ClassType implements JavaType {
                     method.getNoexcept(),
                     method.getVisibility(),
                     method.getDocString(),
-                    method.getFunctionGenericsNames(),
-                    method.getFunctionGenericsDefault()));
+                    method.getMethodGenerics()));
         });
     }
 

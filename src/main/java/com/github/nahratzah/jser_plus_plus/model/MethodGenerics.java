@@ -88,12 +88,12 @@ public class MethodGenerics {
         this.templatedArgumentTypes = Streams.zip(
                 argumentTypes.stream(),
                 bindingsOverrides.stream(),
-                (type, optIndexedArg) -> {
-                    return optIndexedArg
+                (Type type, Optional<BoundTemplate.VarBinding> optIndexedArg) -> {
+                    final Optional<Type> result = optIndexedArg
                             .map(argVar -> String.format(Locale.ROOT, "%s&&", argVar.getName())) // Write argument such that we can use perfect forwarding.
                             .map(argVarInCxxStr -> new CxxType(argVarInCxxStr, new Includes())) // Wrap statement in appropriate type.
-                            .map(Function.<Type>identity()) // Implicit conversion to Type (as opposed to CxxType).
-                            .orElse(type); // Fall back to declared type if the argument is irrelevant for template deduction.
+                            .map(cxxType -> cxxType.prerender(Context.UNIMPLEMENTED_CONTEXT, EMPTY_MAP, EMPTY_LIST));
+                    return result.orElse(type); // Fall back to declared type if the argument is irrelevant for template deduction.
                 })
                 .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
 
@@ -113,7 +113,8 @@ public class MethodGenerics {
                             (optBinding, selectorSet) -> {
                                 assert selectorSet.isEmpty() || optBinding.isPresent() : "if selectors are present, the binding must be declared";
                                 return selectorSet.stream()
-                                        .map(selector -> selector.selector(optBinding.get(), name, false));
+                                        .map(selector -> selector.selector(optBinding.get(), name, false))
+                                        .map(selectorStmt -> "typename " + selectorStmt);
                             })
                             .flatMap(Function.identity());
                     return new SimpleMapEntry<>(name, computationStatements);
@@ -145,7 +146,7 @@ public class MethodGenerics {
         // This statement ensures the method only resolves if the type derivation matches the constraints placed on the type variables.
         final Stream<String> satisfiedPredicates = this.methodGenerics.entrySet().stream()
                 .map(methodGeneric -> {
-                    return new ST(StCtx.BUILTINS, "::java::is_satisfied_by_v<$boundTemplateType(genericType, \"style=type\")$, $genericName$>")
+                    return new ST(StCtx.BUILTINS, "::java::type_traits::is_satisfied_by_v<$boundTemplateType(genericType, \"style=type\")$, $genericName$>")
                             .add("genericName", genericNameToDerivationName(methodGeneric.getKey()))
                             .add("genericType", methodGeneric.getValue())
                             .render(Locale.ROOT);
@@ -239,6 +240,10 @@ public class MethodGenerics {
         return genericNameToDerivationNameRebindMap;
     }
 
+    public List<Type> getTemplatedArgumentTypes() {
+        return templatedArgumentTypes;
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;
@@ -277,7 +282,7 @@ public class MethodGenerics {
      * @param thisType Type used when resolving this.
      * @return Map of method generics.
      */
-    private static Map<String, BoundTemplate> initializer(Context ctx, Collection<String> variables, Map<String, String> rawMethodGenerics, BoundTemplate.ClassBinding<ClassType> thisType) {
+    public static Map<String, BoundTemplate> initializer(Context ctx, Collection<String> variables, Map<String, String> rawMethodGenerics, BoundTemplate.ClassBinding<ClassType> thisType) {
         final Map<String, BoundTemplate.VarBinding> allVariablesUnbound = Stream.concat(variables.stream(), rawMethodGenerics.keySet().stream())
                 .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
 

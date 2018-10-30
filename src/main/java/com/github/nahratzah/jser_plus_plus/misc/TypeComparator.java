@@ -24,10 +24,6 @@ public class TypeComparator implements Comparator<Type> {
         return d1.compareTo(d2);
     }
 
-    private int compareCxx(CxxType o1, CxxType o2) {
-        return o1.getPreRendered().compareTo(o2.getPreRendered());
-    }
-
     private static enum Distinction implements Comparator<Type> {
         CONST_TYPE(ConstType.class, Comparator.comparing(ConstType::getType, new TypeComparator())::compare),
         CXX_TYPE(CxxType.class, (o1, o2) -> o1.getPreRendered().compareTo(o2.getPreRendered())),
