@@ -1,7 +1,6 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
 import com.github.nahratzah.jser_plus_plus.input.Context;
-import static java.util.Collections.singletonMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,37 +22,26 @@ public class OverrideSelector {
         this.method = requireNonNull(method);
         this.declaringType = method.getArgumentDeclaringClass();
         this.arguments = requireNonNull(method.getArgumentTypes()).stream()
-                .map(type -> {
-                    return type.prerender(
-                            this.ctx,
-                            singletonMap("model", requireNonNull(this.declaringType.getType())),
-                            this.declaringType.getBindingsMap());
+                .peek(type -> {
+                    if (!type.getUnresolvedTemplateNames().stream()
+                            .allMatch(this.declaringType.getBindingsMap().keySet()::contains))
+                        throw new IllegalArgumentException("Unresolved bindings in type " + type);
                 })
                 .collect(Collectors.toList());
-        this.returnType = method.getReturnType()
-                .prerender(
-                        this.ctx,
-                        singletonMap("model", this.declaringType.getType()),
-                        this.declaringType.getBindingsMap());
+        this.returnType = method.getReturnType();
+        if (!this.returnType.getUnresolvedTemplateNames().stream()
+                .allMatch(this.declaringType.getBindingsMap().keySet()::contains))
+            throw new IllegalArgumentException("Unresolved bindings in type " + this.returnType);
     }
 
     private OverrideSelector(OverrideSelector parent, Map<String, ? extends BoundTemplate> rebindMap) {
         this.ctx = requireNonNull(parent.ctx);
         this.method = requireNonNull(parent.method);
         this.declaringType = parent.declaringType.rebind(rebindMap);
-        this.arguments = requireNonNull(method.getArgumentTypes()).stream()
-                .map(type -> {
-                    return type.prerender(
-                            this.ctx,
-                            singletonMap("model", requireNonNull(this.declaringType.getType())),
-                            this.declaringType.getBindingsMap());
-                })
+        this.arguments = parent.arguments.stream()
+                .map(type -> type.rebind(rebindMap))
                 .collect(Collectors.toList());
-        this.returnType = method.getReturnType()
-                .prerender(
-                        this.ctx,
-                        singletonMap("model", this.declaringType.getType()),
-                        this.declaringType.getBindingsMap());
+        this.returnType = parent.returnType.rebind(rebindMap);
     }
 
     public OverrideSelector rebind(Map<String, ? extends BoundTemplate> rebindMap) {

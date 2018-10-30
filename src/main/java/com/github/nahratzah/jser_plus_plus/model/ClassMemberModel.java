@@ -616,14 +616,12 @@ public interface ClassMemberModel {
 
         private Type prerender(CfgType cfgType, Context ctx) {
             if (cfgType == null) return null;
-            return typeFromCfgType(cfgType, ctx, variables, cdef.getBoundType())
-                    .prerender(ctx, singletonMap("model", cdef), variables);
+            return typeFromCfgType(cfgType, ctx, singletonMap("model", cdef), variables, cdef.getBoundType());
         }
 
         private Type prerender(CfgType cfgType, Context ctx, Map<String, ? extends BoundTemplate> rebindMap) {
             if (cfgType == null) return null;
-            return typeFromCfgType(cfgType, ctx, variables, cdef.getBoundType())
-                    .prerender(ctx, singletonMap("model", cdef), rebindMap);
+            return typeFromCfgType(cfgType, ctx, singletonMap("model", cdef), variables, cdef.getBoundType());
         }
 
         protected final String renderDecl(String text) {

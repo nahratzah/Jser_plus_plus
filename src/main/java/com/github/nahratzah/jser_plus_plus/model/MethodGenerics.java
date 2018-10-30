@@ -91,8 +91,7 @@ public class MethodGenerics {
                 (Type type, Optional<BoundTemplate.VarBinding> optIndexedArg) -> {
                     final Optional<Type> result = optIndexedArg
                             .map(argVar -> String.format(Locale.ROOT, "%s&&", argVar.getName())) // Write argument such that we can use perfect forwarding.
-                            .map(argVarInCxxStr -> new CxxType(argVarInCxxStr, new Includes())) // Wrap statement in appropriate type.
-                            .map(cxxType -> cxxType.prerender(Context.UNIMPLEMENTED_CONTEXT, EMPTY_MAP, EMPTY_LIST));
+                            .map(argVarInCxxStr -> new CxxType(Context.UNIMPLEMENTED_CONTEXT, argVarInCxxStr, new Includes(), EMPTY_MAP, EMPTY_LIST, null)); // Wrap statement in appropriate type.
                     return result.orElse(type); // Fall back to declared type if the argument is irrelevant for template deduction.
                 })
                 .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));

@@ -27,17 +27,9 @@ import java.util.stream.Stream;
  */
 public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
     @Override
-    public default BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
-        return this;
-    }
-
-    @Override
     public default boolean isJavaType() {
         return !isPrimitive();
     }
-
-    @Override
-    public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables);
 
     @Override
     public Set<String> getUnresolvedTemplateNames();
@@ -49,6 +41,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
      * @return A copy of this bound template, where each occurance of unresolved
      * template variabe in bindings has been replaced with its mapping.
      */
+    @Override
     public BoundTemplate rebind(Map<String, ? extends BoundTemplate> bindings);
 
     /**
@@ -203,12 +196,6 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             this.name = name;
         }
 
-        @Override
-        public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
-            final BoundTemplate mapped = variables.get(name);
-            return (mapped != null ? mapped : this);
-        }
-
         public String getName() {
             return name;
         }
@@ -300,15 +287,6 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         public ClassBinding(T type, List<BoundTemplate> bindings) {
             this.type = type;
             this.bindings = bindings;
-        }
-
-        @Override
-        public ClassBinding<T> prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
-            final List<BoundTemplate> rebound = bindings.stream()
-                    .map(binding -> binding.prerender(ctx, renderArgs, variables))
-                    .collect(Collectors.toList());
-            if (Objects.equals(bindings, rebound)) return this;
-            return new ClassBinding<>(type, rebound);
         }
 
         public T getType() {
@@ -461,12 +439,6 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
             }
         }
 
-        @Override
-        public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
-            final BoundTemplate prerenderedType = type.prerender(ctx, renderArgs, variables);
-            return (prerenderedType == type ? this : new ArrayBinding(prerenderedType, extents));
-        }
-
         public BoundTemplate getType() {
             return type;
         }
@@ -570,19 +542,6 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
         public Any(Collection<BoundTemplate> superTypes, Collection<BoundTemplate> extendTypes) {
             this.superTypes = new TreeSet<>(requireNonNull(superTypes));
             this.extendTypes = new TreeSet<>(requireNonNull(extendTypes));
-        }
-
-        @Override
-        public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
-            final List<BoundTemplate> newSuperTypes = superTypes.stream()
-                    .map(type -> type.prerender(ctx, renderArgs, variables))
-                    .collect(Collectors.toList());
-            final List<BoundTemplate> newExtendTypes = extendTypes.stream()
-                    .map(type -> type.prerender(ctx, renderArgs, variables))
-                    .collect(Collectors.toList());
-            if (Objects.equals(superTypes, newSuperTypes) && Objects.equals(extendTypes, newExtendTypes))
-                return this;
-            return new Any(newSuperTypes, newExtendTypes);
         }
 
         public Collection<BoundTemplate> getSuperTypes() {
@@ -729,15 +688,6 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
 
         public void setTypes(Collection<? extends BoundTemplate> types) {
             this.types = new TreeSet<>(requireNonNull(types));
-        }
-
-        @Override
-        public BoundTemplate prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
-            final Set<BoundTemplate> prerenderedTypes = types.stream()
-                    .map(template -> template.prerender(ctx, renderArgs, variables))
-                    .collect(Collectors.toSet());
-            if (Objects.equals(types, prerenderedTypes)) return this;
-            return new MultiType(prerenderedTypes);
         }
 
         @Override

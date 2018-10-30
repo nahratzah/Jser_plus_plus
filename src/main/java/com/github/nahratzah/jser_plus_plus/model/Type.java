@@ -17,30 +17,13 @@ import java.util.stream.Stream;
  */
 public interface Type {
     /**
-     * Pre-render a type, allowing for auto detection of java types.
+     * Rebind unbound template argument names.
      *
-     * @param ctx Lookup context for finding java types.
-     * @param renderArgs Map of items to supply as arguments to the renderer.
-     * @param variables List of type variables that are in scope. Variables are
-     * replaced with {@link BoundTemplate.VarBinding}.
-     * @return Copy of type, which is pre-rendererd.
+     * @param bindings Mapping of name to bound type.
+     * @return A copy of this bound template, where each occurance of unresolved
+     * template variabe in bindings has been replaced with its mapping.
      */
-    public default Type prerender(Context ctx, Map<String, ?> renderArgs, Collection<String> variables) {
-        final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
-                .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
-        return prerender(ctx, renderArgs, variablesMap);
-    }
-
-    /**
-     * Pre-render a type, allowing for auto detection of java types.
-     *
-     * @param ctx Lookup context for finding java types.
-     * @param renderArgs Map of items to supply as arguments to the renderer.
-     * @param variables List of type variables that are in scope, with their
-     * value.
-     * @return Copy of type, which is pre-rendererd.
-     */
-    public Type prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables);
+    public Type rebind(Map<String, ? extends BoundTemplate> bindings);
 
     /**
      * Retrieve the list of parameter names that are not bound.
@@ -91,15 +74,17 @@ public interface Type {
      *
      * @param cfgType A type in the configuration.
      * @param ctx Class lookup context.
+     * @param renderArgs Arguments passed to the renderer for
+     * {@link CxxType C++ types}.
      * @param variables Type variables that are declared in the context.
      * @param thisType Type when encountering the `this` keyword.
      * @return Instance of {@link CxxType} or {@link BoundTemplate}
      * corresponding to the configuration type.
      */
-    public static Type typeFromCfgType(CfgType cfgType, Context ctx, Collection<String> variables, BoundTemplate.ClassBinding<?> thisType) {
+    public static Type typeFromCfgType(CfgType cfgType, Context ctx, Map<String, ?> renderArgs, Collection<String> variables, BoundTemplate.ClassBinding<?> thisType) {
         final Map<String, BoundTemplate.VarBinding> variablesMap = variables.stream()
                 .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
-        return typeFromCfgType(cfgType, ctx, variablesMap, thisType);
+        return typeFromCfgType(cfgType, ctx, renderArgs, variablesMap, thisType);
     }
 
     /**
@@ -107,17 +92,19 @@ public interface Type {
      *
      * @param cfgType A type in the configuration.
      * @param ctx Class lookup context.
+     * @param renderArgs Arguments passed to the renderer for
+     * {@link CxxType C++ types}.
      * @param variablesMap Type variables that are declared in the context.
      * @param thisType Type when encountering the `this` keyword.
      * @return Instance of {@link CxxType} or {@link BoundTemplate}
      * corresponding to the configuration type.
      */
-    public static Type typeFromCfgType(CfgType cfgType, Context ctx, Map<String, ? extends BoundTemplate> variablesMap, BoundTemplate.ClassBinding<?> thisType) {
+    public static Type typeFromCfgType(CfgType cfgType, Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variablesMap, BoundTemplate.ClassBinding<?> thisType) {
         if (cfgType.getCxxType() != null && cfgType.getJavaType() != null)
             throw new IllegalStateException("may only specify one of \"cxx\" or \"java\" for return type");
 
         if (cfgType.getCxxType() != null) {
-            return new CxxType(cfgType.getCxxType(), cfgType.getIncludes());
+            return new CxxType(ctx, cfgType.getCxxType(), cfgType.getIncludes(), renderArgs, variablesMap, thisType);
         } else if (cfgType.getJavaType() != null) {
             return BoundTemplate.fromString(cfgType.getJavaType(), ctx, variablesMap, thisType);
         }

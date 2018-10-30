@@ -402,12 +402,8 @@ public class FieldType {
      * @param renderArgs Arguments to the renderer.
      * @param variables List of type variables in this context.
      */
+    @Deprecated
     public void prerender(Map<String, ?> renderArgs, Collection<String> variables) {
-        if (type != null)
-            type = type.prerender(ctx, renderArgs, variables);
-        if (varType != null)
-            varType = varType.prerender(ctx, renderArgs, variables);
-
         defaultInit = prerender(defaultInit, ctx, renderArgs, variables, declaringClass.getBoundType());
     }
 
@@ -417,12 +413,8 @@ public class FieldType {
      * @param renderArgs Arguments to the renderer.
      * @param variables List of type variables in this context.
      */
+    @Deprecated
     public void prerender(Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
-        if (type != null)
-            type = type.prerender(ctx, renderArgs, variables);
-        if (varType != null)
-            varType = varType.prerender(ctx, renderArgs, variables);
-
         defaultInit = prerender(defaultInit, ctx, renderArgs, variables, declaringClass.getBoundType());
     }
 

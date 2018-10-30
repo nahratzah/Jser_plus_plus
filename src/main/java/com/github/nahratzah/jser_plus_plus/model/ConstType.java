@@ -1,6 +1,5 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
-import com.github.nahratzah.jser_plus_plus.input.Context;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -20,8 +19,8 @@ public final class ConstType implements Type {
     }
 
     @Override
-    public ConstType prerender(Context ctx, Map<String, ?> renderArgs, Map<String, ? extends BoundTemplate> variables) {
-        return new ConstType(type.prerender(ctx, renderArgs, variables));
+    public ConstType rebind(Map<String, ? extends BoundTemplate> bindings) {
+        return new ConstType(type.rebind(bindings));
     }
 
     @Override

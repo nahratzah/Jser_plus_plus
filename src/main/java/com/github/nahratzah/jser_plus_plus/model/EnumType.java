@@ -70,8 +70,7 @@ public class EnumType extends ClassType {
                 ctx,
                 this,
                 "value",
-                new CxxType(enumTypeTemplate, new Includes())
-                        .prerender(ctx, EMPTY_MAP, getTemplateArgumentNames()));
+                new CxxType(ctx, enumTypeTemplate, new Includes(), EMPTY_MAP, getTemplateArgumentNames(), null));
         enumField.setConst(true);
         this.fields.add(enumField);
 

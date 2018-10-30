@@ -170,8 +170,7 @@ public class ClassType implements JavaType {
             this.finalVar = classCfg.isFinal();
 
         if (classCfg.getVarType() != null) {
-            this.varType = typeFromCfgType(classCfg.getVarType(), ctx, argRename.values(), getBoundType())
-                    .prerender(ctx, singletonMap("model", this), argRename.values());
+            this.varType = typeFromCfgType(classCfg.getVarType(), ctx, singletonMap("model", this), argRename.values(), getBoundType());
         }
 
         this.docString = classCfg.getDocString();
@@ -290,7 +289,7 @@ public class ClassType implements JavaType {
                     if (fieldCfg.getDocString() != null)
                         iField.setDocString(fieldCfg.getDocString());
                     if (fieldCfg.getType() != null)
-                        iField.setType(typeFromCfgType(fieldCfg.getType(), ctx, argRename.values(), getBoundType()));
+                        iField.setType(typeFromCfgType(fieldCfg.getType(), ctx, singletonMap("model", this), argRename.values(), getBoundType()));
                     if (fieldCfg.getDefault() != null)
                         iField.setDefault(fieldCfg.getDefault());
                     if (fieldCfg.getRename() != null)
@@ -429,8 +428,7 @@ public class ClassType implements JavaType {
 
     private void initFriendTypes(Context ctx, ClassConfig classCfg, Map<String, String> argRename) {
         this.friends = classCfg.getFriends().stream()
-                .map(cfgType -> typeFromCfgType(cfgType, ctx, argRename.values(), getBoundType()))
-                .map(type -> type.prerender(ctx, singletonMap("model", this), argRename.values()))
+                .map(cfgType -> typeFromCfgType(cfgType, ctx, singletonMap("model", this), argRename.values(), getBoundType()))
                 .distinct()
                 .collect(Collectors.toList());
     }
@@ -1164,8 +1162,7 @@ public class ClassType implements JavaType {
             final String virtualMethodName = (tagged ? VIRTUAL_FUNCTION_PREFIX : "") + underlyingMethod.getName();
             final Type myTag;
             if (tagged) {
-                myTag = new CxxType("$tagType(model)$", new Includes())
-                        .prerender(ctx, singletonMap("model", method.getTagType()), EMPTY_LIST);
+                myTag = new CxxType(ctx, "$tagType(model)$", new Includes(), singletonMap("model", method.getTagType()), EMPTY_LIST, null);
             } else {
                 myTag = null;
             }
@@ -1296,8 +1293,7 @@ public class ClassType implements JavaType {
                     final ImplementedClassMethod overrideFn = overrideFns.iterator().next();
                     final OverrideSelector erasedOverrideFn = overrideFn.getErasedSelector(); // We're going to override the original function.
 
-                    final Type overrideTag = new CxxType("$tagType(model)$", new Includes())
-                            .prerender(ctx, singletonMap("model", tagType), EMPTY_LIST);
+                    final Type overrideTag = new CxxType(ctx, "$tagType(model)$", new Includes(), singletonMap("model", tagType), EMPTY_LIST, null);
 
                     final MethodModel.SimpleMethodModel overrideImpl = new MethodModel.SimpleMethodModel(
                             this,
