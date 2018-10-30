@@ -17,6 +17,7 @@ import com.github.nahratzah.jser_plus_plus.misc.MethodModelComparator;
 import com.github.nahratzah.jser_plus_plus.misc.SimpleMapEntry;
 import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParameters;
 import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
+import com.github.nahratzah.jser_plus_plus.model.impl.AccessorConstructor;
 import com.github.nahratzah.jser_plus_plus.model.impl.AccessorMethod;
 import com.github.nahratzah.jser_plus_plus.output.builtins.ConstTypeRenderer;
 import com.github.nahratzah.jser_plus_plus.output.builtins.FunctionAttrMap;
@@ -887,6 +888,8 @@ public class ClassType implements JavaType {
         postProcessEmitVirtualClassMembers(virtualClassMembers, ctx);
         // Implement non-virtual functions.
         postProcessEmitNonVirtualClassMembers(nonVirtualClassMembers);
+        // Implement all constructors.
+        postProcessEmitClassConstructors(Collections2.transform(Collections2.filter(classMembers, ClassMemberModel.ClassConstructor.class::isInstance), ClassMemberModel.ClassConstructor.class::cast));
         // Implement all static functions.
         postProcessEmitStaticClassMembers(Collections2.transform(Collections2.filter(classMembers, ClassMemberModel::isStatic), ClassMemberModel.ClassMethod.class::cast));
 
@@ -1381,6 +1384,27 @@ public class ClassType implements JavaType {
                     method.isStatic(),
                     method.isConst(),
                     method.getNoexcept(),
+                    method.getVisibility(),
+                    method.getDocString(),
+                    method.getFunctionGenericsNames(),
+                    method.getFunctionGenericsDefault()));
+        });
+    }
+
+    /**
+     * Emit accessors for class constructors.
+     *
+     * @param constructors Collection of class constructors.
+     */
+    private void postProcessEmitClassConstructors(Collection<ClassMemberModel.ClassConstructor> constructors) {
+        constructors.forEach(method -> {
+            // XXX not yet
+            // classConstructors.add(method);
+            accessor.add(new AccessorConstructor.Impl(
+                    this,
+                    method.getArgumentTypes(),
+                    method.getArgumentNames(),
+                    new Includes(method.getIncludes().getDeclarationIncludes(), EMPTY_LIST),
                     method.getVisibility(),
                     method.getDocString(),
                     method.getFunctionGenericsNames(),

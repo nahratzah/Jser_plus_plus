@@ -1,8 +1,9 @@
-package com.github.nahratzah.jser_plus_plus.misc;
+package com.github.nahratzah.jser_plus_plus.model.impl;
 
+import com.github.nahratzah.jser_plus_plus.misc.ListComparator;
+import com.github.nahratzah.jser_plus_plus.misc.TypeComparator;
 import static com.github.nahratzah.jser_plus_plus.model.ClassType.VIRTUAL_FUNCTION_PREFIX;
 import com.github.nahratzah.jser_plus_plus.model.Type;
-import com.github.nahratzah.jser_plus_plus.model.impl.AccessorMethod;
 import java.util.Comparator;
 import java.util.Objects;
 

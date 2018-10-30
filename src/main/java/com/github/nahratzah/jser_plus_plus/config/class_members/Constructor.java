@@ -28,6 +28,8 @@ public class Constructor implements ClassMember {
     private Map<String, String> initializers = new HashMap<>();
     @JsonProperty("visibility")
     private Visibility visibility = Visibility.PUBLIC;
+    @JsonProperty("doc_string")
+    private String docString;
 
     @Override
     public <T> T visit(Visitor<T> visitor) {
@@ -103,5 +105,13 @@ public class Constructor implements ClassMember {
 
     public void setVisibility(Visibility visibility) {
         this.visibility = visibility;
+    }
+
+    public String getDocString() {
+        return docString;
+    }
+
+    public void setDocString(String docString) {
+        this.docString = docString;
     }
 }

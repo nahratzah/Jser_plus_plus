@@ -432,8 +432,8 @@ classes:
           auto init() -> ::java::lang::Object override {
             ::cycle_ptr::cycle_member_ptr<$erasedType(model)$> dst = $if (model.devMode)$nullptr; // XXX $endif$::cycle_ptr::make_cycle<$erasedType(model)$>(*this);
 
-            return $if (java.({java.util.TreeMap\$AscendingSubMap<?, ?>}).type.devMode)$nullptr; // XXX $endif$$\\$
-                $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<?, ?>}), "style=type, class")$(::java::allocate, dst->this\$0, dst->fromStart, dst->fromKey, true, dst->toEnd, dst->toKey, false);
+            return $if (java.({java.util.TreeMap\$AscendingSubMap<K, V>}).type.devMode)$nullptr; // XXX $endif$$\\$
+                $boundTemplateType(java.({java.util.TreeMap\$AscendingSubMap<K, V>}), "style=type, class")$(::java::allocate, dst->this\$0, dst->fromStart, dst->fromKey, true, dst->toEnd, dst->toKey, false);
           }
         };
 

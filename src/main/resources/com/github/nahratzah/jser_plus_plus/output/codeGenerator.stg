@@ -2,7 +2,7 @@ accessor(accessorModel) ::= <<
 $if (!accessorModel.interface && !accessorModel.abstract && !accessorModel.enum)$
 $templateLine(accessorModel.model.templateArgumentNames, true)$
 struct _constructor$templateArgs([{::java::G::is_t<$[tagType(accessorModel.model), accessorModel.model.templateArgumentNames]; separator = ", "$>}], true)$ {
-  $constructors(accessorModel.model, false); anchor$
+  $constructors(accessorModel, false); anchor$
 };
 $endif$
 
@@ -128,7 +128,7 @@ accessorImpl(accessorModel) ::= <<
 $accessorModel.model.fields:{f|$fieldAccessors(accessorModel.model, f, true)$}; separator = "\n"$
 
 $if (!accessorModel.interface && !accessorModel.abstract && !accessorModel.enum)$
-$constructors(accessorModel.model, true)$
+$constructors(accessorModel, true)$
 $endif$
 
 $accessorClassMembers(accessorModel, true)$
@@ -209,21 +209,26 @@ $ [model.classNonMemberFunctions, model.classMemberFunctions]
 >>
 
 
-constructors(model, doImplement) ::= <<
-$ model.constructors
-  : {m | $function(
-              name="operator()",
+constructors(accessorModel, doImplement) ::= <<
+$ accessorModel.constructors
+  : {m | $if (!doImplement)$$m.visibility$:$"\n"$$endif$$\\$
+         $function(
+              name=m.name,
               doImplement=doImplement,
-              return={::cycle_ptr::cycle_gptr<$erasedType(model)$>},
-              body={return ::cycle_ptr::make_cycle<$erasedType(model)$>($m.argumentTypes, m.argumentTypesSquashed, m.argumentNames: {type, squashedType, name | $if (type.unresolvedTemplateNames)$::java::cast<$boundTemplateType(squashedType, "style=type, class=param")$>($endif$::std::forward<decltype($name$)>($name$)$if (type.unresolvedTemplateNames)$)$endif$}; separator = ", "$);},
+              return=m.returnType,
+              body=m.body,
+              docString=m.docString,
               argumentNames=m.argumentNames,
               argumentTypes=m.argumentTypes,
               containingClass="_constructor",
-              containingClassTemplateArguments=model.templateArgumentNames,
-              containingClassTemplateArgumentsImpl={::java::G::is_t<$[tagType(model), model.templateArgumentNames]; separator = ", "$>},
-              inline="JSER_INLINE",
-              const=true,
-              static=false
+              containingClassTemplateArguments=accessorModel.model.templateArgumentNames,
+              containingClassTemplateArgumentsImpl={::java::G::is_t<$[tagType(accessorModel.model), accessorModel.model.templateArgumentNames]; separator = ", "$>},
+              templateArguments=m.functionGenericsNames,
+              templateArgumentDefaults=m.functionGenericsDefault,
+              inline=m.inline,
+              const=m.const,
+              noexcept=m.noexcept,
+              static=m.static
             )$}
   ; anchor, separator = "\n\n"$
 >>

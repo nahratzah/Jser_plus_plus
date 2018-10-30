@@ -450,6 +450,10 @@ public interface ClassMemberModel {
             return inheritable;
         }
 
+        public String getDocString() {
+            return constructor.getDocString();
+        }
+
         @Override
         public <T> T visit(Visitor<T> visitor) {
             return visitor.apply(this);

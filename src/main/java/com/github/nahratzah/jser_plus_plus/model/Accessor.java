@@ -1,7 +1,10 @@
 package com.github.nahratzah.jser_plus_plus.model;
 
-import com.github.nahratzah.jser_plus_plus.misc.AccessorMethodComparator;
+import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
+import com.github.nahratzah.jser_plus_plus.model.impl.AccessorConstructor;
+import com.github.nahratzah.jser_plus_plus.model.impl.AccessorConstructorComparator;
 import com.github.nahratzah.jser_plus_plus.model.impl.AccessorMethod;
+import com.github.nahratzah.jser_plus_plus.model.impl.AccessorMethodComparator;
 import com.google.common.collect.Collections2;
 import java.util.Collection;
 import static java.util.Collections.unmodifiableCollection;
@@ -30,12 +33,21 @@ public class Accessor {
     }
 
     /**
+     * Add a constructor to the accessor.
+     *
+     * @param constructor The constructor to add.
+     */
+    public void add(AccessorConstructor constructor) {
+        constructors.add(constructor);
+    }
+
+    /**
      * Add a method to the accessor.
      *
      * @param method The method to add.
      */
     public void add(AccessorMethod method) {
-        accessorMethods.add(method);
+        methods.add(method);
     }
 
     /**
@@ -66,12 +78,21 @@ public class Accessor {
     }
 
     /**
+     * Retrieve all public constructors.
+     *
+     * @return Collection of constructors.
+     */
+    public Collection<AccessorConstructor> getConstructors() {
+        return Collections2.filter(unmodifiableCollection(constructors), constructor -> constructor.getVisibility() == Visibility.PUBLIC);
+    }
+
+    /**
      * Retrieve all instance methods.
      *
      * @return Collection of instance methods.
      */
     public Collection<AccessorMethod> getInstanceMethods() {
-        return Collections2.filter(unmodifiableCollection(accessorMethods), STATIC_METHOD_PREDICATE.negate()::test);
+        return Collections2.filter(unmodifiableCollection(methods), STATIC_METHOD_PREDICATE.negate()::test);
     }
 
     /**
@@ -80,7 +101,7 @@ public class Accessor {
      * @return Collection of static methods.
      */
     public Collection<AccessorMethod> getStaticMethods() {
-        return Collections2.filter(unmodifiableCollection(accessorMethods), STATIC_METHOD_PREDICATE::test);
+        return Collections2.filter(unmodifiableCollection(methods), STATIC_METHOD_PREDICATE::test);
     }
 
     /**
@@ -131,5 +152,12 @@ public class Accessor {
     /**
      * All accessor methods.
      */
-    private final Collection<AccessorMethod> accessorMethods = new TreeSet<>(new AccessorMethodComparator());
+    private final Collection<AccessorMethod> methods = new TreeSet<>(new AccessorMethodComparator());
+    /**
+     * All accessor constructors.
+     *
+     * Note that the term "accessor constructor" refers to a constructor that
+     * will implement the erased type.
+     */
+    private final Collection<AccessorConstructor> constructors = new TreeSet<>(new AccessorConstructorComparator());
 }
