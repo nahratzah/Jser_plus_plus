@@ -576,7 +576,7 @@ public interface ClassMemberModel {
                 this.argumentTypes = unmodifiableList(argumentTypesTmp);
             }
 
-            this.generics = new MethodModel.BaseMethodGenerics(
+            this.generics = new MethodGenerics(
                     ctx,
                     this.cdef.getTemplateArguments().stream()
                             .map(ClassTemplateArgument::getName)
@@ -682,7 +682,7 @@ public interface ClassMemberModel {
         private final List<String> argumentNames;
         private final List<Type> argumentTypes;
         private final List<Type> argumentTypesSquashed;
-        private final MethodModel.BaseMethodGenerics generics;
+        private final MethodGenerics generics;
         private final String body;
     }
 }
