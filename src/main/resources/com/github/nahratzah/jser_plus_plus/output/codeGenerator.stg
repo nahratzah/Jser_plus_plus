@@ -182,7 +182,7 @@ $classMembers(model, true, false, true)$
 
 
 classMembers(model, doImplement, emitInline, emitNonInline) ::= <<
-$ [model.classNonMemberFunctions, model.classMemberFunctions]
+$ [model.nonFunctions, model.functions]
   : {m | $if ((!doImplement || !m.pureVirtual || m.destructorMethod) && ((emitInline && m.inline) || (emitNonInline && !m.inline)))$$\\$
          $if (!doImplement)$$if (m.constructor)$public$else$$m.visibility$$endif$:$"\n"$$endif$$\\$
          $function(
@@ -190,6 +190,8 @@ $ [model.classNonMemberFunctions, model.classMemberFunctions]
               doImplement=doImplement,
               return=m.returnType,
               containingClass=model.className,
+              templateArguments=m.functionGenericsNames,
+              templateArgumentDefaults=m.functionGenericsDefault,
               body=m.body,
               docString=m.docString,
               argumentNames=m.argumentNames,

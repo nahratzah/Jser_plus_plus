@@ -105,7 +105,7 @@ public class MethodGenerics {
                                     .map(optBinding -> { // Turn binding into type selection statement.
                                         return optBinding
                                                 .map(BoundTemplate.VarBinding::getName)
-                                                .map(bindingName -> String.format(Locale.ROOT, "::std::remove_reference_t<%s>", bindingName));
+                                                .map(bindingName -> String.format(Locale.ROOT, "::std::decay_t<%s>", bindingName));
                                     }),
                             selectors.stream()
                                     .map(s -> s.get(name)),

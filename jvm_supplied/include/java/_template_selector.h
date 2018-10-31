@@ -111,6 +111,9 @@ struct _template_selector_tmpl_t<Tag, ArgumentIndex>::select_<::java::G::pack_t<
 
 template<typename T, typename Preselected>
 struct _template_selector_ {
+  static_assert(::java::type_traits::is_generic_v<T>);
+  static_assert(::java::type_traits::is_generic_v<Preselected>);
+
   ///\brief Select the generics for the resolved type.
   using type = Preselected;
   ///\brief Select the variable for the resolved type.
@@ -130,6 +133,8 @@ struct _template_selector_ {
 
 template<typename T>
 struct _template_selector_<T, void> {
+  static_assert(::java::type_traits::is_generic_v<T>);
+
   ///\brief Select the generics for the resolved type.
   using type = T;
   ///\brief Select the variable for the resolved type.
@@ -150,7 +155,9 @@ struct _template_selector_<T, void> {
 } /* namespace java::<unnamed> */
 
 template<typename T, typename Preselected = void>
-using _template_selector = _template_selector_<::std::remove_const_t<typename maybe_unpack_type_<T>::type>, maybe_unpack_type_<Preselected>>;
+using _template_selector = _template_selector_<
+    ::std::remove_const_t<typename maybe_unpack_type_<T>::type>,
+    typename maybe_unpack_type_<Preselected>::type>;
 
 } /* namespace java */
 

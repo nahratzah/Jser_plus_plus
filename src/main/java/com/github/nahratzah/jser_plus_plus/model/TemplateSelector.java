@@ -45,7 +45,7 @@ public interface TemplateSelector {
      * returned type if not prefixed with {@literal typename}.
      */
     public default String selector(String inputType, String preselectedType, boolean classSelector) {
-        return String.format("::java::_template_selector_<%s, %s>%s", inputType, preselectedType, subSelector(classSelector));
+        return String.format("::java::_template_selector<%s, %s>%s", inputType, preselectedType, subSelector(classSelector));
     }
 
     /**

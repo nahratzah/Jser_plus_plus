@@ -19,6 +19,7 @@ import static com.github.nahratzah.jser_plus_plus.model.JavaType.getAllTypeParam
 import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
 import com.github.nahratzah.jser_plus_plus.model.impl.AccessorConstructor;
 import com.github.nahratzah.jser_plus_plus.model.impl.AccessorMethod;
+import com.github.nahratzah.jser_plus_plus.model.impl.ClassDelegateMethod;
 import com.github.nahratzah.jser_plus_plus.output.builtins.ConstTypeRenderer;
 import com.github.nahratzah.jser_plus_plus.output.builtins.FunctionAttrMap;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
@@ -544,7 +545,7 @@ public class ClassType implements JavaType {
                     .map(field -> field.getVarType())
                     .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
             memberIncludes = Stream.concat(
-                    getClassMemberFunctions().stream()
+                    getFunctions().stream()
                             .flatMap(member -> {
                                 final Stream<String> implStream;
                                 if (member.getInline() == null)
@@ -553,7 +554,7 @@ public class ClassType implements JavaType {
                                     implStream = member.getImplementationIncludes();
                                 return Stream.concat(implStream, member.getDeclarationIncludes());
                             }),
-                    getClassNonMemberFunctions().stream()
+                    getNonFunctions().stream()
                             .flatMap(member -> {
                                 final Stream<String> implStream;
                                 if (member.getInline() == null)
@@ -569,9 +570,9 @@ public class ClassType implements JavaType {
                     .flatMap(field -> Stream.of(field.getType(), field.getVarType()))
                     .flatMap(c -> c.getIncludes(publicOnly, recursionGuard));
             memberIncludes = Stream.concat(
-                    getClassMemberFunctions().stream()
+                    getFunctions().stream()
                             .flatMap(member -> member.getImplementationIncludes()),
-                    getClassMembers().stream()
+                    getNonFunctions().stream()
                             .flatMap(member -> member.getImplementationIncludes()));
             friendIncludes = friends.stream()
                     .flatMap(friend -> friend.getIncludes(false));
@@ -619,9 +620,9 @@ public class ClassType implements JavaType {
         final Stream<Type> fieldTypes = getFields().stream()
                 .map(field -> field.getVarType());
         final Stream<Type> memberTypes = Stream.concat(
-                this.getClassMemberFunctions().stream()
+                getFunctions().stream()
                         .flatMap(member -> member.getDeclarationTypes()),
-                getClassNonMemberFunctions().stream()
+                getNonFunctions().stream()
                         .flatMap(member -> member.getDeclarationTypes()));
 
         return Stream.of(templateTypes, fieldTypes, memberTypes)
@@ -637,9 +638,9 @@ public class ClassType implements JavaType {
         final Stream<Type> fieldTypes = getFields().stream()
                 .flatMap(field -> Stream.of(field.getType(), field.getVarType()));
         final Stream<Type> memberTypes = Stream.concat(
-                getClassMemberFunctions().stream()
+                getFunctions().stream()
                         .flatMap(member -> member.getImplementationTypes()),
-                getClassNonMemberFunctions().stream()
+                getNonFunctions().stream()
                         .flatMap(member -> member.getImplementationTypes()));
 
         return Stream.of(superTypes, fieldTypes, memberTypes)
@@ -738,18 +739,13 @@ public class ClassType implements JavaType {
                 .collect(Collectors.toList());
     }
 
-    public List<MethodModel> getClassMemberFunctions() {
+    public List<MethodModel> getFunctions() {
         return classMemberFunctions.stream()
-                .sorted(Comparator.comparing(MethodModel::getVisibility)
-                        .thenComparing(MethodModel::getName)
-                        .thenComparing(MethodModel::isConst, Comparator.reverseOrder()))
                 .collect(Collectors.toList());
     }
 
-    public List<ClassMemberModel> getClassNonMemberFunctions() {
-        return getClassMembers().stream()
-                .filter(classMember -> classMember.isStatic() || !(classMember instanceof ClassMemberModel.ClassMethod))
-                .collect(Collectors.toList());
+    public Collection<ClassMemberModel> getNonFunctions() {
+        return Collections2.filter(classMembers, classMember -> !(classMember instanceof ClassMemberModel.ClassMethod));
     }
 
     /**
@@ -1370,8 +1366,48 @@ public class ClassType implements JavaType {
         staticMethods.forEach(method -> {
             assert method.isStatic() : "Only static methods should be supplied.";
 
-            // XXX not yet
-            // classStaticFunctions.add(method);
+            if (method.getMethodGenerics().isEmpty()) {
+                classMemberFunctions.add(method);
+            } else {
+                classMemberFunctions.add(new ClassDelegateMethod.Impl(
+                        this,
+                        method.getName(),
+                        "__erased_" + method.getName(),
+                        method.getArgumentTypes(),
+                        method.getArgumentNames(),
+                        method.getReturnType(),
+                        new Includes(method.getIncludes().getDeclarationIncludes(), EMPTY_LIST),
+                        method.isStatic(),
+                        method.isConst(),
+                        method.getNoexcept(),
+                        method.getVisibility(),
+                        method.getDocString(),
+                        method.getMethodGenerics()));
+
+                final MethodGenerics methodGenerics = new MethodGenerics(method.getMethodGenerics(), method.getArgumentTypes());
+                classMemberFunctions.add(new MethodModel.SimpleMethodModel(
+                        this,
+                        method.getArgumentDeclaringClass(),
+                        "__erased_" + method.getName(),
+                        method.getIncludes(),
+                        method.getDeclarationTypes().collect(Collectors.toSet()),
+                        method.getImplementationTypes().collect(Collectors.toSet()),
+                        (method.getReturnType() == null ? null : method.getReturnType().rebind(methodGenerics.getErasedMethodGenerics())),
+                        method.getArgumentTypes().stream().map(argType -> argType.rebind(methodGenerics.getErasedMethodGenerics())).collect(Collectors.toList()),
+                        method.getArgumentNames(),
+                        method.getBody(),
+                        method.isStatic(),
+                        method.isVirtual(),
+                        method.isPureVirtual(),
+                        method.isOverride(),
+                        method.isConst(),
+                        method.isFinal(),
+                        method.getInline(),
+                        method.getNoexcept(),
+                        method.getVisibility(),
+                        method.getDocString()));
+            }
+
             accessor.add(new AccessorMethod.Impl(
                     this,
                     method.getName(),

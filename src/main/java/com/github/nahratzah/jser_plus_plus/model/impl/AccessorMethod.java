@@ -147,6 +147,11 @@ public interface AccessorMethod {
         return false;
     }
 
+    /**
+     * Test if we need to cast the return type.
+     *
+     * @return True if the return type needs to be casted. False otherwise.
+     */
     public default boolean isReturnTypeCastRequired() {
         final Type returnType = getReturnType();
         if (getReturnType() == null || isVoidReturnType()) return false;

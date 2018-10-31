@@ -8,30 +8,30 @@ classes:
     members:
     - type: constructor
       visibility: private
-#    - type: method
-#      name: reverseOrder
-#      static: true
-#      generics:
-#        T:
-#      arguments:
-#      - name: c
-#        type:
-#          java: java.util.Comparator<T>
-#      return:
-#        java: java.util.Comparator<T>
-#      body: |
-#        $if (java.({java.util.Collections\$ReverseComparator2<T>}).type.devMode)$
-#        return nullptr; // XXX until $java.({java.util.Collections\$ReverseComparator2<T>}).type.name$ is no longer in dev_mode.
-#        $else$
-#        if (c == nullptr) return ::java::cast<$boundTemplateType(java.({java.util.Comparator<T>}), "style=type, class")$>(reverseOrder());
-#
-#        if (::java::get_class<$boundTemplateType(java.({java.util.Collections\$ReverseComparator2<T>}), "style=type, class")$>()->isInstance(c))
-#          return ::java::cast<$boundTemplateType(java.({java.util.Collections\$ReverseComparator2<T>}), "style=type, class")$>(c)->cmp();
-#
-#        return $boundTemplateType(java.({java.util.Collections\$ReverseComparator2<T>}), "style=type, class")$(
-#            ::java::allocate,
-#            c);
-#        $endif$
+    - type: method
+      name: reverseOrder
+      static: true
+      generics:
+        T:
+      arguments:
+      - name: c
+        type:
+          java: java.util.Comparator<T>
+      return:
+        java: java.util.Comparator<T>
+      body: |
+        $if (java.({java.util.Collections\$ReverseComparator2<T>}).type.devMode)$
+        return nullptr; // XXX until $java.({java.util.Collections\$ReverseComparator2<T>}).type.name$ is no longer in dev_mode.
+        $else$
+        if (c == nullptr) return ::java::cast<$boundTemplateType(java.({java.util.Comparator<T>}), "style=type, class")$>(reverseOrder());
+
+        if (::java::get_class<$boundTemplateType(java.({java.util.Collections\$ReverseComparator2<T>}), "style=type, class")$>()->isInstance(c))
+          return ::java::cast<$boundTemplateType(java.({java.util.Collections\$ReverseComparator2<T>}), "style=type, class")$>(c)->cmp();
+
+        return $boundTemplateType(java.({java.util.Collections\$ReverseComparator2<T>}), "style=type, class")$(
+            ::java::allocate,
+            c);
+        $endif$
     - type: method
       name: reverseOrder
       static: true
