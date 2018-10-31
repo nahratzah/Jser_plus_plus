@@ -840,6 +840,7 @@ public class ClassType implements JavaType {
                     .peek(member -> LOG.log(Level.FINE, "{0}: examining {1}", new Object[]{getName(), member}))
                     .filter(ClassMemberModel.ClassMethod.class::isInstance)
                     .map(ClassMemberModel.ClassMethod.class::cast)
+                    .filter(classMember -> !classMember.isStatic())
                     .map(classMember -> classMember.getOverrideSelector(ctx)) // This optional does not exist for static methods!
                     .filter(Optional::isPresent)
                     .map(Optional::get)
