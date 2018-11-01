@@ -349,9 +349,6 @@ $if (strip([model.superClass, model.interfaces]))$
     : {t|$classInheritTemplateClassRenderer(t.type)$}
     ; anchor, separator = ",\n"
   $
-$elseif (!model.interface)$
-$! Special consideration for java.lang.Object !$
-: $["public ::cycle_ptr::cycle_base", "public virtual ::java::object_intf"]; anchor, separator = ",\n"$
 $else$
 $! Interfaces need to have ::java::object_intf as a base, so if they don't
  ! derive from an interface, declare the interface now.

@@ -4,6 +4,7 @@
 #include <java/serialization/encdec.h>
 #include <cstddef>
 #include <functional>
+#include <cycle_ptr/cycle_ptr.h>
 
 namespace java {
 class _reflect_ops;
@@ -39,7 +40,9 @@ class _equal_helper;
  * Planned to enable general java operations, such as equals and hash support.
  * For now, it just provides tagging.
  */
-class object_intf {
+class object_intf
+: public ::cycle_ptr::cycle_base
+{
   friend ::java::_reflect_ops;
   friend ::std::hash<object_intf*>;
   friend ::java::_equal_helper;
