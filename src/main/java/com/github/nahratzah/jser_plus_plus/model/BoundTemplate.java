@@ -670,6 +670,7 @@ public interface BoundTemplate extends Type, Comparable<BoundTemplate> {
 
     public static final class MultiType implements BoundTemplate {
         public static BoundTemplate maybeMakeMultiType(Collection<? extends BoundTemplate> types) {
+            if (types.isEmpty()) return new BoundTemplate.Any();
             if (types.size() == 1) return types.iterator().next();
             return new MultiType(types);
         }
