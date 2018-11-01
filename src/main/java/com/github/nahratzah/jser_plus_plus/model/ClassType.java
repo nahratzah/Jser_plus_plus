@@ -1460,7 +1460,8 @@ public class ClassType implements JavaType {
                     method.getVisibility(),
                     method.getDocString(),
                     method.getFunctionGenericsNames(),
-                    method.getFunctionGenericsDefault()));
+                    method.getFunctionGenericsDefault(),
+                    getErasedTemplateArguments().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
         });
     }
 

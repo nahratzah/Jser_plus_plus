@@ -2,13 +2,17 @@ package com.github.nahratzah.jser_plus_plus.model.impl;
 
 import com.github.nahratzah.jser_plus_plus.config.Includes;
 import com.github.nahratzah.jser_plus_plus.config.cplusplus.Visibility;
+import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
 import com.github.nahratzah.jser_plus_plus.model.ClassType;
 import com.github.nahratzah.jser_plus_plus.model.TemplateSelector;
 import com.github.nahratzah.jser_plus_plus.model.Type;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import com.google.common.collect.Streams;
 import java.util.List;
+import java.util.Map;
 import static java.util.Objects.requireNonNull;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.stringtemplate.v4.ST;
 
@@ -56,6 +60,17 @@ public interface AccessorConstructor {
      * @return List of argument types.
      */
     public List<Type> getArgumentTypes();
+
+    /**
+     * Types of arguments, after applying type erasure.
+     *
+     * This type should be eliminated at some point, but we require it until we
+     * can enforce template types (for the generics variables) on a class or
+     * method.
+     *
+     * @return List of argument types.
+     */
+    public List<Type> getArgumentTypesErased();
 
     /**
      * Names of the arguments.
@@ -132,7 +147,7 @@ public interface AccessorConstructor {
      * @return Method body.
      */
     public default ST getBody() {
-        return new ST(StCtx.BUILTINS, "return ::cycle_ptr::make_cycle<$erasedType(m.model)$>($m.argumentNames: {name | ::std::forward<decltype($name$)>($name$)}; anchor, wrap = \"\\n\", separator = \", \"$);")
+        return new ST(StCtx.BUILTINS, "return ::cycle_ptr::make_cycle<$erasedType(m.model)$>($m.argumentNames, m.argumentTypesErased: {name, erasedType | $if (erasedType)$::java::cast<$boundTemplateType(erasedType, \"style=type, class\")$>($endif$::std::forward<decltype($name$)>($name$)$if (erasedType)$)$endif$}; anchor, wrap = \"\\n\", separator = \", \"$);")
                 .add("m", this);
     }
 
@@ -210,6 +225,7 @@ public interface AccessorConstructor {
     public static class Impl implements AccessorConstructor {
         private final ClassType model;
         private final List<Type> argumentTypes;
+        private final List<Type> argumentTypesErased;
         private final List<String> argumentNames;
         private final Includes includes;
         private final Visibility visibility;
@@ -217,9 +233,19 @@ public interface AccessorConstructor {
         private final List<String> functionGenericsNames;
         private final List<String> functionGenericsDefault;
 
-        public Impl(ClassType model, List<Type> argumentTypes, List<String> argumentNames, Includes includes, Visibility visibility, String docString, List<String> functionGenericsNames, List<String> functionGenericsDefault) {
+        public Impl(ClassType model, List<Type> argumentTypes, List<String> argumentNames, Includes includes, Visibility visibility, String docString, List<String> functionGenericsNames, List<String> functionGenericsDefault, Map<String, ? extends BoundTemplate> erasedTypeVariables) {
             this.model = requireNonNull(model);
             this.argumentTypes = requireNonNull(argumentTypes);
+            this.argumentTypesErased = this.argumentTypes.stream()
+                    .map(Optional::of)
+                    .map(optArgType -> {
+                        return optArgType
+                                .filter(argType -> !argType.getUnresolvedTemplateNames().isEmpty()) // Only cast templated arguments.
+                                .filter(argType -> argType.isJavaType()) // Only cast java types.
+                                .map(argType -> argType.rebind(erasedTypeVariables)) // Rebind to type that we cast to.
+                                .orElse(null);
+                    })
+                    .collect(Collectors.toList());
             this.argumentNames = requireNonNull(argumentNames);
             this.includes = requireNonNull(includes);
             this.visibility = requireNonNull(visibility);
@@ -236,6 +262,10 @@ public interface AccessorConstructor {
         @Override
         public List<Type> getArgumentTypes() {
             return argumentTypes;
+        }
+
+        public List<Type> getArgumentTypesErased() {
+            return argumentTypesErased;
         }
 
         @Override
