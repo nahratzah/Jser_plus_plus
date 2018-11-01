@@ -603,12 +603,22 @@ public interface ClassMemberModel {
             if (body == null) {
                 this.body = null;
             } else {
+                final String bodyPreamble;
+                if (!this.generics.isGenericsMethod()) {
+                    bodyPreamble = "";
+                } else {
+                    bodyPreamble = new ST(StCtx.contextGroup(ctx, cdef.getTemplateArgumentNames().stream().collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new)), cdef.getBoundType(), implementationTypes::add),
+                            "$generics:{entry|using $entry.key$ = $boundTemplateType(entry.value, \"style=type\")$;}; separator=\"\\n\"$$\"\\n\"$")
+                            .add("generics", this.generics.getErasedMethodGenerics().entrySet())
+                            .render(Locale.ROOT);
+                }
+
                 String renderedBody = renderImpl(body);
                 // Remove newline at end, since the render engine will also generate one for us.
                 // This gets rid of the blank line at the end of method bodies.
                 if (renderedBody.endsWith("\n"))
                     renderedBody = renderedBody.substring(0, renderedBody.length() - 1);
-                this.body = renderedBody;
+                this.body = bodyPreamble + renderedBody;
             }
         }
 
