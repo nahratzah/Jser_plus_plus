@@ -20,14 +20,13 @@ import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
 import com.github.nahratzah.jser_plus_plus.model.impl.AccessorConstructor;
 import com.github.nahratzah.jser_plus_plus.model.impl.AccessorMethod;
 import com.github.nahratzah.jser_plus_plus.model.impl.ClassDelegateMethod;
+import com.github.nahratzah.jser_plus_plus.model.impl.ClassVirtualDelegateMethod;
 import com.github.nahratzah.jser_plus_plus.output.builtins.ConstTypeRenderer;
 import com.github.nahratzah.jser_plus_plus.output.builtins.FunctionAttrMap;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MoreCollectors;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.lang.reflect.Field;
@@ -1286,42 +1285,21 @@ public class ClassType implements JavaType {
             // all overrides. They're not very large, so there won't be much of a
             // penalty either.
             if (tagged && !underlyingMethod.isPureVirtual()) {
-                final Multimap<ClassType, ImplementedClassMethod> methodMapping = method.getAllOverridenMethods()
+                method.getAllOverridenMethods()
                         .filter(overrideFn -> !Objects.equals(overrideFn.getTagType(), method.getTagType()))
-                        .collect(Multimaps.toMultimap(overrideFn -> overrideFn.getTagType(), Function.identity(), () -> Multimaps.newSetMultimap(new HashMap<>(), HashSet::new)));
-
-                methodMapping.asMap().forEach((tagType, overrideFns) -> {
-                    final ImplementedClassMethod overrideFn = overrideFns.iterator().next();
-                    final OverrideSelector erasedOverrideFn = overrideFn.getErasedSelector(); // We're going to override the original function.
-
-                    final Type overrideTag = new CxxType(ctx, "$tagType(model)$", new Includes(), singletonMap("model", tagType), EMPTY_LIST, null);
-
-                    final MethodModel.SimpleMethodModel overrideImpl = new MethodModel.SimpleMethodModel(
-                            this,
-                            erasedOverrideFn.getDeclaringType(), // Type used to declare arguments and return type.
-                            VIRTUAL_FUNCTION_PREFIX + erasedOverrideFn.getName(),
-                            new Includes(
-                                    erasedOverrideFn.getUnderlyingMethod().getDeclarationIncludes().collect(Collectors.toList()),
-                                    Stream.concat(Stream.of("java/_maybe_cast.h"), underlyingMethod.getDeclarationIncludes()).collect(Collectors.toList())),
-                            erasedOverrideFn.getUnderlyingMethod().getDeclarationTypes().collect(Collectors.toSet()),
-                            underlyingMethod.getDeclarationTypes().collect(Collectors.toSet()),
-                            erasedOverrideFn.getReturnType(),
-                            Stream.concat(Stream.of(overrideTag), erasedOverrideFn.getArguments().stream()).collect(Collectors.toList()), // Prepend tag type, for tagged dispatch.
-                            Stream.concat(Stream.of("_tag_"), underlyingMethod.getArgumentNames().stream()).collect(Collectors.toList()), // Prepend argument name for tag type.
-                            forwardingBody, // Apply forwarding rule.
-                            erasedOverrideFn.getUnderlyingMethod().isStatic(),
-                            erasedOverrideFn.getUnderlyingMethod().isVirtual(),
-                            false, // We're not pure virtual: we implement an override, forwarding to the new override.
-                            true, // We do override the base implementation.
-                            erasedOverrideFn.getUnderlyingMethod().isConst(),
-                            erasedOverrideFn.getUnderlyingMethod().isFinal(),
-                            null, // We're not inline: we implement an override.
-                            erasedOverrideFn.getUnderlyingMethod().getNoexcept(),
-                            Visibility.PRIVATE, // Make actual virtual method private: it's only accessed via the untagged forwarding function.
-                            null);
-                    LOG.log(Level.FINE, "declaring override: {0}", overrideImpl.getOverrideSelector(ctx));
-                    classMemberFunctions.add(overrideImpl);
-                });
+                        .collect(Collectors.collectingAndThen(
+                                Collectors.toMap(overrideFn -> overrideFn.getTagType(), Function.identity(), (x, y) -> x),
+                                mapping -> mapping.values().stream()))
+                        .forEach(overridenMethod -> {
+                            classMemberFunctions.add(new ClassVirtualDelegateMethod.Impl(
+                                    method,
+                                    overridenMethod,
+                                    new Includes(
+                                            overridenMethod.getSelector().getUnderlyingMethod().getIncludes().getDeclarationIncludes(),
+                                            method.getSelector().getUnderlyingMethod().getIncludes().getDeclarationIncludes()),
+                                    VIRTUAL_FUNCTION_PREFIX + method.getSelector().getName(),
+                                    VIRTUAL_FUNCTION_PREFIX + overridenMethod.getSelector().getName()));
+                        });
             }
         });
     }

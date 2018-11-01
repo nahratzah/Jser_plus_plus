@@ -165,4 +165,13 @@ public class BoundTemplateTest {
                 .rebind(rebindMap);
         assertEquals(expect, rebound);
     }
+
+    @Test
+    public void intBindingIsEqual() {
+        final Type x = new BoundTemplate.ClassBinding<>(PrimitiveType.INT, EMPTY_LIST);
+        final Type y = new BoundTemplate.ClassBinding<>(PrimitiveType.INT, EMPTY_LIST);
+
+        assertEquals(x.hashCode(), y.hashCode());
+        assertEquals(x, y);
+    }
 }

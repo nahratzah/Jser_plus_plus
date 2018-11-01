@@ -92,7 +92,7 @@ public class EnumType extends ClassType {
         final CfgArgument methodArgument = new CfgArgument();
         methodArgument.setName("o");
         methodArgument.setType(new CfgType(null, "const " + getName()));
-        final CfgType returnType = new CfgType("::java::int_t", null);
+        final CfgType returnType = new CfgType(null, "int");
         returnType.setIncludes(new Includes(singletonList("java/primitives.h"), EMPTY_LIST));
         final Method methodCfg = new Method();
         methodCfg.setName("compareTo");

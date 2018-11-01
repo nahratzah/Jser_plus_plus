@@ -16,6 +16,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -96,6 +97,9 @@ public class Main {
     }
 
     private static class FormatterImpl extends Formatter {
+        private static final Pattern NEWLINE_PATTERN = Pattern.compile("\n(.)");
+        private static final String NEWLINE_REPLACEMENT = "\n     $1";
+
         @Override
         public synchronized String format(LogRecord record) {
             final String level = levelToString(record.getLevel());
@@ -113,7 +117,8 @@ public class Main {
                 throwable = "";
             }
 
-            return level + ": " + message + "\n" + throwable;
+            return level + ": "
+                    + NEWLINE_PATTERN.matcher(message + "\n" + throwable).replaceAll(NEWLINE_REPLACEMENT);
         }
 
         private static String levelToString(Level level) {
