@@ -35,7 +35,7 @@ classes:
           java: boolean
       super: m, fromStart, ::std::move(lo), loInclusive, toEnd, ::std::move(hi), hiInclusive
       initializers:
-        reverseComparator: $boundTemplateType(java.({java.util.Collections}), "style=type, class")$::reverseOrder(::java::constcast<$boundTemplateType(java.({java.util.Comparator<? super K>}), "style=type, class")$>(m->comparator()))
+        reverseComparator: $boundTemplateType(java.({java.util.Collections}), "style=type, class")$::reverseOrder(m->comparator())
     - type: method
       name: comparator
       override: true

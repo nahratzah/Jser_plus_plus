@@ -1,0 +1,29 @@
+---
+classes:
+  java.util.Collections$ReverseComparator:
+    dev_mode: false
+    members:
+    - type: constructor
+    - type: method
+      name: compare
+      const: true
+      override: true
+      arguments:
+      - name: x
+        type:
+          java: const java.lang.Comparable<java.lang.Object>
+      - name: y
+        type:
+          java: const java.lang.Comparable<java.lang.Object>
+      return:
+        java: int
+      body: |
+        return y->compareTo(x);
+    - type: method
+      name: reversed
+      const: true
+      override: true
+      return:
+        java: const java.util.Comparator<java.lang.Comparable<java.lang.Object>>
+      body: |
+        return $boundTemplateType(java.({java.util.Comparator<java.lang.Comparable<java.lang.Object>>}), "style=type, class")$::naturalOrder();

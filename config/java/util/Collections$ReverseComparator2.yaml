@@ -1,0 +1,55 @@
+---
+classes:
+  java.util.Collections$ReverseComparator2<T>:
+    dev_mode: false
+    doc_string: |
+      \brief Comparator that reverses the comparison ordering.
+      \tparam T The type of element that this comparator compares.
+    friends:
+    - java: java.util.Collections
+    fields:
+      cmp:
+        visibility: private
+        const: true
+        final: true
+        getter: true
+    members:
+    - type: constructor
+      doc_string: |
+        \brief Construct a new reverse comparator.
+        \param c The underlying comparator.
+        \throws ::java::null_error if \p c is a null-reference.
+      arguments:
+      - name: c
+        type:
+          java: const java.util.Comparator<T>
+      initializers:
+        cmp: ::std::move(c)
+      body: |
+        if (cmp == nullptr) throw ::java::null_error();
+      includes:
+        implementation:
+        - java/null_error.h
+    - type: method
+      name: compare
+      const: true
+      override: true
+      arguments:
+      - name: x
+        type:
+          java: const T
+      - name: y
+        type:
+          java: const T
+      return:
+        java: int
+      body: |
+        return cmp->compare(::std::move(y), ::std::move(x));
+    - type: method
+      name: reversed
+      const: true
+      override: true
+      return:
+        java: const java.util.Comparator<T>
+      body: |
+        return cmp;
