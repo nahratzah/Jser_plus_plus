@@ -1353,7 +1353,48 @@ public class ClassType implements JavaType {
                             method.getVisibility(),
                             method.getDocString(),
                             method.getMethodGenerics()));
-                    classMemberFunctions.add(method);
+
+                    if (method.getMethodGenerics().isEmpty()) {
+                        classMemberFunctions.add(method);
+                    } else {
+                        classMemberFunctions.add(new ClassDelegateMethod.Impl(
+                                this,
+                                method.getName(),
+                                "__erased_" + method.getName(),
+                                method.getArgumentTypes(),
+                                method.getArgumentNames(),
+                                method.getReturnType(),
+                                new Includes(method.getIncludes().getDeclarationIncludes(), EMPTY_LIST),
+                                method.isStatic(),
+                                method.isConst(),
+                                method.getNoexcept(),
+                                method.getVisibility(),
+                                method.getDocString(),
+                                method.getMethodGenerics()));
+
+                        final MethodGenerics methodGenerics = new MethodGenerics(method.getMethodGenerics(), method.getArgumentTypes());
+                        classMemberFunctions.add(new MethodModel.SimpleMethodModel(
+                                this,
+                                method.getArgumentDeclaringClass(),
+                                "__erased_" + method.getName(),
+                                method.getIncludes(),
+                                method.getDeclarationTypes().collect(Collectors.toSet()),
+                                method.getImplementationTypes().collect(Collectors.toSet()),
+                                (method.getReturnType() == null ? null : method.getReturnType().rebind(methodGenerics.getErasedMethodGenerics())),
+                                method.getArgumentTypes().stream().map(argType -> argType.rebind(methodGenerics.getErasedMethodGenerics())).collect(Collectors.toList()),
+                                method.getArgumentNames(),
+                                method.getBody(),
+                                method.isStatic(),
+                                method.isVirtual(),
+                                method.isPureVirtual(),
+                                method.isOverride(),
+                                method.isConst(),
+                                method.isFinal(),
+                                method.getInline(),
+                                method.getNoexcept(),
+                                method.getVisibility(),
+                                method.getDocString()));
+                    }
                 });
     }
 
