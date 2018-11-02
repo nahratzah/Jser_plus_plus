@@ -51,6 +51,12 @@ $codeGen.types: tagDeclaration(); separator = "\n\n"$
 // Complete all tag types.
 $includesAfter: include(); separator = "\n"$
 
+namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ {
+
+$codeGen.types: tagDeclarationArgValidation(); separator = "\n\n"$
+
+} /* namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ */
+
 #endif /* JAVA_TAG_$codeGen.includeGuard$ */
 
 >>
@@ -238,39 +244,7 @@ $if (model.classGenerics.mangledGenericsNames)$
   ///\brief Compute types and validate constraints.
   ///\details Empty java::G::pack_t are converted to their constrained type.
   $templateLine(model.classGenerics.mangledGenericsNames)$
-  struct __arg_rebuild__ {
-    // Argument computation.
-    $ model.classGenerics.resolutionNames, model.classGenerics.mangledResolutionNames, model.classGenerics.resolutionTypes
-    : { name, mangledName, type | $\\$
-        using $name$ = $\\$
-        $if (type)$$\\$
-          ::std::conditional_t<::std::is_same_v<::java::G::pack_t<>, $mangledName$>, $boundTemplateType(type, "style=type")$, $mangledName$>$\\$
-        $else$$\\$
-          $mangledName$$\\$
-        $endif$$\\$
-        ;}
-    ; separator = "\n"$
-
-    // Argument validation.
-    $ model.classGenerics.genericsNames, model.classGenerics.mangledGenericsNames, model.classGenerics.constraints
-    : { name, mangledName, constraint | $\\$
-        static_assert($\\$
-            $ [ {::std::is_same_v<::java::G::pack_t<>, $mangledName$> || ::java::type_traits::is_satisfied_by_v<$boundTemplateType(constraint, "style=type")$, $name$>},
-                cxxString({$name$ must extend $model.classGenerics.generics.(name)$}) ]
-            ; anchor, separator = ",\n"$$\\$
-            );}
-    ; separator = "\n"$
-
-    ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
-    using is_t = ::java::G::is_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
-    ///\brief The \ref ::java::G::extends_t "extends" generic for $model.boundType$.
-    using extends_t = ::java::G::extends_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
-    ///\brief The \ref ::java::G::super_t "super" generic for $model.boundType$.
-    using super_t = ::java::G::super_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
-
-    ///\brief The parent types for $model.boundType$.
-    using parent_types = ::java::G::pack_t$templateArgs(strip([model.superClass, model.interfaces]): boundTemplateType("style=type"), true)$;
-  };
+  struct __arg_rebuild__;
 
   public:
   ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
@@ -289,7 +263,7 @@ $if (model.classGenerics.mangledGenericsNames)$
   ///\brief The parent types for $model.boundType$.
   $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
-  using parent_types = typename __arg_rebuild__$templateArgs(model.classGenerics.genericsNames)$::parent_types;
+  using parent_types = typename __arg_rebuild__$templateArgs(model.classGenerics.genericsNames)$::template parent_types<>;
 $else$
   ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
   ///\note This is a zero argument template.
@@ -306,10 +280,54 @@ $else$
 
   ///\brief The parent types for $model.boundType$.
   ///\note This is a zero argument template.
+  ///The weird `std::enable_if_t` usage is to make any types late binding.
   template<typename... __T__>
-  using parent_types = ::std::enable_if_t<sizeof...(__T__) == 0, ::java::G::pack_t$templateArgs(strip([model.superClass, model.interfaces]): boundTemplateType("style=type"), true)$>;
+  using parent_types = ::java::G::pack$templateArgs(strip([model.superClass, model.interfaces]): {t|typename ::std::enable_if_t<sizeof...(__T__) == 0, $tagType(t.type)$>::template is_t$templateArgs(t.bindings: boundTemplateType("style=type"), true)$}, true)$;
 $endif$
 };
+>>
+
+
+tagDeclarationArgValidation(model) ::= <<
+$if (model.classGenerics.mangledGenericsNames)$
+$templateLine(model.classGenerics.mangledGenericsNames)$
+struct $model.className$::__arg_rebuild__ {
+  // Argument computation.
+  $ model.classGenerics.resolutionNames, model.classGenerics.mangledResolutionNames, model.classGenerics.resolutionTypes
+  : { name, mangledName, type | $\\$
+      using $name$ = $\\$
+      $if (type)$$\\$
+        ::std::conditional_t<::std::is_same_v<::java::G::pack_t<>, $mangledName$>, $boundTemplateType(type, "style=type")$, $mangledName$>$\\$
+      $else$$\\$
+        $mangledName$$\\$
+      $endif$$\\$
+      ;}
+  ; separator = "\n"$
+
+  // Argument validation.
+  $ model.classGenerics.genericsNames, model.classGenerics.mangledGenericsNames, model.classGenerics.constraints
+  : { name, mangledName, constraint | $\\$
+      static_assert($\\$
+          $ [ {::std::is_same_v<::java::G::pack_t<>, $mangledName$> || ::java::type_traits::is_satisfied_by_v<$boundTemplateType(constraint, "style=type")$, $name$>},
+              cxxString({$name$ must extend $model.classGenerics.generics.(name)$}) ]
+          ; anchor, separator = ",\n"$$\\$
+          );}
+  ; separator = "\n"$
+
+  ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
+  using is_t = ::java::G::is_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
+  ///\brief The \ref ::java::G::extends_t "extends" generic for $model.boundType$.
+  using extends_t = ::java::G::extends_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
+  ///\brief The \ref ::java::G::super_t "super" generic for $model.boundType$.
+  using super_t = ::java::G::super_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
+
+  ///\brief The parent types for $model.boundType$.
+  ///\note This is a zero-argument template.
+  ///The weird `std::enable_if_t` usage is to make any types late binding.
+  template<typename... __T__>
+  using parent_types = ::java::G::pack$templateArgs(strip([model.superClass, model.interfaces]): {t|typename ::std::enable_if_t<sizeof...(__T__) == 0, $tagType(t.type)$>::template is_t$templateArgs(t.bindings: boundTemplateType("style=type"), true)$}, true)$;
+};
+$endif$
 >>
 
 
