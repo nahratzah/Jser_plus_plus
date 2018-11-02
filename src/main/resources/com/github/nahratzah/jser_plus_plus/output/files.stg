@@ -21,6 +21,7 @@ $codeGen.types: tagArityDeclaration(); separator = "\n\n"$
 } /* namespace java::G::detail */
 
 #endif /* JAVA_TAGFWD_$codeGen.includeGuard$ */
+
 >>
 
 
@@ -51,6 +52,7 @@ $codeGen.types: tagDeclaration(); separator = "\n\n"$
 $includesAfter: include(); separator = "\n"$
 
 #endif /* JAVA_TAG_$codeGen.includeGuard$ */
+
 >>
 
 
