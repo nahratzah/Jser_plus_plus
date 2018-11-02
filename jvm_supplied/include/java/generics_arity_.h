@@ -1,5 +1,5 @@
-#ifndef JAVA__GENERICS_ARITY_H
-#define JAVA__GENERICS_ARITY_H
+#ifndef JAVA_GENERICS_ARITY__H
+#define JAVA_GENERICS_ARITY__H
 
 namespace java::G::detail {
 
@@ -8,4 +8,4 @@ struct generics_arity_;
 
 } /* namespace java::G::detail */
 
-#endif /* JAVA__GENERICS_ARITY_H */
+#endif /* JAVA_GENERICS_ARITY__H */
