@@ -238,7 +238,7 @@ $if (model.classGenerics.mangledGenericsNames)$
   ///\brief Compute types and validate constraints.
   ///\details Empty java::G::pack_t are converted to their constrained type.
   $templateLine(model.classGenerics.mangledGenericsNames)$
-  struct argRebuild {
+  struct __arg_rebuild__ {
     // Argument computation.
     $ model.classGenerics.resolutionNames, model.classGenerics.mangledResolutionNames, model.classGenerics.resolutionTypes
     : { name, mangledName, type | $\\$
@@ -276,20 +276,20 @@ $if (model.classGenerics.mangledGenericsNames)$
   ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
   $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
-  using is_t = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::is_t;
+  using is_t = typename __arg_rebuild__$templateArgs(model.classGenerics.genericsNames)$::is_t;
   ///\brief The \ref ::java::G::extends_t "extends" generic for $model.boundType$.
   $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
-  using extends_t = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::extends_t;
+  using extends_t = typename __arg_rebuild__$templateArgs(model.classGenerics.genericsNames)$::extends_t;
   ///\brief The \ref ::java::G::super_t "super" generic for $model.boundType$.
   $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
-  using super_t = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::super_t;
+  using super_t = typename __arg_rebuild__$templateArgs(model.classGenerics.genericsNames)$::super_t;
 
   ///\brief The parent types for $model.boundType$.
   $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
-  using parent_types = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::parent_types;
+  using parent_types = typename __arg_rebuild__$templateArgs(model.classGenerics.genericsNames)$::parent_types;
 $else$
   ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
   ///\note This is a zero argument template.
