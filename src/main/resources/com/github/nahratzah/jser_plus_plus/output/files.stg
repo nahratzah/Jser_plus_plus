@@ -15,7 +15,9 @@ $codeGen.types: tagForwardDeclaration(); separator = "\n"$
 } /* namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ */
 
 namespace java::G::detail {
-$codeGen.types: tagArityDeclaration(); separator = "\n"$
+
+$codeGen.types: tagArityDeclaration(); separator = "\n\n"$
+
 } /* namespace java::G::detail */
 
 #endif /* JAVA_TAGFWD_$codeGen.includeGuard$ */
@@ -213,10 +215,16 @@ struct generics_arity_<$tagType(model)$>
 
 
 tagDeclaration(model) ::= <<
+///\brief Tag for $model.boundType$.
 struct $model.className$ {
+  ///\brief Number of template arguments for $model.boundType$.
+  ///\details The number of template arguments is $length(model.templateArguments)$.
   static constexpr ::std::size_t generics_arity = ::java::G::detail::generics_arity_<$model.className$>::value;
+  ///\brief Type-erased class described by the tag.
   using erased_type = ::$["java", "_erased", model.namespace, model.className]; separator = "::"$;
 
+  ///\brief Retrieve the UTF-16 name of this class.
+  ///\return A UTF-16 string view, containing $cxxString(model.name)$.
   static constexpr ::std::u16string_view u_name() {
     using namespace ::std::string_view_literals;
 
@@ -225,38 +233,51 @@ struct $model.className$ {
 $if (model.classGenerics.mangledGenericsNames)$
 
   private:
+  ///\brief Compute types and validate constraints.
+  ///\details Empty java::G::pack_t are converted to their constrained type.
   $templateLine(model.classGenerics.mangledGenericsNames)$
   struct argRebuild {
+    // Argument computation.
     $ model.classGenerics.resolutionNames, model.classGenerics.mangledResolutionNames, model.classGenerics.resolutionTypes
     : { name, mangledName, type | $\\$
         using $name$ = $\\$
         $if (type)$$\\$
-          ::std::conditional_t<::std::is_same_v<::java::G::pack<>, $mangledName$>, $boundTemplateType(type, "style=type")$, $mangledName$>$\\$
+          ::std::conditional_t<::std::is_same_v<::java::G::pack_t<>, $mangledName$>, $boundTemplateType(type, "style=type")$, $mangledName$>$\\$
         $else$$\\$
           $mangledName$$\\$
         $endif$$\\$
         ;}
     ; separator = "\n"$
 
-    $ model.classGenerics.genericsNames, model.classGenerics.constraints
-    : { name, constraint | $\\$
+    // Argument validation.
+    $ model.classGenerics.genericsNames, model.classGenerics.mangledGenericsNames, model.classGenerics.constraints
+    : { name, mangledName, constraint | $\\$
         static_assert($\\$
-            $ [ {::java::type_traits::is_satisfied_by_v<$boundTemplateType(constraint, "style=type")$, $name$>},
+            $ [ {::std::is_same_v<::java::G::pack_t<>, $mangledName$> || ::java::type_traits::is_satisfied_by_v<$boundTemplateType(constraint, "style=type")$, $name$>},
                 cxxString({$name$ must extend $model.classGenerics.generics.(name)$}) ]
             ; anchor, separator = ",\n"$$\\$
             );}
     ; separator = "\n"$
 
+    ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
     using is_t = ::java::G::is_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
+    ///\brief The \ref ::java::G::extends_t "extends" generic for $model.boundType$.
     using extends_t = ::java::G::extends_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
+    ///\brief The \ref ::java::G::super_t "super" generic for $model.boundType$.
     using super_t = ::java::G::super_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
   };
 
   public:
+  ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
+  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
   using is_t = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::is_t;
+  ///\brief The \ref ::java::G::extends_t "extends" generic for $model.boundType$.
+  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
   using extends_t = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::extends_t;
+  ///\brief The \ref ::java::G::super_t "super" generic for $model.boundType$.
+  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
   using super_t = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::super_t;
 $endif$
