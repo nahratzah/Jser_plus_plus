@@ -267,6 +267,9 @@ $if (model.classGenerics.mangledGenericsNames)$
     using extends_t = ::java::G::extends_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
     ///\brief The \ref ::java::G::super_t "super" generic for $model.boundType$.
     using super_t = ::java::G::super_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
+
+    ///\brief The parent types for $model.boundType$.
+    using parent_types = ::java::G::pack_t$templateArgs(strip([model.superClass, model.interfaces]): boundTemplateType("style=type"), true)$;
   };
 
   public:
@@ -282,6 +285,11 @@ $if (model.classGenerics.mangledGenericsNames)$
   $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
   using super_t = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::super_t;
+
+  ///\brief The parent types for $model.boundType$.
+  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
+  $templateLine(model.classGenerics.genericsNames)$
+  using parent_types = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::parent_types;
 $else$
   ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
   ///\note This is a zero argument template.
@@ -295,6 +303,11 @@ $else$
   ///\note This is a zero argument template.
   template<typename... __T__>
   using super_t = ::java::G::super_t<::std::enable_if_t<sizeof...(__T__) == 0, $model.className$\>>;
+
+  ///\brief The parent types for $model.boundType$.
+  ///\note This is a zero argument template.
+  template<typename... __T__>
+  using parent_types = ::std::enable_if_t<sizeof...(__T__) == 0, ::java::G::pack_t$templateArgs(strip([model.superClass, model.interfaces]): boundTemplateType("style=type"), true)$>;
 $endif$
 };
 >>

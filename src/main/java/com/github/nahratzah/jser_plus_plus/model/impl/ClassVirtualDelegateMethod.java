@@ -21,6 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -378,20 +379,19 @@ public interface ClassVirtualDelegateMethod extends MethodModel {
 
         @Override
         public List<Type> getArgumentTypes() {
-            return Stream.<Type>concat(
-                    Stream.of(overridenMethod.getTagType())
-                            .filter(Objects::nonNull)
-                            .map(cls -> new CxxType(Context.UNIMPLEMENTED_CONTEXT, "$tagType(x)$", new Includes(), singletonMap("x", cls), EMPTY_MAP, null)),
+            final Stream<Type> tagTypeStream = Streams.stream(Optional.ofNullable(overridenMethod.getTagType())
+                    .map(cls -> new CxxType(Context.UNIMPLEMENTED_CONTEXT, "$tagType(x)$", new Includes(), singletonMap("x", cls), EMPTY_MAP, null)));
+
+            return Stream.concat(
+                    tagTypeStream,
                     overridenMethod.getErasedSelector().getArguments().stream())
-                    .collect(Collectors.toList());
+                    .collect(Collectors.<Type>toList());
         }
 
         @Override
         public List<String> getArgumentNames() {
             return Stream.concat(
-                    Stream.of(overridenMethod.getTagType())
-                            .filter(Objects::nonNull)
-                            .map(ignored -> "_tag_"),
+                    (overridenMethod.getTagType() == null ? Stream.empty() : Stream.of("_tag_")),
                     overridenMethod.getErasedSelector().getUnderlyingMethod().getArgumentNames().stream())
                     .collect(Collectors.toList());
         }

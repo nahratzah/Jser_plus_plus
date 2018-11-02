@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
@@ -98,8 +99,12 @@ public class CodeGenerator {
 
     public String tagHeaderFile() {
         final Collection<String> includes = types.stream()
-                .map(ClassType::getClassGenerics)
-                .flatMap(classGenerics -> classGenerics.getGenerics().values().stream())
+                .flatMap(type -> {
+                    return Streams.<BoundTemplate>concat(
+                            Streams.stream(Optional.ofNullable(type.getSuperClass())),
+                            type.getInterfaces().stream(),
+                            type.getClassGenerics().getGenerics().values().stream());
+                })
                 .flatMap(Type::getAllJavaTypes)
                 .map(CodeGenerator::computeBaseType)
                 .map(CodeGenerator::tagFwdHeaderName)
@@ -109,8 +114,12 @@ public class CodeGenerator {
                 .collect(Collectors.toList());
 
         final Collection<String> includesAfter = types.stream()
-                .map(ClassType::getClassGenerics)
-                .flatMap(classGenerics -> classGenerics.getGenerics().values().stream())
+                .flatMap(type -> {
+                    return Streams.<BoundTemplate>concat(
+                            Streams.stream(Optional.ofNullable(type.getSuperClass())),
+                            type.getInterfaces().stream(),
+                            type.getClassGenerics().getGenerics().values().stream());
+                })
                 .flatMap(Type::getAllJavaTypes)
                 .map(CodeGenerator::computeBaseType)
                 .map(CodeGenerator::tagHeaderName)
