@@ -241,10 +241,14 @@ struct $model.className$ {
 
 $if (model.classGenerics.mangledGenericsNames)$
   private:
-  ///\brief Compute types and validate constraints.
+  ///\brief Compute types.
   ///\details Empty java::G::pack_t are converted to their constrained type.
   $templateLine(model.classGenerics.mangledGenericsNames)$
   struct __arg_rebuild__;
+
+  ///\brief Validate types.
+  $templateLine(model.classGenerics.mangledGenericsNames)$
+  struct __arg_validate__;
 
   public:
   ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
@@ -282,7 +286,17 @@ $else$
   ///\note This is a zero argument template.
   ///The weird `std::enable_if_t` usage is to make any types late binding.
   template<typename... __T__>
-  using parent_types = ::java::G::pack$templateArgs(strip([model.superClass, model.interfaces]): {t|typename ::std::enable_if_t<sizeof...(__T__) == 0, $tagType(t.type)$>::template is_t$templateArgs(t.bindings: boundTemplateType("style=type"), true)$}, true)$;
+  using parent_types = ::std::enable_if_t$templateArgs([
+      {sizeof...(__T__) == 0},
+      {$\\$
+        $if (!model.classGenerics.parentTypesForTag)$$\\$
+          ::java::G::pack_t<>$\\$
+        $elseif (!rest(model.classGenerics.parentTypesForTag))$$\\$
+          $model.classGenerics.parentTypesForTag$$\\$
+        $else$$\\$
+          ::java::G::pack_t$templateArgs(model.classGenerics.parentTypesForTag)$$\\$
+        $endif$$\\$
+      }])$;
 $endif$
 };
 >>
@@ -292,26 +306,20 @@ tagDeclarationArgValidation(model) ::= <<
 $if (model.classGenerics.mangledGenericsNames)$
 $templateLine(model.classGenerics.mangledGenericsNames)$
 struct $model.className$::__arg_rebuild__ {
+  $ model.classGenerics.mangledGenericsNames, model.classGenerics.genericsNames
+  : {mangledName, name|static_assert(::java::type_traits::is_generic_v<$mangledName$>, $cxxString({Template argument "$name$" must be a generics type.})$);}
+  ; separator = "\n"$
+
   // Argument computation.
   $ model.classGenerics.resolutionNames, model.classGenerics.mangledResolutionNames, model.classGenerics.resolutionTypes
   : { name, mangledName, type | $\\$
       using $name$ = $\\$
       $if (type)$$\\$
-        ::std::conditional_t<::std::is_same_v<::java::G::pack_t<>, $mangledName$>, $boundTemplateType(type, "style=type")$, $mangledName$>$\\$
+        ::std::conditional_t$templateArgs([{::std::is_same_v<::java::G::pack_t<>, $mangledName$>}, boundTemplateType(type, "style=type"), mangledName])$$\\$
       $else$$\\$
         $mangledName$$\\$
       $endif$$\\$
       ;}
-  ; separator = "\n"$
-
-  // Argument validation.
-  $ model.classGenerics.genericsNames, model.classGenerics.mangledGenericsNames, model.classGenerics.constraints
-  : { name, mangledName, constraint | $\\$
-      static_assert($\\$
-          $ [ {::std::is_same_v<::java::G::pack_t<>, $mangledName$> || ::java::type_traits::is_satisfied_by_v<$boundTemplateType(constraint, "style=type")$, $name$>},
-              cxxString({$name$ must extend $model.classGenerics.generics.(name)$}) ]
-          ; anchor, separator = ",\n"$$\\$
-          );}
   ; separator = "\n"$
 
   ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
@@ -325,7 +333,32 @@ struct $model.className$::__arg_rebuild__ {
   ///\note This is a zero-argument template.
   ///The weird `std::enable_if_t` usage is to make any types late binding.
   template<typename... __T__>
-  using parent_types = ::java::G::pack$templateArgs(strip([model.superClass, model.interfaces]): {t|typename ::std::enable_if_t<sizeof...(__T__) == 0, $tagType(t.type)$>::template is_t$templateArgs(t.bindings: boundTemplateType("style=type"), true)$}, true)$;
+  using parent_types = ::std::enable_if_t$templateArgs([
+      {sizeof...(__T__) == 0},
+      {$\\$
+        $if (!model.classGenerics.parentTypesForTag)$$\\$
+          ::java::G::pack_t<>$\\$
+        $elseif (!rest(model.classGenerics.parentTypesForTag))$$\\$
+          $model.classGenerics.parentTypesForTag$$\\$
+        $else$$\\$
+          ::java::G::pack_t$templateArgs(model.classGenerics.parentTypesForTag)$$\\$
+        $endif$$\\$
+      }])$;
+};
+
+$templateLine(model.classGenerics.genericsNames)$
+struct $model.className$::__arg_validate__
+: std::conjunction<$model.classGenerics.genericsNames, model.classGenerics.constraints: {name, constraint | ::java::type_traits::is_satisfied_by<$boundTemplateType(constraint, "style=type")$, $name$>}; anchor, separator = ",\n"$>
+{
+  // Argument validation.
+  $ model.classGenerics.genericsNames, model.classGenerics.constraints
+  : { name, constraint | $\\$
+      static_assert($\\$
+          $ [ {::java::type_traits::is_satisfied_by_v<$boundTemplateType(constraint, "style=type")$, $name$>},
+              cxxString({$name$ must extend $model.classGenerics.generics.(name)$}) ]
+          ; anchor, separator = ",\n"$$\\$
+          );}
+  ; separator = "\n"$
 };
 $endif$
 >>

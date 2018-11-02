@@ -807,7 +807,7 @@ public class ClassType implements JavaType {
         postProcessingDone = true;
 
         // First, fill in class generics.
-        classGenerics = new ClassGenerics(templateArguments);
+        classGenerics = new ClassGenerics(this, templateArguments);
 
         final Map<OverrideSelector, Collection<ImplementedClassMethod>> virtualClassMembersWithParentMethods, nonVirtualClassMembersWithParentMethods;
         Collection<ImplementedClassMethod> keptParentMethodsWithChangedTypes;

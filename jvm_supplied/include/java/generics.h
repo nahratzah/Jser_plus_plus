@@ -9,6 +9,7 @@
 #include <java/generics_arity_.h>
 #include <java/fwd/java/lang/Object.tagfwd>
 #include <java/fwd/java/io/Serializable.tagfwd>
+#include <java/fwd/java/lang/Cloneable.tagfwd>
 
 namespace java::type_traits {
 namespace {
@@ -19,9 +20,9 @@ struct is_java_primitive_;
 
 ///\brief Type trait that tests if \p T is a generic.
 template<typename T>
-struct is_generic_ {
-  using type = std::false_type;
-};
+struct is_generic_
+: std::false_type
+{};
 
 ///\brief Type trait that tests if \p T is a compacted generic.
 template<typename T, bool = is_generic_<T>::type::value>
@@ -41,13 +42,14 @@ struct is_compact_generic_<T*, true>
 
 ///\brief Type trait that tests if X is satisfied by Y.
 ///\details Used for types.
+///Invocation is: `is_satisfied_by_<X>::template test<Y>::type`
 ///
 ///For example, `List<? extends CharSequence>` is satisfied by `List<String>`.
 ///
 ///\attention
 ///`List<? extends CharSequence>` is not satisfied by `ArrayList<String>`.
 ///But `? extends List<? extends CharSequence>` is satisfied by `ArrayList<String>`.
-template<typename X, typename Y>
+template<typename X>
 struct is_satisfied_by_;
 
 } /* namespace java::type_traits::<unnamed> */
@@ -65,7 +67,7 @@ template<typename T>
 constexpr bool is_compact_generic_v = is_compact_generic<T>::value;
 
 template<typename X, typename Y>
-using is_satisfied_by = typename is_satisfied_by_<X, Y>::type;
+using is_satisfied_by = typename is_satisfied_by_<X>::template test<Y>::type;
 
 template<typename X, typename Y>
 constexpr bool is_satisfied_by_v = is_satisfied_by<X, Y>::value;
@@ -151,78 +153,29 @@ struct is_t {
   using arguments = generics_arguments<Arguments...>;
 };
 
-
-namespace detail {
-
-///\brief Helper type that computes an argument pack by repeatedly adding elements from Tail.
-///\tparam T An argument pack. The pack should be compact.
-///\tparam Tail Multiple elements to be added. Each should be a generic or `void`. (`void` elements are dropped.)
-template<typename R, typename... Tail>
-struct combine;
-
-} /* namespace java::G::detail */
-
-
-template<typename Tag, typename... Arguments>
-struct extends_t<is_t<Tag, Arguments...>>
-: public extends_t<Tag, Arguments...>
-{};
-
-template<typename Tag, typename... Arguments>
-struct super_t<is_t<Tag, Arguments...>>
-: public super_t<Tag, Arguments...>
-{};
-
-template<typename Tag, typename... Arguments>
-struct is_t<is_t<Tag, Arguments...>>
-: public is_t<Tag, Arguments...>
-{};
-
-
-template<typename Tag, typename... Arguments>
-struct extends_t<extends_t<Tag, Arguments...>>
-: public extends_t<Tag, Arguments...>
-{};
-
-#if 0 // Omit: `? super ? extends ...` is not resolvable (static_assert in base case will trip).
-template<typename Tag, typename... Arguments>
-struct super_t<extends_t<typename Tag, typename... Arguments>>
-{};
-#endif
-
-template<typename Tag, typename... Arguments>
-struct is_t<extends_t<Tag, Arguments...>>
-: public extends_t<Tag, Arguments...>
-{};
-
-
-#if 0 // Omit: `? extends ? super ...` is not resolvable (static_assert in base case will trip).
-template<typename Tag, typename... Arguments>
-struct extends_t<super_t<typename Tag, typename... Arguments>>
-{};
-#endif
-
-template<typename Tag, typename... Arguments>
-struct super_t<super_t<Tag, Arguments...>>
-: public super_t<Tag, Arguments...>
-{};
-
-template<typename Tag, typename... Arguments>
-struct is_t<super_t<Tag, Arguments...>>
-: public super_t<Tag, Arguments...>
-{};
-
-
+// Specialization for array.
 template<typename T>
-struct is_t<T*> {
-  using type = T*;
+struct extends_t<T*> {
+  using type = extends_t;
+  using tag = T*;
+  using arguments = generics_arguments<>;
 };
 
+// Specialization for array.
 template<typename T>
-struct extends_t<T*>
-: is_t<T*> // Arrays are final, thus `? extends T[]` is the same as `? is T[]`.
-{};
+struct super_t<T*> {
+  using type = super_t;
+  using tag = T*;
+  using arguments = generics_arguments<>;
+};
 
+// Specialization for array.
+template<typename T>
+struct is_t<T*> {
+  using type = is_t;
+  using tag = T*;
+  using arguments = generics_arguments<>;
+};
 
 /**
  * \brief Multiple generics constraints pack.
@@ -233,45 +186,172 @@ struct extends_t<T*>
 template<typename... G>
 struct pack_t {
   static_assert(std::conjunction_v<java::type_traits::is_generic<G>...>);
+  static_assert(sizeof...(G) != 1u);
 
-  using type = pack_t<typename G::type...>;
+  using type = pack_t;
 };
 
-// Specialization that unpacks single-element.
+
+namespace detail {
+
+///\brief Hold the result of combine.
+template<typename... T>
+struct combine_result {
+  static_assert(std::conjunction_v<java::type_traits::is_generic<T>...>);
+  static_assert(sizeof...(T) != 1u);
+
+  using type = pack_t<T...>;
+};
+
+///\brief Hold the result of combine.
+template<typename T>
+struct combine_result<T> {
+  static_assert(java::type_traits::is_generic_v<T>);
+
+  using type = T;
+};
+
+///\brief Helper type that computes an argument pack by repeatedly adding elements from Tail.
+///\tparam T An argument pack. The pack should be compact.
+///\tparam Tail Multiple elements to be added. Each should be a generic or `void`. (`void` elements are dropped.)
+template<typename R, typename... Tail>
+struct combine;
+
+template<typename Tag, typename... Arguments>
+struct make_is_ {
+  static_assert(sizeof...(Arguments) == detail::generics_arity_<Tag>::value,
+      "Incorrect number of generics arguments for type.");
+  static_assert(std::conjunction_v<::java::type_traits::is_generic<Arguments>...>,
+      "Arguments must be generics types.");
+
+  using type = typename Tag::template is_t<Arguments...>;
+};
+
+template<typename Tag, typename... Arguments>
+struct make_extends_ {
+  static_assert(sizeof...(Arguments) == detail::generics_arity_<Tag>::value,
+      "Incorrect number of generics arguments for type.");
+  static_assert(std::conjunction_v<::java::type_traits::is_generic<Arguments>...>,
+      "Arguments must be generics types.");
+
+  using type = typename Tag::template extends_t<Arguments...>;
+};
+
+template<typename Tag, typename... Arguments>
+struct make_super_ {
+  static_assert(sizeof...(Arguments) == detail::generics_arity_<Tag>::value,
+      "Incorrect number of generics arguments for type.");
+  static_assert(std::conjunction_v<::java::type_traits::is_generic<Arguments>...>,
+      "Arguments must be generics types.");
+
+  using type = typename Tag::template super_t<Arguments...>;
+};
+
+template<typename Tag, typename... Arguments>
+struct make_is_<is_t<Tag, Arguments...>>
+: make_is_<Tag, Arguments...>
+{};
+
+template<typename Tag, typename... Arguments>
+struct make_is_<extends_t<Tag, Arguments...>>
+: make_extends_<Tag, Arguments...>
+{};
+
+template<typename Tag, typename... Arguments>
+struct make_is_<super_t<Tag, Arguments...>>
+: make_super_<Tag, Arguments...>
+{};
+
+template<typename Tag, typename... Arguments>
+struct make_extends_<is_t<Tag, Arguments...>>
+: make_extends_<Tag, Arguments...>
+{};
+
+template<typename Tag, typename... Arguments>
+struct make_extends_<extends_t<Tag, Arguments...>>
+: make_extends_<Tag, Arguments...>
+{};
+
+template<typename Tag, typename... Arguments>
+struct make_extends_<super_t<Tag, Arguments...>>; // Unresolvable.
+
+template<typename Tag, typename... Arguments>
+struct make_super_<is_t<Tag, Arguments...>>
+: make_super_<Tag, Arguments...>
+{};
+
+template<typename Tag, typename... Arguments>
+struct make_super_<super_t<Tag, Arguments...>>
+: make_super_<Tag, Arguments...>
+{};
+
+template<typename Tag, typename... Arguments>
+struct make_super_<extends_t<Tag, Arguments...>>; // Unresolvable.
+
+template<typename T>
+struct make_is_<T*> {
+  static_assert(::java::type_traits::is_generic_v<T*>);
+
+  using type = T*;
+};
+
+// Arrays can not be a base class, so is_t and extends_t are equivalent.
+template<typename T>
+struct make_extends_<T*>
+: make_is_<T*>
+{};
+
+template<typename... G>
+struct make_pack_
+: detail::combine<detail::combine_result<>, G...>::type // a combine_result
+{};
+
 template<typename G>
-struct pack_t<G> {
+struct make_pack_<G> {
   static_assert(java::type_traits::is_generic_v<G>);
 
   using type = G;
 };
 
-template<typename... G>
-struct extends_t<pack_t<G...>>
-: public pack_t<extends_t<G>...>
+template<>
+struct make_pack_<> {
+  using type = ::java::G::pack_t<>;
+};
+
+template<typename... T>
+struct make_is_<pack_t<T...>>
+: make_pack_<typename make_is_<T>::type...>
 {};
 
-template<typename... G>
-struct super_t<pack_t<G...>>
-: public pack_t<super_t<G>...>
+template<typename... T>
+struct make_extends_<pack_t<T...>>
+: make_pack_<typename make_extends_<T>::type...>
 {};
 
-template<typename... G>
-struct is_t<pack_t<G...>>
-: public pack_t<is_t<G>...>
+template<typename... T>
+struct make_super_<pack_t<T...>>
+: make_pack_<typename make_super_<T>::type...>
 {};
 
+template<typename... T>
+struct make_pack_<pack_t<T...>>
+: make_pack_<T...>
+{};
+
+} /* namespace java::G::detail */
+
 
 template<typename... T>
-using extends = typename extends_t<T...>::type;
+using extends = typename ::java::G::detail::make_extends_<T...>::type;
 
 template<typename... T>
-using super = typename super_t<T...>::type;
+using super = typename ::java::G::detail::make_super_<T...>::type;
 
 template<typename... T>
-using is = typename is_t<T...>::type;
+using is = typename ::java::G::detail::make_is_<T...>::type;
 
 template<typename... T>
-using pack = typename detail::combine<pack_t<>, T...>::type::type; // Double type is needed here: first one selects result of combine operation, which is a pack. Second allows pack_t to perform minimizing operation.
+using pack = typename ::java::G::detail::make_pack_<T...>::type;
 
 
 } /* namespace java::G */
@@ -279,6 +359,9 @@ using pack = typename detail::combine<pack_t<>, T...>::type::type; // Double typ
 
 // Includes to satisfy implementations of type traits.
 #include <java/_accessor.h>
+#include <java/fwd/java/lang/Object.tag>
+#include <java/fwd/java/io/Serializable.tag>
+#include <java/fwd/java/lang/Cloneable.tag>
 
 
 namespace java::type_traits {
@@ -290,233 +373,200 @@ struct is_generic_<T*>
 {};
 
 template<typename Tag, typename... Args>
-struct is_generic_<java::G::is_t<Tag, Args...>> {
-  using type = std::true_type;
-};
+struct is_generic_<java::G::is_t<Tag, Args...>>
+: std::true_type
+{};
 
 template<typename Tag, typename... Args>
-struct is_generic_<java::G::extends_t<Tag, Args...>> {
-  using type = std::true_type;
-};
+struct is_generic_<java::G::extends_t<Tag, Args...>>
+: std::true_type
+{};
 
 template<typename Tag, typename... Args>
-struct is_generic_<java::G::super_t<Tag, Args...>> {
-  using type = std::true_type;
-};
+struct is_generic_<java::G::super_t<Tag, Args...>>
+: std::true_type
+{};
 
 template<typename... G>
-struct is_generic_<java::G::pack_t<G...>> {
-  using type = std::true_type;
-};
-
-
-// Comparison with array.
-template<typename X, typename Y>
-struct is_satisfied_by_<X*, Y> {
-  static_assert(is_generic_v<Y>);
-
-  using type = std::false_type;
-};
-
-// Comparison with array.
-template<typename X, typename Y>
-struct is_satisfied_by_<X*, Y*>
-: std::conditional_t<
-    is_generic_v<X> && is_generic_v<Y>,
-    is_satisfied_by_<X, Y>,
-    std::is_same<X, Y>>
+struct is_generic_<java::G::pack_t<G...>>
+: std::true_type
 {};
 
-// Comparison with array on the right.
-template<typename X, typename Y>
-struct is_satisfied_by_<X, Y*> {
-  static_assert(is_generic_v<X>);
 
-  using type = std::false_type;
+template<typename X, typename... XArgs>
+struct is_satisfied_by_<::java::G::is_t<X, XArgs...>> {
+  template<typename Y>
+  struct test;
 };
 
-// Comparison with argument pack on the left.
-template<typename... X, typename Y>
-struct is_satisfied_by_<java::G::pack_t<X...>, Y> {
-  static_assert(is_generic_v<Y>);
+template<typename X, typename... XArgs>
+template<typename Y, typename... YArgs>
+struct is_satisfied_by_<::java::G::is_t<X, XArgs...>>::test<::java::G::is_t<Y, YArgs...>>
+: std::false_type
+{};
 
-  using type = std::conjunction<is_satisfied_by<X, Y>...>;
-};
+template<typename X, typename... XArgs>
+template<typename... YArgs>
+struct is_satisfied_by_<::java::G::is_t<X, XArgs...>>::test<::java::G::is_t<X, YArgs...>>
+: std::conjunction<is_satisfied_by<XArgs, YArgs>...>
+{};
 
-// Comparison with argument pack on the right.
-template<typename... X, typename... Y>
-struct is_satisfied_by_<java::G::is_t<X...>, java::G::pack_t<Y...>> {
-  using type = std::disjunction<is_satisfied_by<G::is<X...>, Y>...>;
-};
+template<typename X, typename... XArgs>
+template<typename... Y>
+struct is_satisfied_by_<::java::G::is_t<X, XArgs...>>::test<::java::G::extends_t<Y...>>
+: std::false_type
+{};
 
-// Comparison with argument pack on the right.
-template<typename... X, typename... Y>
-struct is_satisfied_by_<java::G::extends_t<X...>, java::G::pack_t<Y...>> {
-  using type = std::disjunction<is_satisfied_by<java::G::extends_t<X...>, Y>...>;
-};
+template<typename X, typename... XArgs>
+template<typename... Y>
+struct is_satisfied_by_<::java::G::is_t<X, XArgs...>>::test<::java::G::super_t<Y...>>
+: std::false_type
+{};
 
-// Comparison with argument pack on the right.
-template<typename... X, typename... Y>
-struct is_satisfied_by_<java::G::super_t<X...>, java::G::pack_t<Y...>> {
-  using type = std::disjunction<is_satisfied_by<java::G::super_t<X...>, Y>...>;
-};
+template<typename X, typename... XArgs>
+template<typename... Y>
+struct is_satisfied_by_<::java::G::is_t<X, XArgs...>>::test<::java::G::pack_t<Y...>>
+: std::disjunction<typename test<Y>::type...>
+{};
 
-// Every array extends java.io.Serializable.
+template<typename X, typename... XArgs>
 template<typename Y>
-struct is_satisfied_by_<java::G::extends_t<java::_tags::java::io::Serializable>, Y*> {
-  using type = std::true_type;
+struct is_satisfied_by_<::java::G::is_t<X, XArgs...>>::test<Y*>
+: std::false_type
+{};
+
+
+template<typename X, typename... XArgs>
+struct is_satisfied_by_<::java::G::extends_t<X, XArgs...>> {
+  template<typename Y>
+  struct test;
 };
 
-// Everything extends java.lang.Object.
+template<typename X, typename... XArgs>
+template<typename Y, typename... YArgs>
+struct is_satisfied_by_<::java::G::extends_t<X, XArgs...>>::test<::java::G::is_t<Y, YArgs...>>
+: std::disjunction<
+    typename is_satisfied_by_<::java::G::is_t<X, XArgs...>>
+        ::template test<::java::G::is_t<Y, YArgs...>>::type,
+    typename test<typename Y::template parent_types<YArgs...>>::type>
+{};
+
+template<typename X, typename... XArgs>
+template<typename Y, typename... YArgs>
+struct is_satisfied_by_<::java::G::extends_t<X, XArgs...>>::test<::java::G::extends_t<Y, YArgs...>>
+: test<::java::G::is_t<Y, YArgs...>>
+{};
+
+template<typename X, typename... XArgs>
+template<typename Y, typename... YArgs>
+struct is_satisfied_by_<::java::G::extends_t<X, XArgs...>>::test<::java::G::super_t<Y, YArgs...>>
+: test<::java::_tags::java::lang::Object::is_t<>>
+{};
+
+template<typename X, typename... XArgs>
 template<typename... Y>
-struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::is_t<Y...>> {
-  using type = std::true_type;
-};
+struct is_satisfied_by_<::java::G::extends_t<X, XArgs...>>::test<::java::G::pack_t<Y...>>
+: std::disjunction<typename test<Y>::type...>
+{};
 
-// Everything extends java.lang.Object.
-template<typename... Y>
-struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::extends_t<Y...>> {
-  using type = std::true_type;
-};
-
-// Everything extends java.lang.Object.
-template<typename... Y>
-struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::super_t<Y...>> {
-  using type = std::true_type;
-};
-
-// Everything extends java.lang.Object.
-template<typename... Y>
-struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::pack_t<Y...>> {
-  using type = std::true_type;
-};
-
-// Everything extends java.lang.Object.
+template<typename X, typename... XArgs>
 template<typename Y>
-struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, Y*> {
-  using type = std::true_type;
-};
+struct is_satisfied_by_<::java::G::extends_t<X, XArgs...>>::test<Y*>
+: std::enable_if_t<
+    is_generic_v<Y*>,
+    std::disjunction<
+        std::is_same<::java::_tags::java::lang::Object, X>,
+        std::is_same<::java::_tags::java::io::Serializable, X>,
+        std::is_same<::java::_tags::java::lang::Cloneable, X>>>
+{};
 
-// Everything extends java.lang.Object.
-// Ambiguity case.
+
+// Object is extended by everything.
+// (Curiously, it is by interfaces too, don't ask me how.)
 template<>
-struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::extends_t<java::_tags::java::lang::Object>> {
-  using type = std::true_type;
+struct is_satisfied_by_<::java::_tags::java::lang::Object::extends_t<>> {
+  template<typename Y>
+  using test = std::enable_if<is_generic_v<Y>, std::true_type>;
 };
 
-// Everything extends java.lang.Object.
-// Ambiguity case.
-template<>
-struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::is_t<java::_tags::java::lang::Object>> {
-  using type = std::true_type;
+
+template<typename X, typename... XArgs>
+struct is_satisfied_by_<::java::G::super_t<X, XArgs...>> {
+  template<typename Y>
+  struct test_;
+
+  template<typename Y>
+  struct test;
 };
 
-// Everything extends java.lang.Object.
-// Ambiguity case.
-template<typename YTag, typename... Y>
-struct is_satisfied_by_<java::G::extends_t<java::_tags::java::lang::Object>, java::G::super_t<YTag, Y...>> {
-  using type = std::true_type;
+template<typename X, typename... XArgs>
+template<typename Y>
+struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test_
+: std::disjunction<
+    typename is_satisfied_by_<::java::G::is_t<X, XArgs...>>
+        ::template test<Y>::type,
+    std::conjunction<
+        std::negation<std::is_same<::java::G::pack_t<>, typename X::template parent_types<XArgs...>>>,
+        typename is_satisfied_by_<typename X::template parent_types<XArgs...>>
+            ::template test<Y>::type>>
+{};
+
+template<typename X, typename... XArgs>
+template<typename Y, typename... YArgs>
+struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test_<::java::G::super_t<Y, YArgs...>>
+: test_<::java::G::is_t<Y, YArgs...>>
+{};
+
+template<typename X, typename... XArgs>
+template<typename Y>
+struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test
+: std::disjunction<
+    std::is_same<::java::_tags::java::lang::Object::is_t<>, Y>,
+    std::is_same<::java::_tags::java::lang::Object::super_t<>, Y>,
+    typename test_<Y>::type>
+{};
+
+
+template<typename... X>
+struct is_satisfied_by_<::java::G::pack_t<X...>> {
+  template<typename Y>
+  using test = std::conjunction<typename is_satisfied_by_<X>::template type<Y>::type...>;
 };
 
-// G::is only works if tags match on both sides (non-matching case).
-// Example: List<CharSequence> is not satisfied by List<String>, nor List<Object>
-template<typename XTag, typename... X, typename YTag, typename... Y>
-struct is_satisfied_by_<java::G::is_t<XTag, X...>, java::G::is_t<YTag, Y...>> {
-  using type = std::false_type;
-};
 
-// G::is only works if tags match on both sides.
-// Example: List<CharSequence> is not satisfied by List<String>
-template<typename XTag, typename... X, typename YTag, typename... Y>
-struct is_satisfied_by_<java::G::is_t<XTag, X...>, java::G::extends_t<YTag, Y...>> {
-  using type = std::false_type;
-};
-
-// G::is only works if tags match on both sides.
-// Example: List<CharSequence> is not satisfied by List<Object>
-template<typename XTag, typename... X, typename YTag, typename... Y>
-struct is_satisfied_by_<java::G::is_t<XTag, X...>, java::G::super_t<YTag, Y...>> {
-  using type = std::false_type;
-};
-
-// G::is only works if tags match on both sides (matching case).
-// Example: List<CharSequence> is satisfied by List<CharSequence>
-template<typename Tag, typename... X, typename... Y>
-struct is_satisfied_by_<java::G::is_t<Tag, X...>, java::G::is_t<Tag, Y...>> {
-  using type = std::conjunction<is_satisfied_by<X, Y>...>;
-};
-
-///\brief Helper for is_satisfied_by_ with G::extends on the left hand side.
-template<typename X, bool Implemented>
-struct is_satisfied_by__aft_ {
-  template<typename Accessor>
-  using test = std::false_type;
-};
-
-///\brief Given an accessor, extract the G::is, G::extends, and G::super types.
-template<typename Accessor>
-struct accessor_type_;
-
-///\brief Helper for is_satisfied_by, that uses `X::tag` to figure out the matching type from an accessor, then invokes is_satisfied.
 template<typename X>
-struct is_satisfied_by__aft_<X, true> {
-  template<typename Accessor>
-  using test = is_satisfied_by<X, typename accessor_type_<accessor_for_tag_t<typename X::tag, Accessor>>::is_type>;
+struct is_satisfied_by_<X*> {
+  struct primitive_test_ {
+    template<typename Y>
+    using type = typename ::std::is_same<X, Y>;
+  };
+
+  struct type_test_ {
+    template<typename Y>
+    using type = typename is_satisfied_by_<X>::template test<Y>::type;
+  };
+
+  template<typename Y>
+  using test_ = typename ::std::conditional_t<
+      is_java_primitive_<X>::value || is_java_primitive_<Y>::value,
+      primitive_test_,
+      type_test_>::template type<Y>;
+
+  template<typename Y>
+  struct test;
 };
 
-///\brief Minimalistic base type for accessors.
-struct _dummy_accessor_base {
-  template<typename T> auto ref_() const -> T&;
-};
-
-template<typename Base, typename Tag, typename... Args>
-struct accessor_type_<java::_accessor<Base, Tag, Args...>> {
-  using is_type = java::G::is<Tag, Args...>;
-  using super_type = java::G::super<Tag, Args...>;
-  using extends_type = java::G::extends<Tag, Args...>;
-};
-
-// G::extends<X...> is satisfied by an G::is<Y...>, that has the same super type
-// and where that super type satisfies G::is<X...>
-template<typename XTag, typename... X, typename YTag, typename... Y>
-struct is_satisfied_by_<java::G::extends_t<XTag, X...>, java::G::is_t<YTag, Y...>> {
-  using x_accessor = java::_accessor<_dummy_accessor_base, XTag, X...>;
-  using y_accessor = java::_accessor<_dummy_accessor_base, YTag, Y...>;
-  static_assert(sizeof(x_accessor) > 0 && sizeof(y_accessor) > 0, "Accessors must be complete types.");
-
-  using type = typename is_satisfied_by__aft_<java::G::is<XTag, X...>, implements_tag_v<XTag, y_accessor>>
-      ::template test<y_accessor>;
-};
-
-// G::extends<X...> is satisfied by any G::extends<Y...>, for which it is satisfied by G::is<Y...>.
-template<typename XTag, typename... X, typename YTag, typename... Y>
-struct is_satisfied_by_<java::G::extends_t<XTag, X...>, java::G::extends_t<YTag, Y...>>
-: public is_satisfied_by_<java::G::extends<XTag, X...>, java::G::is<YTag, Y...>>
+template<typename X>
+template<typename Y>
+struct is_satisfied_by_<X*>::test<Y*>
+: test_<Y>::type
 {};
 
-// G::extends can never be satisfied by G::super.
-template<typename XTag, typename... X, typename YTag, typename... Y>
-struct is_satisfied_by_<java::G::extends_t<XTag, X...>, java::G::super_t<YTag, Y...>> {
-  using type = std::false_type;
-};
-
-// G::super<X...> is satisfied by G::is<Y...>, if G::extends<Y...> is satisfied by G::is<X...>
-template<typename XTag, typename... X, typename YTag, typename... Y>
-struct is_satisfied_by_<java::G::super_t<XTag, X...>, java::G::is_t<YTag, Y...>>
-: public is_satisfied_by_<java::G::extends<YTag, Y...>, java::G::is<XTag, X...>>
+template<typename X>
+template<typename Y>
+struct is_satisfied_by_<X*>::test
+: std::enable_if_t<is_generic_v<Y>, std::false_type>
 {};
-
-// G::super<X...> is satisfied by G::super<Y...>, for which it is satisfied by G::is<Y...>.
-template<typename XTag, typename... X, typename YTag, typename... Y>
-struct is_satisfied_by_<java::G::super_t<XTag, X...>, java::G::super_t<YTag, Y...>>
-: public is_satisfied_by_<java::G::super<XTag, X...>, java::G::is<YTag, Y...>>
-{};
-
-// G::super can never be satisfied by G::extends.
-template<typename XTag, typename... X, typename YTag, typename... Y>
-struct is_satisfied_by_<java::G::super_t<XTag, X...>, java::G::extends_t<YTag, Y...>> {
-  using type = std::false_type;
-};
 
 } /* namespace java::type_traits::<unnamed> */
 } /* namespace java::type_traits */
@@ -561,14 +611,14 @@ struct add;
 
 // Skip addition of void.
 template<typename... X>
-struct add<pack_t<X...>, void> {
-  using type = pack_t<X...>;
+struct add<combine_result<X...>, void> {
+  using type = combine_result<X...>;
 };
 
 // When adding a pack, unpack it first.
 template<typename... X, typename... Y>
-struct add<pack_t<X...>, pack_t<Y...>>
-: combine<pack_t<X...>, Y...>
+struct add<combine_result<X...>, pack_t<Y...>>
+: combine<combine_result<X...>, Y...>
 {};
 
 // Simple addition, append Y to pack_t X.
@@ -576,8 +626,8 @@ template<typename X, typename Y>
 struct add0_;
 
 template<typename... X, typename Y>
-struct add0_<pack_t<X...>, Y> {
-  using type = pack_t<X..., Y>;
+struct add0_<combine_result<X...>, Y> {
+  using type = combine_result<X..., Y>;
 };
 
 // Add a type Y to pack_ X.
@@ -585,13 +635,13 @@ struct add0_<pack_t<X...>, Y> {
 // Otherwise: merge any X with Y for which tags match.
 // Otherwise: eliminate any X satisfied by Y, then perform simple addition.
 template<typename... X, typename Y>
-struct add<pack_t<X...>, Y> {
+struct add<combine_result<X...>, Y> {
   // std::true_type if Y is satisfied.
   using already_satisfied = std::disjunction<java::type_traits::is_satisfied_by<Y, X>...>;
 
   // Use combine to compute lesser pack.
   using elim_satisfied = combine<
-      pack_t<>,
+      combine_result<>,
       std::conditional_t<
           java::type_traits::is_satisfied_by_v<X, Y>,
           void,
@@ -604,13 +654,13 @@ struct add<pack_t<X...>, Y> {
           // If Y is already satisfied by constraints in X...
           already_satisfied::value,
           // Then don't add Y.
-          pack_t<X...>,
+          combine_result<X...>,
           // else:
           std::conditional_t<
               // If we can merge...
               std::disjunction_v<typename merge_by_tag_<X, Y>::success...>,
               // Merge same-tag X and Y into single entry.
-              pack_t<typename merge_by_tag_<X, Y>::merged_type...>,
+              combine_result<typename merge_by_tag_<X, Y>::merged_type...>,
               // Else: liminate any X satisfied by Y, then append Y.
               typename add0_<typename elim_satisfied::type, Y>::type>>;
 };
@@ -618,15 +668,15 @@ struct add<pack_t<X...>, Y> {
 
 // Base case where there is nothing more to be added.
 template<typename... R>
-struct combine<pack_t<R...>> {
-  using type = pack_t<R...>;
+struct combine<combine_result<R...>> {
+  using type = combine_result<R...>;
 };
 
 // Default addition case: use `add` to add a single element,
 // and use recursion for the remaining elements.
 template<typename... R, typename In, typename... Tail>
-struct combine<pack_t<R...>, In, Tail...>
-: combine<typename add<pack_t<R...>, In>::type, Tail...>
+struct combine<combine_result<R...>, In, Tail...>
+: combine<typename add<combine_result<R...>, In>::type, Tail...>
 {};
 
 } /* namespace java::G::detail */
