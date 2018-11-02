@@ -146,7 +146,7 @@ public class ClassGenerics {
     }
 
     private static String mangledName(String name) {
-        return "__" + name + "__";
+        return "__RawArg_" + name + "__";
     }
 
     private Map<String, String> mangledNames() {
