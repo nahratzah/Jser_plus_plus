@@ -33,7 +33,7 @@ tagFile(codeGen, includes, includesAfter) ::= <<
 ///\brief Forward declaration of the tag.
 ///\note If all you want is the type, include <$codeGen.headerName$> instead.
 
-$[codeGen.tagFwdHeaderName, "java/generics.h", "java/type_traits.h"]: include(); separator = "\n"$
+$[codeGen.tagFwdHeaderName, "string_view", "java/generics.h", "java/type_traits.h"]: include(); separator = "\n"$
 $includes: include(); separator = "\n"$
 
 // Forward declare all erased types.
