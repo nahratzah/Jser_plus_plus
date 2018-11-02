@@ -115,6 +115,12 @@ public class Processor implements Context {
 
         int changedFileCounter = 0;
         for (final CodeGenerator cg : cgMap.values()) {
+            final boolean tagFwdHeaderChanged = setFileContents(
+                    module.addHeader(cg.getTagFwdHeaderName()).toPath(),
+                    cg.tagFwdHeaderFile());
+            final boolean tagHeaderChanged = setFileContents(
+                    module.addHeader(cg.getTagHeaderName()).toPath(),
+                    cg.tagHeaderFile());
             final boolean fwdHeaderChanged = setFileContents(
                     module.addHeader(cg.getFwdHeaderName()).toPath(),
                     cg.fwdHeaderFile());
@@ -124,7 +130,9 @@ public class Processor implements Context {
             final boolean sourceChanged = setFileContents(
                     module.addSource(cg.sourceName()).toPath(),
                     cg.sourceFile());
-            changedFileCounter += (fwdHeaderChanged ? 1 : 0)
+            changedFileCounter += (tagFwdHeaderChanged ? 1 : 0)
+                    + (tagHeaderChanged ? 1 : 0)
+                    + (fwdHeaderChanged ? 1 : 0)
                     + (headerChanged ? 1 : 0)
                     + (sourceChanged ? 1 : 0);
         }

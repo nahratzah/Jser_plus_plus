@@ -4,15 +4,11 @@
 ///\file
 ///\brief Types to describe java generics.
 
-namespace java::_tags::java::lang {
-struct Object;
-};
-namespace java::_tags::java::io {
-struct Serializable;
-};
-
 #include <cstddef>
 #include <type_traits>
+#include <java/generics_arity_.h>
+#include <java/fwd/java/lang/Object.tagfwd>
+#include <java/fwd/java/io/Serializable.tagfwd>
 
 namespace java::type_traits {
 namespace {
@@ -78,24 +74,6 @@ constexpr bool is_satisfied_by_v = is_satisfied_by<X, Y>::value;
 
 ///\brief Namespace for generics.
 namespace java::G {
-namespace detail {
-
-template<typename Tag>
-struct generics_arity_
-: std::integral_constant<std::size_t, Tag::generics_arity>
-{};
-
-template<>
-struct generics_arity_<java::_tags::java::lang::Object>
-: std::integral_constant<std::size_t, 0u>
-{};
-
-template<>
-struct generics_arity_<java::_tags::java::io::Serializable>
-: std::integral_constant<std::size_t, 0u>
-{};
-
-} /* namespace java::G::detail */
 
 
 ///\brief Template that holds multiple type-arguments to a type.

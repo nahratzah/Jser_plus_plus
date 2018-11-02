@@ -5,6 +5,7 @@ import com.github.nahratzah.jser_plus_plus.model.Accessor;
 import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
 import com.github.nahratzah.jser_plus_plus.model.ClassType;
 import com.github.nahratzah.jser_plus_plus.model.JavaType;
+import com.github.nahratzah.jser_plus_plus.model.Type;
 import com.github.nahratzah.jser_plus_plus.output.builtins.StCtx;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Streams;
@@ -30,6 +31,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -82,6 +84,48 @@ public class CodeGenerator {
         return this.types.addAll(c);
     }
 
+    public String tagFwdHeaderFile() {
+        final Collection<String> includes = Stream.of("java/generics_arity_.h", "type_traits", "cstddef")
+                .distinct()
+                .sorted(INCLUDE_SORTER)
+                .collect(Collectors.toList());
+
+        return FILES_TEMPLATE.getInstanceOf("fwdTagFile")
+                .add("codeGen", this)
+                .add("includes", includes)
+                .render(Locale.ROOT, LINE_WRAP);
+    }
+
+    public String tagHeaderFile() {
+        final Collection<String> includes = types.stream()
+                .map(ClassType::getClassGenerics)
+                .flatMap(classGenerics -> classGenerics.getGenerics().values().stream())
+                .flatMap(Type::getAllJavaTypes)
+                .map(CodeGenerator::computeBaseType)
+                .map(CodeGenerator::tagFwdHeaderName)
+                .filter(Predicate.isEqual(getTagFwdHeaderName()).negate())
+                .distinct()
+                .sorted(INCLUDE_SORTER)
+                .collect(Collectors.toList());
+
+        final Collection<String> includesAfter = types.stream()
+                .map(ClassType::getClassGenerics)
+                .flatMap(classGenerics -> classGenerics.getGenerics().values().stream())
+                .flatMap(Type::getAllJavaTypes)
+                .map(CodeGenerator::computeBaseType)
+                .map(CodeGenerator::tagHeaderName)
+                .filter(Predicate.isEqual(getTagHeaderName()).negate())
+                .distinct()
+                .sorted(INCLUDE_SORTER)
+                .collect(Collectors.toList());
+
+        return FILES_TEMPLATE.getInstanceOf("tagFile")
+                .add("codeGen", this)
+                .add("includes", includes)
+                .add("includesAfter", includesAfter)
+                .render(Locale.ROOT, LINE_WRAP);
+    }
+
     public String fwdHeaderFile() {
         final Collection<String> includes = types.stream()
                 .flatMap(type -> {
@@ -94,8 +138,10 @@ public class CodeGenerator {
                 .distinct()
                 .sorted(INCLUDE_SORTER)
                 .filter(include -> !PRE_INCLUDES.contains(include))
-                .filter(include -> !Objects.equals(getFwdHeaderName(), include))
-                .filter(include -> !Objects.equals(getHeaderName(), include))
+                .filter(Predicate.isEqual(getFwdHeaderName()).negate())
+                .filter(Predicate.isEqual(getHeaderName()).negate())
+                .filter(Predicate.isEqual(getTagFwdHeaderName()).negate())
+                .filter(Predicate.isEqual(getTagHeaderName()).negate())
                 .collect(Collectors.toList());
 
         return FILES_TEMPLATE.getInstanceOf("fwdHeaderFile")
@@ -231,6 +277,14 @@ public class CodeGenerator {
         return result;
     }
 
+    public String getTagFwdHeaderName() {
+        return tagFwdHeaderName(baseType);
+    }
+
+    public String getTagHeaderName() {
+        return tagHeaderName(baseType);
+    }
+
     public String getFwdHeaderName() {
         return fwdHeaderName(baseType);
     }
@@ -245,6 +299,14 @@ public class CodeGenerator {
 
     public static String headerName(JavaType c) {
         return headerName(computeBaseType(c));
+    }
+
+    private static String tagFwdHeaderName(List<String> baseType) {
+        return "java/fwd/" + String.join("/", baseType) + ".tagfwd";
+    }
+
+    private static String tagHeaderName(List<String> baseType) {
+        return "java/fwd/" + String.join("/", baseType) + ".tag";
     }
 
     private static String headerName(List<String> baseType) {
