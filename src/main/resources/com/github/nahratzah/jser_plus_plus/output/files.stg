@@ -230,8 +230,8 @@ struct $model.className$ {
 
     return $u16StringView(model.name)$;
   }
-$if (model.classGenerics.mangledGenericsNames)$
 
+$if (model.classGenerics.mangledGenericsNames)$
   private:
   ///\brief Compute types and validate constraints.
   ///\details Empty java::G::pack_t are converted to their constrained type.
@@ -269,17 +269,30 @@ $if (model.classGenerics.mangledGenericsNames)$
 
   public:
   ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
-  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; separator = "\n"$
+  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
   using is_t = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::is_t;
   ///\brief The \ref ::java::G::extends_t "extends" generic for $model.boundType$.
-  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; separator = "\n"$
+  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
   using extends_t = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::extends_t;
   ///\brief The \ref ::java::G::super_t "super" generic for $model.boundType$.
-  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; separator = "\n"$
+  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
   using super_t = typename argRebuild$templateArgs(model.classGenerics.genericsNames)$::super_t;
+$else$
+  ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
+  ///\note This is a zero argument template.
+  template<typename... __T__>
+  using is_t = ::java::G::is_t<::std::enable_if_t<sizeof...(__T__) == 0, $model.className$\>>;
+  ///\brief The \ref ::java::G::extends_t "extends" generic for $model.boundType$.
+  ///\note This is a zero argument template.
+  template<typename... __T__>
+  using extends_t = ::java::G::extends_t<::std::enable_if_t<sizeof...(__T__) == 0, $model.className$\>>;
+  ///\brief The \ref ::java::G::super_t "super" generic for $model.boundType$.
+  ///\note This is a zero argument template.
+  template<typename... __T__>
+  using super_t = ::java::G::super_t<::std::enable_if_t<sizeof...(__T__) == 0, $model.className$\>>;
 $endif$
 };
 >>
