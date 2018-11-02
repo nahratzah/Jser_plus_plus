@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -93,19 +92,19 @@ public class ClassGenerics {
                             });
                     if (typeSet.isEmpty()) return null;
                     final BoundTemplate type = new BoundTemplate.Any(EMPTY_LIST, typeSet);
-                    return type
-                            .rebind(singletonMap(name, new BoundTemplate.Any()))
-                            .rebind(replacements);
+                    return type.rebind(replacements);
                 })
                 .collect(Collectors.toList());
     }
 
     public List<BoundTemplate> getConstraints() {
+        final Map<String, BoundTemplate.VarBinding> replacements = generics.keySet().stream()
+                .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
+
         return generics.keySet().stream()
                 .map((name) -> {
                     final BoundTemplate.Any type = new BoundTemplate.Any(EMPTY_LIST, requireNonNull(generics.get(name)));
-                    return type
-                            .rebind(singletonMap(name, new BoundTemplate.Any()));
+                    return type.rebind(replacements);
                 })
                 .collect(Collectors.toList());
     }
