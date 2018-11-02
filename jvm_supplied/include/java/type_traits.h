@@ -41,6 +41,9 @@ struct is_java_primitive_
 : std::false_type
 {};
 
+template<typename T>
+struct type_and_supertypes_;
+
 } /* namespace java::type_traits::<unnamed> */
 
 
@@ -127,6 +130,58 @@ using is_java_primitive = typename is_java_primitive_<T>::type;
 ///\copydoc is_java_primitive
 template<typename T>
 constexpr bool is_java_primitive_v = is_java_primitive<T>::value;
+
+
+/**
+ * \brief Resolve type T and all its supertypes.
+ * \details
+ * Create a \ref ::java::G::pack "pack-type" containing the type \p T
+ * and its supertypes, recursively.
+ * Uses breadth-first search to populate the list.
+ * \tparam T A java \ref ::java::G::is "is-generic",
+ * or a \ref java::G::pack "pack-type" containing zero or more
+ * \ref ::java::G::is "is-generics".
+ *
+ * Example:
+ * `java::util::ArrayList<T>` will yield:
+ * \code
+ * ::java::G::pack<  // Note: same types are merged by the pack type.
+ *   java::util::ArrayList<T>,          // Input type.
+ *
+ *   java::util::AbstractList<T>,       // 1st parent of ArrayList.
+ *   java::util::List<T>,               // 2nd parent of ArrayList.
+ *   java::util::RandomAccess,          // 3rd parent of ArrayList.
+ *   java::lang::Cloneable,             // 4th parent of ArrayList.
+ *   java::io::Serializable<T>,         // 5th parent of ArrayList.
+ *
+ *   java::util::AbstractCollection<T>, // 1st parent of AbstractList.
+ *   java::util::List<T>,               // 2nd parent of AbstractList.
+ *
+ *   java::util::Collection<T>,         // 1st parent of List.
+ *
+ *                                      // RandomAccess has no parents.
+ *                                      // Cloneable has no parents.
+ *                                      // Serializable has no parents.
+ *
+ *   java::lang::Object,                // 1st parent of AbstractCollection.
+ *   java::util::Collection<T>,         // 2nd parent of AbstractCollection.
+ *
+ *   java::util::Collection<T>,         // 1st parent of List.
+ *
+ *   java::util::Iterable<T>            // 1st parent of Collection.
+ *
+ *                                      // Object has no parents.
+ *
+ *                                      // Iterable has no parents.
+ * >
+ * \endcode
+ */
+template<typename T>
+using type_and_supertypes = type_and_supertypes_<T>;
+
+///\copydoc type_and_supertypes
+template<typename T>
+using type_and_supertypes_t = typename type_and_supertypes<T>::type;
 
 
 namespace {
@@ -260,6 +315,42 @@ template<>
 struct is_java_primitive_<java::void_t>
 : std::true_type
 {};
+
+
+// Case for single type.
+// 1. Emit the type itself.
+// 2. Recurse on super types.
+template<typename Tag, typename... Args>
+struct type_and_supertypes_<::java::G::is_t<Tag, Args...>> {
+  using type = ::java::G::pack<
+      ::java::G::is_t<Tag, Args...>,
+      typename type_and_supertypes_<typename Tag::template parent_types<Args...>>::type>;
+};
+
+// Case for empty type.
+// (Nothing to be done, if there is no type, there are no type and supertypes.)
+template<>
+struct type_and_supertypes_<::java::G::pack_t<>> {
+  using type = ::java::G::pack<>;
+};
+
+// Case for multiple types.
+// 1. Emit head type (don't expand it, that's handled by step 2a).
+// 2. Recurse, breadth first:
+//    a. Include unprocessed arguments first.
+//    b. Then include parents of the head type.
+template<typename Tag, typename... Args, typename... T>
+struct type_and_supertypes_<::java::G::pack_t<::java::G::is_t<Tag, Args...>, T...>> {
+  // Corresponds to executing step 2.
+  using recurse_ = type_and_supertypes_<
+      ::java::G::pack<
+          T...,                                           // Step 2a.
+          typename Tag::template parent_types<Args...>>>; // Step 2b.
+
+  using type = ::java::G::pack<
+      ::java::G::is_t<Tag, Args...>,                      // Step 1.
+      typename recurse_::type>;                           // Step 2.
+};
 
 } /* namespace java::type_traits::<unnamed> */
 } /* namespace java::type_traits */
