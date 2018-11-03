@@ -223,12 +223,20 @@ struct combine;
 template<typename R, typename... Tail>
 struct type_set_combine;
 
+///\brief Type validation logic.
+///\details Validates if template arguments are valid.
+template<typename Tag, typename... Arguments>
+struct arg_validate
+: Tag::template __arg_validate__<Arguments...>
+{};
+
 template<typename Tag, typename... Arguments>
 struct make_is_ {
   static_assert(sizeof...(Arguments) == detail::generics_arity_<Tag>::value,
       "Incorrect number of generics arguments for type.");
   static_assert(std::conjunction_v<::java::type_traits::is_generic<Arguments>...>,
       "Arguments must be generics types.");
+  static_assert(arg_validate<Tag, Arguments...>::value, "Invalid type.");
 
   using type = typename Tag::template is_t<Arguments...>;
 };
@@ -239,6 +247,7 @@ struct make_extends_ {
       "Incorrect number of generics arguments for type.");
   static_assert(std::conjunction_v<::java::type_traits::is_generic<Arguments>...>,
       "Arguments must be generics types.");
+  static_assert(arg_validate<Tag, Arguments...>::value, "Invalid type.");
 
   using type = typename Tag::template extends_t<Arguments...>;
 };
@@ -249,6 +258,7 @@ struct make_super_ {
       "Incorrect number of generics arguments for type.");
   static_assert(std::conjunction_v<::java::type_traits::is_generic<Arguments>...>,
       "Arguments must be generics types.");
+  static_assert(arg_validate<Tag, Arguments...>::value, "Invalid type.");
 
   using type = typename Tag::template super_t<Arguments...>;
 };

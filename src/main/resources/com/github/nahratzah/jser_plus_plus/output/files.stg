@@ -217,7 +217,7 @@ struct $model.className$;
 tagArityDeclaration(model) ::= <<
 template<>
 struct generics_arity_<$tagType(model)$>
-: std::integral_constant<std::size_t, $length(model.templateArguments)$>
+: ::std::integral_constant<::std::size_t, $length(model.templateArguments)$>
 {};
 >>
 
@@ -246,11 +246,11 @@ $if (model.classGenerics.mangledGenericsNames)$
   $templateLine(model.classGenerics.mangledGenericsNames)$
   struct __arg_rebuild__;
 
+  public:
   ///\brief Validate types.
   $templateLine(model.classGenerics.mangledGenericsNames)$
   struct __arg_validate__;
 
-  public:
   ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
   $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
   $templateLine(model.classGenerics.genericsNames)$
@@ -269,6 +269,10 @@ $if (model.classGenerics.mangledGenericsNames)$
   $templateLine(model.classGenerics.genericsNames)$
   using parent_types = typename __arg_rebuild__$templateArgs(model.classGenerics.genericsNames)$::template parent_types<>;
 $else$
+  ///\brief Validate argument types.
+  template<typename...>
+  struct __arg_validate__;
+
   ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
   ///\note This is a zero argument template.
   template<typename... __T__>
@@ -330,20 +334,30 @@ struct $model.className$::__arg_rebuild__ {
       ::java::G::type_set_t$templateArgs(model.classGenerics.parentTypesForTag, true)$>;
 };
 
-$templateLine(model.classGenerics.genericsNames)$
+$templateLine(model.classGenerics.mangledGenericsNames)$
 struct $model.className$::__arg_validate__
-: std::conjunction<$model.classGenerics.genericsNames, model.classGenerics.constraints: {name, constraint | ::java::type_traits::is_satisfied_by<$boundTemplateType(constraint, "style=type")$, $name$>}; anchor, separator = ",\n"$>
+: ::std::true_type // Actual validation is done using static_assert.
 {
+  // Import names from arg rebuild logic.
+  $ model.classGenerics.genericsNames
+  : {name|using $name$ = typename __arg_rebuild__$templateArgs(model.classGenerics.mangledGenericsNames)$::$name$;}
+  ; anchor, separator = "\n"$
+
   // Argument validation.
-  $ model.classGenerics.genericsNames, model.classGenerics.constraints
-  : { name, constraint | $\\$
+  $ model.classGenerics.mangledGenericsNames, model.classGenerics.genericsNames, model.classGenerics.constraints
+  : { mangledName, name, constraint | $\\$
       static_assert($\\$
-          $ [ {::java::type_traits::is_satisfied_by_v<$boundTemplateType(constraint, "style=type")$, $name$>},
+          $ [ {::std::is_same_v<::java::G::pack_t<>, $mangledName$> || ::java::type_traits::is_satisfied_by_v<$boundTemplateType(constraint, "style=type")$, $name$>},
               cxxString({$name$ must extend $model.classGenerics.generics.(name)$}) ]
           ; anchor, separator = ",\n"$$\\$
           );}
   ; separator = "\n"$
 };
+$else$
+template<typename... __T__>
+struct $model.className$::__arg_validate__
+: ::std::enable_if_t<sizeof...(__T__) == 0, ::std::true_type>
+{};
 $endif$
 >>
 
