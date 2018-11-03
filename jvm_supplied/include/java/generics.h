@@ -519,19 +519,19 @@ struct test_super_parent_types_<::java::G::type_set_t<>> {
   using test = std::enable_if_t<is_generic_v<Y>, std::false_type>;
 };
 
-template<typename PT0, typename... PTTail>
-struct test_super_parent_types_<::java::G::type_set_t<PT0, PTTail...>> {
+template<typename X, typename... XArgs, typename... PTTail>
+struct test_super_parent_types_<::java::G::type_set_t<::java::G::is_t<X, XArgs...>, PTTail...>> {
   template<typename Y>
   struct test;
 };
 
-template<typename PT0, typename... PTTail>
+template<typename X, typename... XArgs, typename... PTTail>
 template<typename Y, typename... YArgs>
-struct test_super_parent_types_<::java::G::type_set_t<PT0, PTTail...>>::test<::java::G::is_t<Y, YArgs...>>
+struct test_super_parent_types_<::java::G::type_set_t<::java::G::is_t<X, XArgs...>, PTTail...>>::test<::java::G::is_t<Y, YArgs...>>
 : std::disjunction<
-    typename is_satisfied_by_<PT0>::template test<Y>,
-    typename test_super_parent_types_<PTTail...>::template test<Y>,
-    typename test_super_parent_types_<typename Y::template parent_types<YArgs...>>::template test<Y>>
+    typename is_satisfied_by_<::java::G::is_t<X, XArgs...>>::template test<::java::G::is_t<Y, YArgs...>>::type,
+    typename test_super_parent_types_<::java::G::type_set_t<PTTail...>>::template test<::java::G::is_t<Y, YArgs...>>,
+    typename test_super_parent_types_<typename X::template parent_types<XArgs...>>::template test<::java::G::is_t<Y, YArgs...>>>
 {};
 
 template<typename X, typename... XArgs>
@@ -553,6 +553,18 @@ template<typename X, typename... XArgs>
 template<typename Y, typename... YArgs>
 struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test_<::java::G::super_t<Y, YArgs...>>
 : test_<::java::G::is_t<Y, YArgs...>>
+{};
+
+template<typename X, typename... XArgs>
+template<typename Y, typename... YArgs>
+struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test_<::java::G::extends_t<Y, YArgs...>>
+: std::false_type
+{};
+
+template<typename X, typename... XArgs>
+template<typename Y>
+struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test_<Y*>
+: std::enable_if_t<is_generic_v<Y*>, std::false_type>
 {};
 
 template<typename X, typename... XArgs>
