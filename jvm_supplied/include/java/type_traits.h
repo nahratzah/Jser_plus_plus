@@ -53,6 +53,9 @@ struct is_tagged_;
 template<typename R, typename Tag, typename... Types>
 struct find_tagged_type_;
 
+template<typename T>
+struct find_is_types_only_;
+
 } /* namespace java::type_traits::<unnamed> */
 
 
@@ -279,6 +282,18 @@ template<typename Tag, typename... Types>
 constexpr bool has_basetype_with_tag_v = has_basetype_with_tag<Tag, Types...>::value;
 
 
+/**
+ * \brief Filter the types in this type, such that only \ref ::java::G::is_t "is-types" remain.
+ * \tparam T The type to search.
+ */
+template<typename T>
+using find_is_types_only = find_is_types_only_<T>;
+
+///\copydoc find_is_types_only
+template<typename T>
+using find_is_types_only_t = typename find_is_types_only<T>::type;
+
+
 namespace {
 
 template<typename G>
@@ -502,6 +517,37 @@ template<typename... R, typename Tag, typename... Pack, typename... Types>
 struct find_tagged_type_<::java::G::type_set_t<R...>, Tag, ::java::G::type_set_t<Pack...>, Types...>
 : find_tagged_type_<::java::G::type_set_t<R...>, Tag, Pack..., Types...>
 {};
+
+
+template<typename Tag, typename... Arguments>
+struct find_is_types_only_<::java::G::is_t<Tag, Arguments...>> {
+  using type = ::java::G::is_t<Tag, Arguments...>;
+};
+
+template<typename Tag, typename... Arguments>
+struct find_is_types_only_<::java::G::extends_t<Tag, Arguments...>> {
+  using type = ::java::G::pack_t<>;
+};
+
+template<typename Tag, typename... Arguments>
+struct find_is_types_only_<::java::G::super_t<Tag, Arguments...>> {
+  using type = ::java::G::pack_t<>;
+};
+
+template<typename T>
+struct find_is_types_only_<T*>
+: std::enable_if<is_generic_v<T*>, T*>
+{};
+
+template<typename... T>
+struct find_is_types_only_<::java::G::pack_t<T...>> {
+  using type = ::java::G::pack<typename find_is_types_only_<T>::type...>;
+};
+
+template<typename... T>
+struct find_is_types_only_<::java::G::type_set_t<T...>> {
+  using type = ::java::G::pack<typename find_is_types_only_<T>::type...>;
+};
 
 } /* namespace java::type_traits::<unnamed> */
 } /* namespace java::type_traits */

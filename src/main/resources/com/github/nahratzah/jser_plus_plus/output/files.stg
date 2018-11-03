@@ -347,7 +347,7 @@ struct $model.className$::__arg_validate__
   $ model.classGenerics.mangledGenericsNames, model.classGenerics.genericsNames, model.classGenerics.constraints
   : { mangledName, name, constraint | $\\$
       static_assert($\\$
-          $ [ {::std::is_same_v<::java::G::pack_t<>, $mangledName$> || ::java::type_traits::is_satisfied_by_v<$boundTemplateType(constraint, "style=type")$, $name$>},
+          $ [ {::std::is_same_v<::java::G::pack_t<>, ::java::type_traits::find_is_types_only_t<$mangledName$\>> || ::java::type_traits::is_satisfied_by_v<$boundTemplateType(constraint, "style=type")$, $name$>},
               cxxString({$name$ must extend $model.classGenerics.generics.(name)$}) ]
           ; anchor, separator = ",\n"$$\\$
           );}
