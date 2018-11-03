@@ -578,6 +578,12 @@ struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test_<::java::G::exten
 {};
 
 template<typename X, typename... XArgs>
+template<typename... Y>
+struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test_<::java::G::pack_t<Y...>>
+: std::disjunction<test_<Y>...>
+{};
+
+template<typename X, typename... XArgs>
 template<typename Y>
 struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test_<Y*>
 : std::enable_if_t<is_generic_v<Y*>, std::false_type>
