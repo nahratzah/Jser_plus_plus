@@ -115,6 +115,9 @@ public class ClassGenerics {
     }
 
     public List<String> getConstraints() {
+        // We need to prerender the entire thing, so we can implement things
+        // by sidestepping `java::G::is<>`, which would recurse into the tag
+        // declaration.
         final Map<String, BoundTemplate.VarBinding> replacements = generics.keySet().stream()
                 .collect(Collectors.toMap(Function.identity(), BoundTemplate.VarBinding::new));
 
