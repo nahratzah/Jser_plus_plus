@@ -530,7 +530,7 @@ struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test
 template<typename... X>
 struct is_satisfied_by_<::java::G::pack_t<X...>> {
   template<typename Y>
-  using test = std::conjunction<typename is_satisfied_by_<X>::template type<Y>::type...>;
+  using test = std::conjunction<typename is_satisfied_by_<X>::template test<Y>::type...>;
 };
 
 
