@@ -286,17 +286,9 @@ $else$
   ///\note This is a zero argument template.
   ///The weird `std::enable_if_t` usage is to make any types late binding.
   template<typename... __T__>
-  using parent_types = ::std::enable_if_t$templateArgs([
-      {sizeof...(__T__) == 0},
-      {$\\$
-        $if (!model.classGenerics.parentTypesForTag)$$\\$
-          ::java::G::pack_t<>$\\$
-        $elseif (!rest(model.classGenerics.parentTypesForTag))$$\\$
-          $model.classGenerics.parentTypesForTag$$\\$
-        $else$$\\$
-          ::java::G::pack_t$templateArgs(model.classGenerics.parentTypesForTag)$$\\$
-        $endif$$\\$
-      }])$;
+  using parent_types = ::std::enable_if_t<
+      sizeof...(__T__) == 0,
+      ::java::G::type_set_t$templateArgs(model.classGenerics.parentTypesForTag, true)$>;
 $endif$
 };
 >>
@@ -333,17 +325,9 @@ struct $model.className$::__arg_rebuild__ {
   ///\note This is a zero-argument template.
   ///The weird `std::enable_if_t` usage is to make any types late binding.
   template<typename... __T__>
-  using parent_types = ::std::enable_if_t$templateArgs([
-      {sizeof...(__T__) == 0},
-      {$\\$
-        $if (!model.classGenerics.parentTypesForTag)$$\\$
-          ::java::G::pack_t<>$\\$
-        $elseif (!rest(model.classGenerics.parentTypesForTag))$$\\$
-          $model.classGenerics.parentTypesForTag$$\\$
-        $else$$\\$
-          ::java::G::pack_t$templateArgs(model.classGenerics.parentTypesForTag)$$\\$
-        $endif$$\\$
-      }])$;
+  using parent_types = ::std::enable_if_t<
+      sizeof...(__T__) == 0,
+      ::java::G::type_set_t$templateArgs(model.classGenerics.parentTypesForTag, true)$>;
 };
 
 $templateLine(model.classGenerics.genericsNames)$

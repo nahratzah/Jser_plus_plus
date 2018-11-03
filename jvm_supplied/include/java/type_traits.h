@@ -4,6 +4,9 @@
 #include <type_traits>
 #include <java/generics.h>
 #include <java/primitives.h>
+#include <java/fwd/java/lang/Object.tagfwd>
+#include <java/fwd/java/lang/Cloneable.tagfwd>
+#include <java/fwd/java/io/Serializable.tagfwd>
 
 ///\brief Namespace for java type_traits.
 namespace java::type_traits {
@@ -41,7 +44,7 @@ struct is_java_primitive_
 : std::false_type
 {};
 
-template<typename T>
+template<typename R, typename... T>
 struct type_and_supertypes_;
 
 } /* namespace java::type_traits::<unnamed> */
@@ -135,11 +138,11 @@ constexpr bool is_java_primitive_v = is_java_primitive<T>::value;
 /**
  * \brief Resolve type T and all its supertypes.
  * \details
- * Create a \ref ::java::G::pack "pack-type" containing the type \p T
+ * Create a \ref ::java::G::type_set_t "type set" containing the type \p T
  * and its supertypes, recursively.
  * Uses breadth-first search to populate the list.
  * \tparam T A java \ref ::java::G::is "is-generic",
- * or a \ref java::G::pack "pack-type" containing zero or more
+ * or a \ref java::G::type_set_t "type set" containing zero or more
  * \ref ::java::G::is "is-generics".
  *
  * Example:
@@ -177,7 +180,7 @@ constexpr bool is_java_primitive_v = is_java_primitive<T>::value;
  * \endcode
  */
 template<typename T>
-using type_and_supertypes = type_and_supertypes_<T>;
+using type_and_supertypes = type_and_supertypes_<java::G::type_set_t<>, T>;
 
 ///\copydoc type_and_supertypes
 template<typename T>
@@ -317,42 +320,50 @@ struct is_java_primitive_<java::void_t>
 {};
 
 
-// Case for single type.
-// 1. Emit the type itself.
-// 2. Recurse on super types.
-template<typename Tag, typename... Args>
-struct type_and_supertypes_<::java::G::is_t<Tag, Args...>> {
-  using type = ::java::G::pack<
-      ::java::G::is_t<Tag, Args...>,
-      typename type_and_supertypes_<typename Tag::template parent_types<Args...>>::type>;
-};
-
-// Case for empty type.
+// Sentinel, when there are no more remaining types.
 // (Nothing to be done, if there is no type, there are no type and supertypes.)
-template<>
-struct type_and_supertypes_<::java::G::pack_t<>> {
-  using type = ::java::G::pack<>;
+template<typename... Types>
+struct type_and_supertypes_<::java::G::type_set_t<Types...>> {
+  using type = ::java::G::type_set_t<Types...>;
 };
 
-// Case for multiple types.
-// 1. Emit head type (don't expand it, that's handled by step 2a).
-// 2. Recurse, breadth first:
-//    a. Include unprocessed arguments first.
-//    b. Then include parents of the head type.
-template<typename Tag, typename... Args, typename... T>
-struct type_and_supertypes_<::java::G::pack_t<::java::G::is_t<Tag, Args...>, T...>> {
-  // Corresponds to executing step 2.
-  using recurse_ = type_and_supertypes_<
-      ::java::G::pack<
-          T...,                                           // Step 2a.
-          typename Tag::template parent_types<Args...>>>; // Step 2b.
+// Case for adding one or more types from a pack.
+template<typename... Types, typename... Pack, typename... Tail>
+struct type_and_supertypes_<::java::G::type_set_t<Types...>, ::java::G::pack_t<Pack...>, Tail...>
+: type_and_supertypes_<::java::G::type_set_t<Types...>, Pack..., Tail...>
+{};
 
-  using type = ::java::G::pack<
-      ::java::G::is_t<Tag, Args...>,                      // Step 1.
-      typename recurse_::type>;                           // Step 2.
-};
+// Case for adding one or more types from a type set.
+template<typename... Types, typename... Pack, typename... Tail>
+struct type_and_supertypes_<::java::G::type_set_t<Types...>, ::java::G::type_set_t<Pack...>, Tail...>
+: type_and_supertypes_<::java::G::type_set_t<Types...>, Pack..., Tail...>
+{};
+
+// Case for adding an is_t type.
+template<typename... Types, typename Tag, typename... Args, typename... Tail>
+struct type_and_supertypes_<::java::G::type_set_t<Types...>, ::java::G::is_t<Tag, Args...>, Tail...>
+: type_and_supertypes_<
+    ::java::G::type_set<Types..., ::java::G::is_t<Tag, Args...>>,
+    Tail...,
+    typename Tag::template parent_types<Args...>>
+{};
+
+// Case for adding a pointer type.
+template<typename... Types, typename T, typename... Tail>
+struct type_and_supertypes_<::java::G::type_set_t<Types...>, T*, Tail...>
+: type_and_supertypes_<
+    ::java::G::type_set<Types..., T*>,
+    Tail...,
+    ::java::G::is_t<::java::_tags::java::lang::Object>,
+    ::java::G::is_t<::java::_tags::java::lang::Cloneable>,
+    ::java::G::is_t<::java::_tags::java::io::Serializable>>
+{};
 
 } /* namespace java::type_traits::<unnamed> */
 } /* namespace java::type_traits */
+
+#include <java/fwd/java/lang/Object.tag>
+#include <java/fwd/java/lang/Cloneable.tag>
+#include <java/fwd/java/io/Serializable.tag>
 
 #endif /* JAVA_TYPE_TRAITS_H */

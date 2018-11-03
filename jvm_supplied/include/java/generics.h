@@ -212,10 +212,16 @@ struct combine_result<T> {
 };
 
 ///\brief Helper type that computes an argument pack by repeatedly adding elements from Tail.
-///\tparam T An argument pack. The pack should be compact.
+///\tparam R A combine_result.
 ///\tparam Tail Multiple elements to be added. Each should be a generic or `void`. (`void` elements are dropped.)
 template<typename R, typename... Tail>
 struct combine;
+
+///\brief Helper type that computes a type set by repeatedly adding elements from Tail.
+///\tparam R A type_set_t.
+///\tparam Tail Multiple elements to be added. Each should be a generic, a type_set_t, or `void`. (`void` elements are dropped.)
+template<typename R, typename... Tail>
+struct type_set_combine;
 
 template<typename Tag, typename... Arguments>
 struct make_is_ {
@@ -354,14 +360,22 @@ template<typename... T>
 using pack = typename ::java::G::detail::make_pack_<T...>::type;
 
 
+/**
+ * \brief A set of types.
+ */
+template<typename... T>
+struct type_set_t;
+
+/**
+ * \brief A set of types.
+ * \details Keeps track of multiple types, merging together types with the same
+ * tag.
+ */
+template<typename... T>
+using type_set = typename detail::type_set_combine<type_set_t<>, T...>::type;
+
+
 } /* namespace java::G */
-
-
-// Includes to satisfy implementations of type traits.
-#include <java/_accessor.h>
-#include <java/fwd/java/lang/Object.tag>
-#include <java/fwd/java/io/Serializable.tag>
-#include <java/fwd/java/lang/Cloneable.tag>
 
 
 namespace java::type_traits {
@@ -460,12 +474,18 @@ struct is_satisfied_by_<::java::G::extends_t<X, XArgs...>>::test<::java::G::exte
 template<typename X, typename... XArgs>
 template<typename Y, typename... YArgs>
 struct is_satisfied_by_<::java::G::extends_t<X, XArgs...>>::test<::java::G::super_t<Y, YArgs...>>
-: test<::java::_tags::java::lang::Object::is_t<>>
+: test<::java::G::is_t<::java::_tags::java::lang::Object>>
 {};
 
 template<typename X, typename... XArgs>
 template<typename... Y>
 struct is_satisfied_by_<::java::G::extends_t<X, XArgs...>>::test<::java::G::pack_t<Y...>>
+: std::disjunction<typename test<Y>::type...>
+{};
+
+template<typename X, typename... XArgs>
+template<typename... Y>
+struct is_satisfied_by_<::java::G::extends_t<X, XArgs...>>::test<::java::G::type_set_t<Y...>>
 : std::disjunction<typename test<Y>::type...>
 {};
 
@@ -484,11 +504,35 @@ struct is_satisfied_by_<::java::G::extends_t<X, XArgs...>>::test<Y*>
 // Object is extended by everything.
 // (Curiously, it is by interfaces too, don't ask me how.)
 template<>
-struct is_satisfied_by_<::java::_tags::java::lang::Object::extends_t<>> {
+struct is_satisfied_by_<::java::G::extends_t<::java::_tags::java::lang::Object>> {
   template<typename Y>
   using test = std::enable_if<is_generic_v<Y>, std::true_type>;
 };
 
+
+template<typename PT>
+struct test_super_parent_types_;
+
+template<>
+struct test_super_parent_types_<::java::G::type_set_t<>> {
+  template<typename Y>
+  using test = std::enable_if_t<is_generic_v<Y>, std::false_type>;
+};
+
+template<typename PT0, typename... PTTail>
+struct test_super_parent_types_<::java::G::type_set_t<PT0, PTTail...>> {
+  template<typename Y>
+  struct test;
+};
+
+template<typename PT0, typename... PTTail>
+template<typename Y, typename... YArgs>
+struct test_super_parent_types_<::java::G::type_set_t<PT0, PTTail...>>::test<::java::G::is_t<Y, YArgs...>>
+: std::disjunction<
+    typename is_satisfied_by_<PT0>::template test<Y>,
+    typename test_super_parent_types_<PTTail...>::template test<Y>,
+    typename test_super_parent_types_<typename Y::template parent_types<YArgs...>>::template test<Y>>
+{};
 
 template<typename X, typename... XArgs>
 struct is_satisfied_by_<::java::G::super_t<X, XArgs...>> {
@@ -502,13 +546,7 @@ struct is_satisfied_by_<::java::G::super_t<X, XArgs...>> {
 template<typename X, typename... XArgs>
 template<typename Y>
 struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test_
-: std::disjunction<
-    typename is_satisfied_by_<::java::G::is_t<X, XArgs...>>
-        ::template test<Y>::type,
-    std::conjunction<
-        std::negation<std::is_same<::java::G::pack_t<>, typename X::template parent_types<XArgs...>>>,
-        typename is_satisfied_by_<typename X::template parent_types<XArgs...>>
-            ::template test<Y>::type>>
+: test_super_parent_types_<::java::G::type_set_t<::java::G::is_t<X, XArgs...>>>::template test<Y>
 {};
 
 template<typename X, typename... XArgs>
@@ -521,8 +559,8 @@ template<typename X, typename... XArgs>
 template<typename Y>
 struct is_satisfied_by_<::java::G::super_t<X, XArgs...>>::test
 : std::disjunction<
-    std::is_same<::java::_tags::java::lang::Object::is_t<>, Y>,
-    std::is_same<::java::_tags::java::lang::Object::super_t<>, Y>,
+    std::is_same<::java::G::is_t<::java::_tags::java::lang::Object>, Y>,
+    std::is_same<::java::G::super_t<::java::_tags::java::lang::Object>, Y>,
     typename test_<Y>::type>
 {};
 
@@ -677,6 +715,66 @@ struct combine<combine_result<R...>> {
 template<typename... R, typename In, typename... Tail>
 struct combine<combine_result<R...>, In, Tail...>
 : combine<typename add<combine_result<R...>, In>::type, Tail...>
+{};
+
+
+// Add a single type to the type_set.
+// Performs all the complicated stuff, like merging.
+template<typename Set, typename T>
+struct type_set_add;
+
+// Skip addition of void.
+template<typename... X>
+struct type_set_add<type_set_t<X...>, void> {
+  using type = type_set_t<X...>;
+};
+
+// When adding a pack, unpack it first.
+template<typename... X, typename... Y>
+struct type_set_add<type_set_t<X...>, pack_t<Y...>>
+: type_set_combine<type_set_t<X...>, Y...>
+{};
+
+// When adding a pack, unpack it first.
+template<typename... X, typename... Y>
+struct type_set_add<type_set_t<X...>, type_set_t<Y...>>
+: type_set_combine<type_set_t<X...>, Y...>
+{};
+
+template<typename... X, typename Y>
+struct add0_<type_set_t<X...>, Y> {
+  using type = type_set_t<X..., Y>;
+};
+
+// Add a type Y to pack_ X.
+// If Y is already satisfied by X, do nothing.
+// Otherwise: merge any X with Y for which tags match.
+// Otherwise: eliminate any X satisfied by Y, then perform simple addition.
+template<typename... X, typename Y>
+struct type_set_add<type_set_t<X...>, Y> {
+  // Result of addition.
+  // The result is a pack_t.
+  using type =
+      std::conditional_t<
+          // If we can merge...
+          std::disjunction_v<typename merge_by_tag_<X, Y>::success...>,
+          // Merge same-tag X and Y into single entry.
+          type_set_t<typename merge_by_tag_<X, Y>::merged_type...>,
+          // Else: append Y.
+          typename add0_<type_set_t<X...>, Y>::type>;
+};
+
+// Base case where there is nothing more to be added.
+template<typename... R>
+struct type_set_combine<type_set_t<R...>> {
+  using type = type_set_t<R...>;
+};
+
+// Default addition case: use `add` to add a single element,
+// and use recursion for the remaining elements.
+template<typename... R, typename In, typename... Tail>
+struct type_set_combine<type_set_t<R...>, In, Tail...>
+: type_set_combine<typename type_set_add<type_set_t<R...>, In>::type, Tail...>
 {};
 
 } /* namespace java::G::detail */
