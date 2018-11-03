@@ -47,6 +47,12 @@ struct is_java_primitive_
 template<typename R, typename... T>
 struct type_and_supertypes_;
 
+template<typename TargetTag, typename G>
+struct is_tagged_;
+
+template<typename R, typename Tag, typename... Types>
+struct find_tagged_type_;
+
 } /* namespace java::type_traits::<unnamed> */
 
 
@@ -185,6 +191,92 @@ using type_and_supertypes = type_and_supertypes_<java::G::type_set_t<>, T>;
 ///\copydoc type_and_supertypes
 template<typename T>
 using type_and_supertypes_t = typename type_and_supertypes<T>::type;
+
+
+/**
+ * \brief Test if the given non-pack generic is tagged with the given tag.
+ * \details
+ * A non-pack generic is one of
+ * \ref ::java::G::is_t "is",
+ * \ref ::java::G::extends_t "extends",
+ * or \ref ::java::G::super_t "super".
+ *
+ * \note Arrays don't have tags.
+ * \tparam TargetTag The tag to look for.
+ * \tparam G A non-pack generic.
+ */
+template<typename TargetTag, typename G>
+using is_tagged = typename is_tagged_<TargetTag, G>::type;
+
+///\copydoc is_tagged
+template<typename TargetTag, typename G>
+constexpr bool is_tagged_v = is_tagged<TargetTag, G>::value;
+
+/**
+ * \brief Find a type with the given tag.
+ * \details
+ * Will contain the type with the given tag.
+ * If no type matches the tag, this will hold an empty \ref ::java::G::pack_t "argument pack".
+ * If multiple types match the tag, they will be merged.
+ *
+ * \note The search will ignore \ref ::java::G::super_t "super-generics".
+ * It will also not contain `java.lang.Object` unless one of the types derives from it (aka is not an interface).
+ *
+ * \tparam Tag The tag of the type to find.
+ * \tparam Types Zero or more types over which to search.
+ * This may contains \ref ::java::G::pack_t "argument packs" and
+ * \ref ::java::G::type_set_t "type sets".
+ */
+template<typename Tag, typename... Types>
+using find_tagged_type = find_tagged_type_<::java::G::type_set_t<>, Tag, Types...>;
+
+///\copydoc find_tagged_type
+template<typename Tag, typename... Types>
+using find_tagged_type_t = typename find_tagged_type<Tag, Types...>::type;
+
+
+/**
+ * \brief Find the combined base type with a given tag.
+ * \details
+ * This type basically searches for the base type with the given tag.
+ * Any type satisfying the input types will satisfy the returned base type.
+ *
+ * Will contain the type with the given tag.
+ * If no type matches the tag, this will hold an empty \ref ::java::G::pack_t "argument pack".
+ * If multiple types match the tag, they will be merged.
+ *
+ * \note The search will ignore \ref ::java::G::super_t "super-generics".
+ * It will also not contain `java.lang.Object` unless one of the types derives from it (aka is not an interface).
+ *
+ * \tparam Tag The tag of the type to find.
+ * \tparam Types Zero or more types over which to search.
+ * This may contains \ref ::java::G::pack_t "argument packs" and
+ * \ref ::java::G::type_set_t "type sets".
+ */
+template<typename Tag, typename... Types>
+using find_basetype_with_tag = find_tagged_type<Tag, type_and_supertypes_t<Types>...>;
+
+///\copydoc find_basetype_with_tag
+template<typename Tag, typename... Types>
+using find_basetype_with_tag_t = typename find_basetype_with_tag<Tag, Types...>::type;
+
+
+/**
+ * \brief Test if the given type has a base type with the given tag.
+ * \details
+ * This type tests if the given type derives from a type identified by tag \p Tag.
+ *
+ * \note The search will ignore \ref ::java::G::super_t "super-generics".
+ * It will also not contain `java.lang.Object` unless one of the types derives from it (aka is not an interface).
+ */
+template<typename Tag, typename... Types>
+using has_basetype_with_tag = std::negation<std::is_same<
+    ::java::G::pack_t<>,
+    find_basetype_with_tag_t<Tag, Types...>>>;
+
+///\copydoc has_basetype_with_tag
+template<typename Tag, typename... Types>
+constexpr bool has_basetype_with_tag_v = has_basetype_with_tag<Tag, Types...>::value;
 
 
 namespace {
@@ -348,6 +440,18 @@ struct type_and_supertypes_<::java::G::type_set_t<Types...>, ::java::G::is_t<Tag
     typename Tag::template parent_types<Args...>>
 {};
 
+// Case for adding an extends_t type.
+template<typename... Types, typename Tag, typename... Args, typename... Tail>
+struct type_and_supertypes_<::java::G::type_set_t<Types...>, ::java::G::extends_t<Tag, Args...>, Tail...>
+: type_and_supertypes_<::java::G::type_set_t<Types...>, ::java::G::is_t<Tag, Args...>, Tail...>
+{};
+
+// Case for adding a super_t type (it is dropped).
+template<typename... Types, typename Tag, typename... Args, typename... Tail>
+struct type_and_supertypes_<::java::G::type_set_t<Types...>, ::java::G::super_t<Tag, Args...>, Tail...>
+: type_and_supertypes_<::java::G::type_set_t<Types...>, Tail...>
+{};
+
 // Case for adding a pointer type.
 template<typename... Types, typename T, typename... Tail>
 struct type_and_supertypes_<::java::G::type_set_t<Types...>, T*, Tail...>
@@ -357,6 +461,46 @@ struct type_and_supertypes_<::java::G::type_set_t<Types...>, T*, Tail...>
     ::java::G::is_t<::java::_tags::java::lang::Object>,
     ::java::G::is_t<::java::_tags::java::lang::Cloneable>,
     ::java::G::is_t<::java::_tags::java::io::Serializable>>
+{};
+
+
+template<typename TargetTag, typename Tag, typename... Arguments>
+struct is_tagged_<TargetTag, ::java::G::is_t<Tag, Arguments...>>
+: std::is_same<TargetTag, Tag>
+{};
+
+template<typename TargetTag, typename Tag, typename... Arguments>
+struct is_tagged_<TargetTag, ::java::G::extends_t<Tag, Arguments...>>
+: std::is_same<TargetTag, Tag>
+{};
+
+template<typename TargetTag, typename Tag, typename... Arguments>
+struct is_tagged_<TargetTag, ::java::G::super_t<Tag, Arguments...>>
+: std::is_same<TargetTag, Tag>
+{};
+
+
+template<typename... R, typename Tag>
+struct find_tagged_type_<::java::G::type_set_t<R...>, Tag> {
+  using type = ::java::G::pack<R...>;
+};
+
+template<typename... R, typename Tag, typename T0, typename... Types>
+struct find_tagged_type_<::java::G::type_set_t<R...>, Tag, T0, Types...>
+: std::conditional_t<
+    is_tagged_<Tag, T0>::value,
+    find_tagged_type_<::java::G::type_set_t<R..., T0>, Tag, Types...>,
+    find_tagged_type_<::java::G::type_set_t<R...>, Tag, Types...>>
+{};
+
+template<typename... R, typename Tag, typename... Pack, typename... Types>
+struct find_tagged_type_<::java::G::type_set_t<R...>, Tag, ::java::G::pack_t<Pack...>, Types...>
+: find_tagged_type_<::java::G::type_set_t<R...>, Tag, Pack..., Types...>
+{};
+
+template<typename... R, typename Tag, typename... Pack, typename... Types>
+struct find_tagged_type_<::java::G::type_set_t<R...>, Tag, ::java::G::type_set_t<Pack...>, Types...>
+: find_tagged_type_<::java::G::type_set_t<R...>, Tag, Pack..., Types...>
 {};
 
 } /* namespace java::type_traits::<unnamed> */

@@ -236,7 +236,9 @@ struct make_is_ {
       "Incorrect number of generics arguments for type.");
   static_assert(std::conjunction_v<::java::type_traits::is_generic<Arguments>...>,
       "Arguments must be generics types.");
+#if 0
   static_assert(arg_validate<Tag, Arguments...>::value, "Invalid type.");
+#endif
 
   using type = typename Tag::template is_t<Arguments...>;
 };
@@ -247,7 +249,9 @@ struct make_extends_ {
       "Incorrect number of generics arguments for type.");
   static_assert(std::conjunction_v<::java::type_traits::is_generic<Arguments>...>,
       "Arguments must be generics types.");
+#if 0
   static_assert(arg_validate<Tag, Arguments...>::value, "Invalid type.");
+#endif
 
   using type = typename Tag::template extends_t<Arguments...>;
 };
@@ -258,7 +262,9 @@ struct make_super_ {
       "Incorrect number of generics arguments for type.");
   static_assert(std::conjunction_v<::java::type_traits::is_generic<Arguments>...>,
       "Arguments must be generics types.");
+#if 0
   static_assert(arg_validate<Tag, Arguments...>::value, "Invalid type.");
+#endif
 
   using type = typename Tag::template super_t<Arguments...>;
 };
