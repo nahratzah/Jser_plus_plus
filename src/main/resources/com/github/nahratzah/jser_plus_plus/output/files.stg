@@ -1,3 +1,67 @@
+fwdTagFile(codeGen, includes) ::= <<
+#ifndef JAVA_TAGFWD_$codeGen.includeGuard$
+#define JAVA_TAGFWD_$codeGen.includeGuard$
+
+///\file
+///\brief Forward declaration of the tag.
+///\note
+///If all you want is the tag, include <$codeGen.tagHeaderName$> instead.
+///If all you want is the type, include <$codeGen.headerName$> instead.
+
+$includes: include(); separator = "\n"$
+
+namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ {
+$codeGen.types: tagForwardDeclaration(); separator = "\n"$
+} /* namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ */
+
+namespace java::G::detail {
+
+$codeGen.types: tagArityDeclaration(); separator = "\n\n"$
+
+} /* namespace java::G::detail */
+
+#endif /* JAVA_TAGFWD_$codeGen.includeGuard$ */
+
+>>
+
+
+tagFile(codeGen, includes, includesAfter) ::= <<
+#ifndef JAVA_TAG_$codeGen.includeGuard$
+#define JAVA_TAG_$codeGen.includeGuard$
+
+///\file
+///\brief Forward declaration of the tag.
+///\note If all you want is the type, include <$codeGen.headerName$> instead.
+
+$[codeGen.tagFwdHeaderName, "string_view", "java/generics.h", "java/type_traits.h"]: include(); separator = "\n"$
+$includes: include(); separator = "\n"$
+
+// Forward declare all erased types.
+namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
+$codeGen.types:{model|class $model.className$;}; separator = "\n"$
+} /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
+
+// Declare all tags.
+namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ {
+
+$codeGen.types: tagDeclaration(); separator = "\n\n"$
+
+} /* namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ */
+
+// Complete all tag types.
+$includesAfter: include(); separator = "\n"$
+
+namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ {
+
+$codeGen.types: tagDeclarationArgValidation(); separator = "\n\n"$
+
+} /* namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ */
+
+#endif /* JAVA_TAG_$codeGen.includeGuard$ */
+
+>>
+
+
 fwdHeaderFile(codeGen, includes) ::= <<
 #ifndef JAVA_FWD_$codeGen.includeGuard$
 #define JAVA_FWD_$codeGen.includeGuard$
@@ -10,20 +74,7 @@ fwdHeaderFile(codeGen, includes) ::= <<
 #include <java/_accessor.h>
 #include <java/ref.h>
 #include <java/inline.h>
-
-// Forward declare all erased types.
-namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ {
-
-$codeGen.types:{model|class $model.className$;}; separator = "\n"$
-
-} /* namespace $["java", "_erased", codeGen.namespace]; separator = "::"$ */
-
-// Declare all tags.
-namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ {
-
-$codeGen.types:{model|$tagDeclaration(model)$}; separator = "\n\n"$
-
-} /* namespace $["java", "_tags", codeGen.namespace]; separator = "::"$ */
+#include <$codeGen.tagHeaderName$>
 
 // Forward declare accessors.
 namespace java {
@@ -158,17 +209,156 @@ auto $name$()
 >>
 
 
+tagForwardDeclaration(model) ::= <<
+struct $model.className$;
+>>
+
+
+tagArityDeclaration(model) ::= <<
+template<>
+struct generics_arity_<$tagType(model)$>
+: ::std::integral_constant<::std::size_t, $length(model.templateArguments)$>
+{};
+>>
+
+
 tagDeclaration(model) ::= <<
+///\brief Tag for $model.boundType$.
 struct $model.className$ {
-  static constexpr ::std::size_t generics_arity = $length(model.templateArguments)$;
+  ///\brief Number of template arguments for $model.boundType$.
+  ///\details The number of template arguments is $length(model.templateArguments)$.
+  static constexpr ::std::size_t generics_arity = ::java::G::detail::generics_arity_<$model.className$>::value;
+  ///\brief Type-erased class described by the tag.
   using erased_type = ::$["java", "_erased", model.namespace, model.className]; separator = "::"$;
 
+  ///\brief Retrieve the UTF-16 name of this class.
+  ///\return A UTF-16 string view, containing $cxxString(model.name)$.
   static constexpr ::std::u16string_view u_name() {
     using namespace ::std::string_view_literals;
 
     return $u16StringView(model.name)$;
   }
+
+$if (model.classGenerics.mangledGenericsNames)$
+  private:
+  ///\brief Compute types.
+  ///\details Empty java::G::pack_t are converted to their constrained type.
+  $templateLine(model.classGenerics.mangledGenericsNames)$
+  struct __arg_rebuild__;
+
+  public:
+  ///\brief Validate types.
+  $templateLine(model.classGenerics.mangledGenericsNames)$
+  struct __arg_validate__;
+
+  ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
+  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
+  $templateLine(model.classGenerics.genericsNames)$
+  using is_t = typename __arg_rebuild__$templateArgs(model.classGenerics.genericsNames)$::is_t;
+  ///\brief The \ref ::java::G::extends_t "extends" generic for $model.boundType$.
+  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
+  $templateLine(model.classGenerics.genericsNames)$
+  using extends_t = typename __arg_rebuild__$templateArgs(model.classGenerics.genericsNames)$::extends_t;
+  ///\brief The \ref ::java::G::super_t "super" generic for $model.boundType$.
+  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
+  $templateLine(model.classGenerics.genericsNames)$
+  using super_t = typename __arg_rebuild__$templateArgs(model.classGenerics.genericsNames)$::super_t;
+
+  ///\brief The parent types for $model.boundType$.
+  $model.classGenerics.genericsNames: {name|///\tparam $name$ Template argument $name$.}; anchor, separator = "\n"$
+  $templateLine(model.classGenerics.genericsNames)$
+  using parent_types = typename __arg_rebuild__$templateArgs(model.classGenerics.genericsNames)$::template parent_types<>;
+$else$
+  ///\brief Validate argument types.
+  template<typename...>
+  struct __arg_validate__;
+
+  ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
+  ///\note This is a zero argument template.
+  template<typename... __T__>
+  using is_t = ::java::G::is_t<::std::enable_if_t<sizeof...(__T__) == 0, $model.className$\>>;
+  ///\brief The \ref ::java::G::extends_t "extends" generic for $model.boundType$.
+  ///\note This is a zero argument template.
+  template<typename... __T__>
+  using extends_t = ::java::G::extends_t<::std::enable_if_t<sizeof...(__T__) == 0, $model.className$\>>;
+  ///\brief The \ref ::java::G::super_t "super" generic for $model.boundType$.
+  ///\note This is a zero argument template.
+  template<typename... __T__>
+  using super_t = ::java::G::super_t<::std::enable_if_t<sizeof...(__T__) == 0, $model.className$\>>;
+
+  ///\brief The parent types for $model.boundType$.
+  ///\note This is a zero argument template.
+  ///The weird `std::enable_if_t` usage is to make any types late binding.
+  template<typename... __T__>
+  using parent_types = ::std::enable_if_t<
+      sizeof...(__T__) == 0,
+      ::java::G::type_set_t$templateArgs(model.classGenerics.parentTypesForTag, true)$>;
+$endif$
 };
+>>
+
+
+tagDeclarationArgValidation(model) ::= <<
+$if (model.classGenerics.mangledGenericsNames)$
+$templateLine(model.classGenerics.mangledGenericsNames)$
+struct $model.className$::__arg_rebuild__ {
+  $ model.classGenerics.mangledGenericsNames, model.classGenerics.genericsNames
+  : {mangledName, name|static_assert(::java::type_traits::is_generic_v<$mangledName$>, $cxxString({Template argument "$name$" must be a generics type.})$);}
+  ; separator = "\n"$
+
+  // Argument computation.
+  $ model.classGenerics.resolutionNames, model.classGenerics.mangledResolutionNames, model.classGenerics.resolutionTypes
+  : { name, mangledName, type | $\\$
+      using $name$ = $\\$
+      $if (type)$$\\$
+        ::std::conditional_t$templateArgs([{::std::is_same_v<::java::G::pack_t<>, $mangledName$>}, boundTemplateType(type, "style=type"), mangledName])$$\\$
+      $else$$\\$
+        $mangledName$$\\$
+      $endif$$\\$
+      ;}
+  ; separator = "\n"$
+
+  ///\brief The \ref ::java::G::is_t "is" generic for $model.boundType$.
+  using is_t = ::java::G::is_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
+  ///\brief The \ref ::java::G::extends_t "extends" generic for $model.boundType$.
+  using extends_t = ::java::G::extends_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
+  ///\brief The \ref ::java::G::super_t "super" generic for $model.boundType$.
+  using super_t = ::java::G::super_t$templateArgs([model.className, model.classGenerics.genericsNames])$;
+
+  ///\brief The parent types for $model.boundType$.
+  ///\note This is a zero-argument template.
+  ///The weird `std::enable_if_t` usage is to make any types late binding.
+  template<typename... __T__>
+  using parent_types = ::std::enable_if_t<
+      sizeof...(__T__) == 0,
+      ::java::G::type_set_t$templateArgs(model.classGenerics.parentTypesForTag, true)$>;
+};
+
+$templateLine(model.classGenerics.mangledGenericsNames)$
+struct $model.className$::__arg_validate__
+: ::std::true_type // Actual validation is done using static_assert.
+{
+  // Import names from arg rebuild logic.
+  $ model.classGenerics.genericsNames
+  : {name|using $name$ = typename __arg_rebuild__$templateArgs(model.classGenerics.mangledGenericsNames)$::$name$;}
+  ; anchor, separator = "\n"$
+
+  // Argument validation.
+  $ model.classGenerics.mangledGenericsNames, model.classGenerics.genericsNames, model.classGenerics.constraints
+  : { mangledName, name, constraint | $\\$
+      static_assert($\\$
+          $ [ {::std::is_same_v<::java::G::pack_t<>, ::java::type_traits::find_is_types_only_t<$mangledName$\>> || ::java::type_traits::is_satisfied_by_v<$boundTemplateType(constraint, "style=type")$, $name$>},
+              cxxString({$name$ must extend $model.classGenerics.generics.(name)$}) ]
+          ; anchor, separator = ",\n"$$\\$
+          );}
+  ; separator = "\n"$
+};
+$else$
+template<typename... __T__>
+struct $model.className$::__arg_validate__
+: ::std::enable_if_t<sizeof...(__T__) == 0, ::std::true_type>
+{};
+$endif$
 >>
 
 

@@ -20,6 +20,7 @@ import static com.github.nahratzah.jser_plus_plus.model.Type.typeFromCfgType;
 import com.github.nahratzah.jser_plus_plus.model.impl.AccessorConstructor;
 import com.github.nahratzah.jser_plus_plus.model.impl.AccessorMethod;
 import com.github.nahratzah.jser_plus_plus.model.impl.ClassDelegateMethod;
+import com.github.nahratzah.jser_plus_plus.model.impl.ClassGenerics;
 import com.github.nahratzah.jser_plus_plus.model.impl.ClassVirtualDelegateMethod;
 import com.github.nahratzah.jser_plus_plus.output.builtins.ConstTypeRenderer;
 import com.github.nahratzah.jser_plus_plus.output.builtins.FunctionAttrMap;
@@ -804,6 +805,9 @@ public class ClassType implements JavaType {
     public synchronized void postProcess(Context ctx) {
         if (postProcessingDone) return;
         postProcessingDone = true;
+
+        // First, fill in class generics.
+        classGenerics = new ClassGenerics(this, templateArguments);
 
         final Map<OverrideSelector, Collection<ImplementedClassMethod>> virtualClassMembersWithParentMethods, nonVirtualClassMembersWithParentMethods;
         Collection<ImplementedClassMethod> keptParentMethodsWithChangedTypes;
@@ -1758,6 +1762,15 @@ public class ClassType implements JavaType {
     }
 
     /**
+     * Get class generics helper.
+     *
+     * @return The class generics helper.
+     */
+    public ClassGenerics getClassGenerics() {
+        return requireNonNull(classGenerics);
+    }
+
+    /**
      * Underlying java class.
      */
     protected final Class<?> c;
@@ -1843,4 +1856,12 @@ public class ClassType implements JavaType {
      * Accessor model for this class.
      */
     private final Accessor accessor = new Accessor(this);
+    /**
+     * Class generics.
+     *
+     * Filled in by
+     * {@link #postProcess(com.github.nahratzah.jser_plus_plus.input.Context) post processing}
+     * logic.
+     */
+    private ClassGenerics classGenerics;
 }

@@ -45,13 +45,7 @@ struct _template_selector_tmpl_t {
       "Can only select arguments up to the argument length of the type.");
 
  private:
-  template<typename G>
-  struct accessor_for_;
-
-  template<typename G>
-  using accessor_for = typename accessor_for_<G>::type;
-
-  template<typename G, bool Implemented = ::java::type_traits::implements_tag_v<Tag, accessor_for<G>>>
+  template<typename G, bool Implemented = ::java::type_traits::has_basetype_with_tag_v<Tag, G>>
   struct select0_;
 
   template<typename G>
@@ -63,25 +57,6 @@ struct _template_selector_tmpl_t {
 };
 
 template<typename Tag, ::std::size_t ArgumentIndex>
-template<typename... X>
-struct _template_selector_tmpl_t<Tag, ArgumentIndex>::accessor_for_<::java::G::is_t<X...>> {
-  // We borrow dummy_accessor_base_ from java/generics.h
-  using type = ::java::_accessor<::java::type_traits::_dummy_accessor_base, X...>;
-};
-
-template<typename Tag, ::std::size_t ArgumentIndex>
-template<typename... X>
-struct _template_selector_tmpl_t<Tag, ArgumentIndex>::accessor_for_<::java::G::extends_t<X...>>
-: accessor_for_<::java::G::is<X...>>
-{};
-
-template<typename Tag, ::std::size_t ArgumentIndex>
-template<typename... X>
-struct _template_selector_tmpl_t<Tag, ArgumentIndex>::accessor_for_<::java::G::super_t<X...>>
-: accessor_for_<::java::G::is<::java::_tags::java::lang::Object>>
-{};
-
-template<typename Tag, ::std::size_t ArgumentIndex>
 template<typename G>
 struct _template_selector_tmpl_t<Tag, ArgumentIndex>::select0_<G, false> {
   using type_or_pack = ::java::G::pack<>;
@@ -90,7 +65,7 @@ struct _template_selector_tmpl_t<Tag, ArgumentIndex>::select0_<G, false> {
 template<typename Tag, ::std::size_t ArgumentIndex>
 template<typename G>
 struct _template_selector_tmpl_t<Tag, ArgumentIndex>::select0_<G, true> {
-  using type = typename ::java::type_traits::accessor_type_<accessor_for<G>>::is_type;
+  using type = ::java::type_traits::find_basetype_with_tag_t<Tag, G>;
   using type_or_pack = type;
 };
 
@@ -98,14 +73,6 @@ template<typename Tag, ::std::size_t ArgumentIndex>
 template<typename G>
 struct _template_selector_tmpl_t<Tag, ArgumentIndex>::select_
 : select0_<G>
-{};
-
-template<typename Tag, ::std::size_t ArgumentIndex>
-template<typename... G>
-struct _template_selector_tmpl_t<Tag, ArgumentIndex>::select_<::java::G::pack_t<G...>>
-: ::std::enable_if<
-    ::std::disjunction_v<::java::type_traits::implements_tag<Tag, accessor_for<G>>...>,
-    ::java::G::pack<typename select0_<G>::type_or_pack...>>
 {};
 
 

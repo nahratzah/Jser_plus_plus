@@ -4,6 +4,7 @@ import com.github.nahratzah.jser_plus_plus.model.BoundTemplate;
 import com.github.nahratzah.jser_plus_plus.model.PrimitiveType;
 import com.github.nahratzah.jser_plus_plus.model.Type;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import static java.util.Objects.requireNonNull;
@@ -428,8 +429,15 @@ public class BoundTemplateRenderer implements TypeAttributeRenderer {
             final Stream<String> superStream = b.getSuperTypes().stream()
                     .map(type -> type.visit(typeRenderer))
                     .map(typeStr -> "::java::G::super<" + typeStr + ">");
-            final String type = "::java::G::pack"
-                    + Stream.concat(extendStream, superStream).collect(Collectors.joining(", ", "<", ">"));
+            final List<String> constraints = Stream.concat(extendStream, superStream)
+                    .collect(Collectors.toList());
+            final String type;
+            if (constraints.size() == 1) {
+                type = constraints.get(0);
+            } else {
+                type = "::java::G::pack"
+                        + constraints.stream().collect(Collectors.joining(", ", "<", ">"));
+            }
 
             if (config.classType != null)
                 return config.classType.apply("::java::type<" + type + ">", config);
