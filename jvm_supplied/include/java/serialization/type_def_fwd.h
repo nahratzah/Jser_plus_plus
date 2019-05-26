@@ -7,7 +7,7 @@ class cycle_handler;
 
 namespace java::serialization::stream {
 class stream_element;
-class stream_string;
+struct stream_string;
 } /* namespace java::serialization::stream */
 
 #endif /* JAVA_SERIALIZATION_TYPE_DEF_FWD_H */
